@@ -2,39 +2,94 @@
 @rendermode InteractiveServer
 @inject TMWebShopfloorService shopfloorService
 
-<DxGridLayout>
+<DxGridLayout ColumnSpacing="1rem">
 	<Rows>
 		<DxGridLayoutRow></DxGridLayoutRow>
 	</Rows>
 	<Columns>
-		<DxGridLayoutColumn></DxGridLayoutColumn>
-		<DxGridLayoutColumn></DxGridLayoutColumn>
+		<DxGridLayoutColumn Width="30%"></DxGridLayoutColumn>
+		<DxGridLayoutColumn Width="50%"></DxGridLayoutColumn>
 	</Columns>
 	<Items>
 		<DxGridLayoutItem Row="0" Column="0">
 			<Template>
-				<DxGrid Data="@workerders">
-					<Columns>
-						<DxGridDataColumn FieldName="@nameof(Workerder.Status)" />
-						<DxGridDataColumn FieldName="@nameof(Workerder.WorkerderNo)" />
-						<DxGridDataColumn FieldName="@nameof(Workerder.Lot)" />
-						<DxGridDataColumn FieldName="@nameof(Workerder.PartNo)" />
-					</Columns>
-				</DxGrid>
+				<div class="p-3">
+					<DxGrid Data="@workerders" FocusedRowEnabled="true" FocusedRowChanged="OnFocusedWorkorderChanged">
+						<Columns>
+							<DxGridDataColumn FieldName="@nameof(Workerder.Status)" />
+							<DxGridDataColumn FieldName="@nameof(Workerder.WorkerderNo)" />
+							<DxGridDataColumn FieldName="@nameof(Workerder.Lot)" />
+							<DxGridDataColumn FieldName="@nameof(Workerder.PartNo)" />
+						</Columns>
+					</DxGrid>
+				</div>
 			</Template>
 		</DxGridLayoutItem>
-		<DxGridLayoutItem Row="0" Column="0">
-			<Template></Template>
+		<DxGridLayoutItem Row="0" Column="1">
+			<Template>
+				<div class="p-3">
+					@if (detailWorkorder != null)
+					{
+						<DxFormLayout>
+							<DxTabs>
+								<DxTabPage Text="Workorder Recipe">
+									@if (hasRecipe)
+									{
+										<div class="p-3">
+											<DxFormLayout CssClass="p-3">
+												<DxGrid Data="@workorderRecipeContents">
+													<Columns>
+														<DxGridDataColumn FieldName="@nameof(WorkorderRecipeContent.RecipeName)"></DxGridDataColumn>
+														<DxGridDataColumn FieldName="@nameof(WorkorderRecipeContent.DataType)"></DxGridDataColumn>
+														<DxGridDataColumn FieldName="@nameof(WorkorderRecipeContent.Value)"></DxGridDataColumn>
+													</Columns>
+												</DxGrid>
+											</DxFormLayout>
+										</div>
+									}
+								</DxTabPage>
+								@* <DxTabPage Text="Workorder Record"></DxTabPage>
+							<DxTabPage Text="Item Record">
+							<DxFormLayout Data="@detailWorkorder.WorkorderRecordCategory.WorkorderRecordContents">
+							<DxFormLayoutItem Field="@nameof(ItemRecordContent.RecordName)"></DxFormLayoutItem>
+							<DxFormLayoutItem Field="@nameof(ItemRecordContent.DataType)"></DxFormLayoutItem>
+							</DxFormLayout>
+							</DxTabPage>
+							<DxTabPage Text="Task Record">
+							<DxFormLayout Data="@detailWorkorder.TaskRecordCategory.TaskRecordContents">
+							<DxFormLayoutItem Field="@nameof(TaskRecordContent.RecordName)"></DxFormLayoutItem>
+							<DxFormLayoutItem Field="@nameof(TaskRecordContent.DataType)"></DxFormLayoutItem>
+							</DxFormLayout>
+							</DxTabPage> *@
+							</DxTabs>
+						</DxFormLayout>
+					}
+				</div>
+			</Template>
 		</DxGridLayoutItem>
 	</Items>
 </DxGridLayout>
 
 @code {
 	private List<Workerder> workerders = new();
+	Workerder? selectedWorkorder;
+	Workerder? detailWorkorder;
+	private bool hasRecipe => detailWorkorder.RecipeCategoryId != null;
+	IEnumerable<WorkorderRecipeContent> workorderRecipeContents => detailWorkorder.RecipeCategory == null ? new List<WorkorderRecipeContent>() : detailWorkorder.RecipeCategory.WorkorderRecipeContents;
 
 	protected override async Task OnInitializedAsync()
 	{
 		workerders = await shopfloorService.GetAllWorkorders();
+	}
+
+	private async void OnFocusedWorkorderChanged(GridFocusedRowChangedEventArgs e)
+	{
+		selectedWorkorder = e.DataItem as Workerder;
+		if (selectedWorkorder != null)
+		{
+			detailWorkorder = await shopfloorService.GetWorkordersDetails(selectedWorkorder.Id);
+		}
+
 	}
 }
 

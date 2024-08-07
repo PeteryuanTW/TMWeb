@@ -39,6 +39,17 @@ namespace TMWeb.Services
 				return Task.FromResult(dbContext.Workerders.ToList());
 			}
 		}
+		public Task<Workerder?> GetWorkordersDetails(Guid id)
+		{
+			using (var scope = scopeFactory.CreateScope())
+			{
+				var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+				return Task.FromResult(dbContext.Workerders.Include(x=>x.Process)
+					.Include(x=>x.RecipeCategory).ThenInclude(x=>x.WorkorderRecipeContents)
+					.FirstOrDefault(x=>x.Id == id));
+			}
+		}
+
 		public Task<Workerder?> GetWorkorderAndRecipeByNoAndLot(string wo, string lot)
 		{
 			using (var scope = scopeFactory.CreateScope())
