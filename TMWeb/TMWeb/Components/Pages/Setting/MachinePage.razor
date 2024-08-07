@@ -1,0 +1,64 @@
+﻿@page "/Machine/{machineName}"
+@rendermode InteractiveServer
+@inject TMWebMachineService machineService
+
+<DxGridLayout ColumnSpacing="3rem">
+	<Rows>
+		<DxGridLayoutRow></DxGridLayoutRow>
+	</Rows>
+	<Columns>
+		<DxGridLayoutColumn Width="30%"></DxGridLayoutColumn>
+		<DxGridLayoutColumn Width="60%"></DxGridLayoutColumn>
+	</Columns>
+	<Items>
+		<DxGridLayoutItem Row="0" Column="0">
+			<Template>
+
+				<DxFormLayout CaptionPosition="CaptionPosition.Vertical" Data="@machine" ReadOnly="true">
+					<DxFormLayoutGroup Caption="Machine Config" CssClass="rounded">
+						<DxFormLayoutItem Caption="Name" Field="@nameof(Machine.Name)" />
+						<DxFormLayoutItem Caption="Enable" Field="@nameof(Machine.Enabled)">
+							<DxCheckBox Checked="@(((bool)(((ValueEditContext)context).Value)))" CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
+						</DxFormLayoutItem>
+						<DxFormLayoutItem Caption="IP" Field="@nameof(Machine.Ip)" />
+						<DxFormLayoutItem Caption="Port" Field="@nameof(Machine.Port)" />
+						<DxFormLayoutItem Caption="Connection Type" Field="@nameof(Machine.ConnectionType)">
+							<DxTextBox Text="@(((MachineConnectType)(((ValueEditContext)context).Value)).ToString())"></DxTextBox>
+						</DxFormLayoutItem>
+						<DxFormLayoutItem Caption="Tag Category" Field="@nameof(Machine.TagCategory.Name)" />
+					</DxFormLayoutGroup>
+				</DxFormLayout>
+
+			</Template>
+		</DxGridLayoutItem>
+		<DxGridLayoutItem Row="0" Column="1">
+			<Template>
+				<DxGrid Data="@machine.TagCategory.Tags">
+					<Columns>
+						<DxGridDataColumn FieldName="@nameof(Tag.Name)" />
+						<DxGridDataColumn FieldName="@nameof(Tag.DataType)" />
+						<DxGridDataColumn FieldName="@nameof(Tag.UpdateByTime)" />
+						<DxGridDataColumn FieldName="@nameof(Tag.IsHeartBeat)" />
+						<DxGridDataColumn FieldName="@nameof(Tag.Param1)" />
+						<DxGridDataColumn FieldName="@nameof(Tag.Param2)" />
+						<DxGridDataColumn FieldName="@nameof(Tag.Param3)" />
+						<DxGridDataColumn FieldName="@nameof(Tag.Param4)" />
+						<DxGridDataColumn FieldName="@nameof(Tag.Param5)" />
+					</Columns>
+				</DxGrid>
+			</Template>
+		</DxGridLayoutItem>
+	</Items>
+</DxGridLayout>
+
+
+@code {
+	[Parameter]
+	public string machineName { get; set; }
+	private Machine? machine;
+
+	protected override async Task OnInitializedAsync()
+	{
+		machine = await machineService.GetMachineByName(machineName);
+	}
+}

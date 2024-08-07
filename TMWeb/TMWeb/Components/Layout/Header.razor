@@ -1,0 +1,36 @@
+﻿@rendermode InteractiveServer
+
+<div class="card p-2 " style="margin:1rem">
+    <DxMenu Orientation="Orientation.Horizontal"
+            DropDownActionMode="MenuDropDownActionMode.Click"
+            DisplayMode="MenuDisplayMode.Desktop"
+            CollapseItemsToHamburgerMenu="true"
+            CollapseItemToIconMode="MenuCollapseItemToIconMode.All">
+        <TitleTemplate>
+            <DxButton RenderStyle="ButtonRenderStyle.None" Text="Service"></DxButton>
+        </TitleTemplate>
+        <Items>
+            <DxMenuItem Position="ItemPosition.Center" Text="Shopfloor">
+                <Items>
+                    <DxMenuItem Text="Process" NavigateUrl="/Process"/>
+                    <DxMenuItem Text="Station" />
+                    <DxMenuItem Text="Workorder" NavigateUrl="/WorkordersDasboard" />
+                </Items>
+            </DxMenuItem>
+            <DxMenuItem Position="ItemPosition.Center" Text="Machine" IconCssClass="oi oi-laptop" BeginGroup="true"/>
+            <DxMenuItem Position="ItemPosition.Center" Text="Tags" IconCssClass="oi oi-tags"/>
+            <DxMenuItem Position="ItemPosition.Center" Text="Setting" IconCssClass="oi oi-cog" BeginGroup="true"/>
+        </Items>
+    </DxMenu>
+</div>
+
+@code {
+
+
+    protected override Task OnInitializedAsync()
+    {
+        return base.OnInitializedAsync();
+    }
+
+    
+}

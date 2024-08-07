@@ -1,0 +1,30 @@
+﻿@page "/Process"
+@rendermode InteractiveServer
+@inject TMWebShopfloorService shopfloorService
+
+<DxTreeView AllowSelectNodes="true"
+			AnimationType="LayoutAnimationType.Slide">
+	<Nodes>
+		@foreach (Process process in processes)
+		{
+			<DxTreeViewNode Text="@process.Name">
+				<Nodes>
+					@foreach (Station station in process.Stations)
+					{
+						<DxTreeViewNode Text="@($"{station.ProcessIndex}-{station.Name}")" />
+					}
+				</Nodes>
+			</DxTreeViewNode>
+		}
+	</Nodes>
+</DxTreeView>
+
+
+@code {
+	List<Process> processes = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		processes = await shopfloorService.GetAllProcess();
+	}
+}

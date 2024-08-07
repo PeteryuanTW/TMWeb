@@ -1,0 +1,40 @@
+﻿@page "/WorkordersDashboard"
+@rendermode InteractiveServer
+@inject TMWebShopfloorService shopfloorService
+
+<DxGridLayout>
+	<Rows>
+		<DxGridLayoutRow></DxGridLayoutRow>
+	</Rows>
+	<Columns>
+		<DxGridLayoutColumn></DxGridLayoutColumn>
+		<DxGridLayoutColumn></DxGridLayoutColumn>
+	</Columns>
+	<Items>
+		<DxGridLayoutItem Row="0" Column="0">
+			<Template>
+				<DxGrid Data="@workerders">
+					<Columns>
+						<DxGridDataColumn FieldName="@nameof(Workerder.Status)" />
+						<DxGridDataColumn FieldName="@nameof(Workerder.WorkerderNo)" />
+						<DxGridDataColumn FieldName="@nameof(Workerder.Lot)" />
+						<DxGridDataColumn FieldName="@nameof(Workerder.PartNo)" />
+					</Columns>
+				</DxGrid>
+			</Template>
+		</DxGridLayoutItem>
+		<DxGridLayoutItem Row="0" Column="0">
+			<Template></Template>
+		</DxGridLayoutItem>
+	</Items>
+</DxGridLayout>
+
+@code {
+	private List<Workerder> workerders = new();
+
+	protected override async Task OnInitializedAsync()
+	{
+		workerders = await shopfloorService.GetAllWorkorders();
+	}
+}
+

@@ -1,0 +1,54 @@
+﻿@page "/Workorder/{WorkorderNo}/{Lot}"
+@rendermode InteractiveServer
+@inject TMWebShopfloorService shopfloorService
+
+<DxGridLayout ColumnSpacing="1rem" RowSpacing="1rem">
+	<Rows>
+		<DxGridLayoutRow Height="7fr"></DxGridLayoutRow>
+		<DxGridLayoutRow Height="3fr"></DxGridLayoutRow>
+	</Rows>
+	<Columns>
+		<DxGridLayoutColumn Width="4fr"></DxGridLayoutColumn>
+		<DxGridLayoutColumn Width="8fr"></DxGridLayoutColumn>
+	</Columns>
+	<Items>
+		<DxGridLayoutItem Row="0" Column="0" ColumnSpan="2">
+			<Template>
+				<DxFormLayout>
+					<DxFormLayoutGroup Caption="@($"{workerder.WorkerderNo}-{workerder.Lot}")">
+						<DxFormLayoutItem></DxFormLayoutItem>
+					</DxFormLayoutGroup>
+				</DxFormLayout>
+			</Template>
+		</DxGridLayoutItem>
+		<DxGridLayoutItem Row="1" Column="0">
+			<Template>
+				
+			</Template>
+		</DxGridLayoutItem>
+		<DxGridLayoutItem Row="1" Column="1">
+			<Template>
+				<DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large">
+					<DxToolbarItem Text="Start" RenderStyle="@ButtonRenderStyle.Primary" BeginGroup="true" />
+					<DxToolbarItem Text="Pause" RenderStyle="@ButtonRenderStyle.Warning" BeginGroup="true" />
+					<DxToolbarItem Text="Stop" RenderStyle="@ButtonRenderStyle.Danger" BeginGroup="true" />
+				</DxToolbar>
+			</Template>
+		</DxGridLayoutItem>
+	</Items>
+</DxGridLayout>
+
+@code {
+
+	[Parameter]
+	public string WorkorderNo { get; set; }
+	[Parameter]
+	public string Lot { get; set; }
+
+	private Workerder? workerder;
+
+	protected override async Task OnInitializedAsync()
+	{
+		workerder = await shopfloorService.GetWorkorderAndRecipeByNoAndLot(WorkorderNo, Lot);
+	}
+}

@@ -1,0 +1,24 @@
+﻿@page "/Recipe/{recipeName}"
+@rendermode InteractiveServer
+@inject TMWebShopfloorService shopfloorService
+<DxFormLayout>
+	<DxFormLayoutGroup Caption="@recipeConfig.RecipeCategory">
+		@foreach (var recipe in recipeConfig.WorkorderRecipeContents)
+		{
+			<DxFormLayoutItem Caption="@recipe.RecipeName">
+				<DxTextBox Text="@recipe.Value"></DxTextBox>
+			</DxFormLayoutItem>
+		}
+	</DxFormLayoutGroup>
+	
+</DxFormLayout>
+@code {
+	[Parameter]
+	public string recipeName { get; set; }
+	private WorkorderRecipeConfig? recipeConfig;
+
+	protected override async Task OnInitializedAsync()
+	{
+		recipeConfig = await shopfloorService.GetRecipeConfigsByName(recipeName);
+	}
+}
