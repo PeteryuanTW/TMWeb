@@ -1,0 +1,25 @@
+﻿@if (hasStation)
+{
+    switch (FactoryStationParam?.StationType)
+    {
+        case 0:
+            <StationSingleWorkorderSingleSerialComponent StationParam="@FactoryStationParam" />
+            break;
+        case 1:
+            break;
+        case 2:
+            break;
+        case 3:
+            break;
+        default:
+            break;
+    }
+}
+
+
+
+@code {
+    [Parameter]
+    public Station? FactoryStationParam { get; set; }
+    private bool hasStation => FactoryStationParam != null;
+}

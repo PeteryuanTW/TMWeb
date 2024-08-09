@@ -1,0 +1,96 @@
+﻿@rendermode InteractiveServer
+@inject TMWebShopfloorService shopfloorService
+
+<DxPopup HeaderText="Error Message" @bind-Visible="@showErrorMsg" CloseOnOutsideClick="false" />
+
+@code {
+    [Parameter]
+    public Station StationParam { get; set; }
+    protected bool hasStation => StationParam != null;
+
+    protected IEnumerable<Workorder> workOrderCandidates;
+
+    protected bool canedit => hasStation? StationParam.Status == StationState.Uninit:false;
+    protected bool canrun => hasStation ? StationParam.Status == StationState.Uninit : false;
+    protected bool canoperate => hasStation ? StationParam.Status == StationState.Running : false;
+    protected bool canpause => hasStation ? StationParam.Status == StationState.Running : false;
+    protected bool canstop => hasStation ? StationParam.Status == StationState.Running : false;
+    protected bool canretry => hasStation ? (StationParam.Status == StationState.Stop || StationParam.Status == StationState.Error || StationParam.Status == StationState.Pause) : false;
+    protected bool iserror => hasStation ? StationParam.Status == StationState.Error : false;
+
+    public bool showErrorMsg = false;
+    public bool showOperation = false;
+
+    protected ButtonRenderStyle GetStatusStyle()
+    {
+        switch (StationParam?.Status)
+        {
+            case StationState.Uninit:
+                return ButtonRenderStyle.Secondary;
+            case StationState.Running:
+                return ButtonRenderStyle.Success;
+            case StationState.Pause:
+                return ButtonRenderStyle.Warning;
+            case StationState.Stop:
+            case StationState.Error:
+                return ButtonRenderStyle.Danger;
+            default:
+                return ButtonRenderStyle.None;
+        }
+    }
+    protected string GetPanelStatusStyle()
+    {
+        switch (StationParam?.Status)
+        {
+            case StationState.Uninit:
+                return "uninit";
+            case StationState.Running:
+                return "running";
+            case StationState.Pause:
+                return "pause";
+            case StationState.Stop:
+            case StationState.Error:
+                return "stop";
+            default:
+                return "uninit";
+        }
+    }
+
+    protected virtual void OnOperationPopupShow()
+    {
+
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        shopfloorService.StationChangedAct += UIUpdateFromStation;
+        await GetWorkorderCandidates();
+    }
+
+    private async void UIUpdateFromStation(Station s)
+    {
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected void ShowErrorPopup()
+    {
+        showErrorMsg = true;
+        InvokeAsync(StateHasChanged);
+    }
+
+    protected void ShowOperationPopup()
+    {
+        showOperation = true;
+        OnOperationPopupShow();
+    }
+    protected void CloseOperationPopup()
+    {
+        showOperation = false;
+    }
+
+    private async Task GetWorkorderCandidates()
+    {
+        workOrderCandidates = await shopfloorService.GetWorkordersByProcessAndStatus(StationParam.ProcessId , new List<int> { 0, });
+    }
+}

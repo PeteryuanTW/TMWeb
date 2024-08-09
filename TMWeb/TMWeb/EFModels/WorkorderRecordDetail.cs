@@ -13,5 +13,5 @@ public partial class WorkorderRecordDetail
 
     public virtual WorkorderRecordContent RecordContent { get; set; } = null!;
 
-    public virtual Workerder Workerder { get; set; } = null!;
+    public virtual Workorder Workerder { get; set; } = null!;
 }

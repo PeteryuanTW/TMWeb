@@ -15,7 +15,7 @@
 		<DxGridLayoutItem Row="0" Column="0" ColumnSpan="2">
 			<Template>
 				<DxFormLayout>
-					<DxFormLayoutGroup Caption="@($"{workerder.WorkerderNo}-{workerder.Lot}")">
+					<DxFormLayoutGroup Caption="@($"{workorder.WorkorderNo}-{workorder.Lot}")">
 						<DxFormLayoutItem></DxFormLayoutItem>
 					</DxFormLayoutGroup>
 				</DxFormLayout>
@@ -45,10 +45,10 @@
 	[Parameter]
 	public string Lot { get; set; }
 
-	private Workerder? workerder;
+	private Workorder? workorder;
 
 	protected override async Task OnInitializedAsync()
 	{
-		workerder = await shopfloorService.GetWorkorderAndRecipeByNoAndLot(WorkorderNo, Lot);
+		workorder = await shopfloorService.GetWorkorderAndRecipeByNoAndLot(WorkorderNo, Lot);
 	}
 }

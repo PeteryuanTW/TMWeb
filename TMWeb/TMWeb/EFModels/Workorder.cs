@@ -3,15 +3,15 @@ using System.Collections.Generic;
 
 namespace TMWeb.EFModels;
 
-public partial class Workerder
+public partial class Workorder
 {
     public Guid Id { get; set; }
 
-    public string? WorkerderNo { get; set; }
+    public string? WorkorderNo { get; set; }
 
     public string? Lot { get; set; }
 
-    public int? Status { get; set; }
+    public int Status { get; set; }
 
     public Guid? RecipeCategoryId { get; set; }
 

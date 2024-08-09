@@ -1,0 +1,122 @@
+﻿@inherits StationComponent
+@inject TMWebShopfloorService shopfloorService
+
+@{
+    base.BuildRenderTree(__builder);
+}
+<DxPopup HeaderText="@stationSingleWorkorderSingleSerial.Name" @bind-Visible="@showOperation" CloseOnOutsideClick="false" ShowFooter="true">
+    <BodyContentTemplate>
+        <DxFormLayout>
+            <DxFormLayoutItem ColSpanLg="12" Context="serialcontext">
+                <DxTextBox @bind-Text="@serialNo" ReadOnly="@stationSingleWorkorderSingleSerial.HasTask"></DxTextBox>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Text="@operationString" Click="@StationOperation"></DxButton>
+    </FooterContentTemplate>
+</DxPopup>
+@if (stationSingleWorkorderSingleSerial != null)
+{
+    <div class="card shadow panel p-3 @GetPanelStatusStyle()">
+        <DxGridLayout>
+            <Rows>
+                <DxGridLayoutRow Areas="name status" Height="auto" />
+                <DxGridLayoutRow Areas="info info" Height="auto" />
+                <DxGridLayoutRow Areas="actionbtn actionbtn" Height="auto" />
+            </Rows>
+            <Columns>
+                <DxGridLayoutColumn Width="70%" />
+                <DxGridLayoutColumn Width="30%" />
+            </Columns>
+            <Items>
+                <DxGridLayoutItem Area="name">
+                    <Template>
+                        <div class="containeralignmid">
+                            <DxButton Text="@stationSingleWorkorderSingleSerial.Name" RenderStyle="ButtonRenderStyle.Secondary" RenderStyleMode="ButtonRenderStyleMode.Outline"></DxButton>
+                        </div>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Area="status">
+                    <Template>
+                        <div class="containeralignmid">
+                            <DxButton Text="@($"{stationSingleWorkorderSingleSerial.Status.ToString()}")" RenderStyle="@GetStatusStyle()"></DxButton>
+                        </div>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Area="info">
+                    <Template>
+                        <div class="p-3">
+                            <DxFormLayout>
+                                <DxFormLayoutItem Caption="Process" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                    <DxTextBox Text="@stationSingleWorkorderSingleSerial.Process?.Name" ReadOnly="true"></DxTextBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Workorder" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                    <DxTextBox Text="@stationSingleWorkorderSingleSerial.Workerder?.WorkorderNo" ReadOnly="true"></DxTextBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="HasItem" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                    <DxCheckBox Checked="@stationSingleWorkorderSingleSerial.HasItem" CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="SerialNo" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                    <DxTextBox Text="@stationSingleWorkorderSingleSerial.TaskDetail?.SerialNo" ReadOnly="true"></DxTextBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Start Time" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                    <DxDateEdit Date="@stationSingleWorkorderSingleSerial.TaskDetail?.StartTime" TimeSectionVisible="true" ReadOnly="true"></DxDateEdit>
+                                </DxFormLayoutItem>
+                                
+                            </DxFormLayout>
+                        </div>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Area="actionbtn">
+                    <Template>
+                        <div class="containeralignmid">
+                            @* <DxButton Enabled="@(canrun && stationSingleWorkorderSingleSerial.HasWorkorder)" IconCssClass="oi oi-media-play" RenderStyle="ButtonRenderStyle.Success" RenderStyleMode="ButtonRenderStyleMode.Outline" SizeMode="SizeMode.Large"></DxButton> *@
+                            <DxButton Enabled="@canoperate" Click="@ShowOperationPopup" IconCssClass="oi oi-clipboard" RenderStyle="ButtonRenderStyle.Info" RenderStyleMode="ButtonRenderStyleMode.Outline" SizeMode="SizeMode.Large"></DxButton>
+                            @* <DxButton Enabled="@canpause" IconCssClass="oi oi-media-pause" RenderStyle="ButtonRenderStyle.Warning" RenderStyleMode="ButtonRenderStyleMode.Outline" SizeMode="SizeMode.Large"></DxButton> *@
+                            @* <DxButton Enabled="@canstop" IconCssClass="oi oi-media-stop" RenderStyle="ButtonRenderStyle.Danger" RenderStyleMode="ButtonRenderStyleMode.Outline" SizeMode="SizeMode.Large"></DxButton> *@
+                            <DxButton Enabled="@canretry" IconCssClass="oi oi-reload" RenderStyle="ButtonRenderStyle.Secondary" RenderStyleMode="ButtonRenderStyleMode.Outline" SizeMode="SizeMode.Large"></DxButton>
+                            <DxButton Enabled="@iserror" IconCssClass="oi oi-ellipses" RenderStyle="ButtonRenderStyle.Secondary" RenderStyleMode="ButtonRenderStyleMode.Outline" SizeMode="SizeMode.Large"></DxButton>
+                        </div>
+                    </Template>
+                </DxGridLayoutItem>
+            </Items>
+        </DxGridLayout>
+    </div>
+}
+
+
+
+
+
+
+
+@code {
+    private StationSingleWorkorderSingleSerial stationSingleWorkorderSingleSerial => (StationSingleWorkorderSingleSerial)StationParam;
+
+    private string operationString => stationSingleWorkorderSingleSerial.HasTask ? "Station out" : "Station in";
+
+    private string serialNo = string.Empty;
+
+    protected override void OnOperationPopupShow()
+    {
+        if (stationSingleWorkorderSingleSerial.HasTask)
+        {
+            serialNo = stationSingleWorkorderSingleSerial.TaskDetail.SerialNo;
+        }
+        else
+        {
+            serialNo = string.Empty;
+        }
+        base.OnOperationPopupShow();
+    }
+
+    private async Task StationOperation()
+    {
+        if (!stationSingleWorkorderSingleSerial.HasTask)
+        {
+            await shopfloorService.StationInByName(stationSingleWorkorderSingleSerial.Name, serialNo);
+        }
+        CloseOperationPopup();
+    }
+}

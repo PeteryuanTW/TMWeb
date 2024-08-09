@@ -9,7 +9,7 @@ public partial class WorkorderRecipeConfig
 
     public string? RecipeCategory { get; set; }
 
-    public virtual ICollection<Workerder> Workerders { get; set; } = new List<Workerder>();
-
     public virtual ICollection<WorkorderRecipeContent> WorkorderRecipeContents { get; set; } = new List<WorkorderRecipeContent>();
+
+    public virtual ICollection<Workorder> Workorders { get; set; } = new List<Workorder>();
 }

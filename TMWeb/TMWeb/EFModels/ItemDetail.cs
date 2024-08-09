@@ -25,5 +25,5 @@ public partial class ItemDetail
 
     public virtual ICollection<TaskDetail> TaskDetails { get; set; } = new List<TaskDetail>();
 
-    public virtual Workerder? Workorders { get; set; }
+    public virtual Workorder? Workorders { get; set; }
 }

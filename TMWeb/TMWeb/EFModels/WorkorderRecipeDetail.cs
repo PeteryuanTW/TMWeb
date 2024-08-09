@@ -13,5 +13,5 @@ public partial class WorkorderRecipeDetail
 
     public virtual WorkorderRecipeContent RecipeContent { get; set; } = null!;
 
-    public virtual Workerder Workerder { get; set; } = null!;
+    public virtual Workorder Workorder { get; set; } = null!;
 }

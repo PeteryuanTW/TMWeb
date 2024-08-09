@@ -11,5 +11,5 @@ public partial class ItemRecordConfig
 
     public virtual ICollection<ItemRecordContent> ItemRecordContents { get; set; } = new List<ItemRecordContent>();
 
-    public virtual ICollection<Workerder> Workerders { get; set; } = new List<Workerder>();
+    public virtual ICollection<Workorder> Workorders { get; set; } = new List<Workorder>();
 }

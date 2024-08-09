@@ -11,5 +11,5 @@ public partial class TaskRecordConfig
 
     public virtual ICollection<TaskRecordContent> TaskRecordContents { get; set; } = new List<TaskRecordContent>();
 
-    public virtual ICollection<Workerder> Workerders { get; set; } = new List<Workerder>();
+    public virtual ICollection<Workorder> Workorders { get; set; } = new List<Workorder>();
 }

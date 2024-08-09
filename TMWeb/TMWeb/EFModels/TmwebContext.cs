@@ -41,7 +41,7 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<TaskRecordDetail> TaskRecordDetails { get; set; }
 
-    public virtual DbSet<Workerder> Workerders { get; set; }
+    public virtual DbSet<Workorder> Workorders { get; set; }
 
     public virtual DbSet<WorkorderRecipeConfig> WorkorderRecipeConfigs { get; set; }
 
@@ -61,7 +61,7 @@ public partial class TmwebContext : DbContext
     {
         modelBuilder.Entity<ItemDetail>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ItemDeta__3214EC27F6684215");
+            entity.HasKey(e => e.Id).HasName("PK__ItemDeta__3214EC27CD8B5278");
 
             entity.HasIndex(e => new { e.WorkordersId, e.SerialNo }, "ItemDetails_index_1").IsUnique();
 
@@ -94,7 +94,7 @@ public partial class TmwebContext : DbContext
 
         modelBuilder.Entity<ItemRecordContent>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ItemReco__3214EC2781072052");
+            entity.HasKey(e => e.Id).HasName("PK__ItemReco__3214EC272B435B1A");
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -109,7 +109,7 @@ public partial class TmwebContext : DbContext
 
         modelBuilder.Entity<ItemRecordDetail>(entity =>
         {
-            entity.HasKey(e => new { e.ItemId, e.RecordContentId }).HasName("PK__ItemReco__68A347182D4036A7");
+            entity.HasKey(e => new { e.ItemId, e.RecordContentId }).HasName("PK__ItemReco__68A3471823F09119");
 
             entity.Property(e => e.ItemId).HasColumnName("ItemID");
             entity.Property(e => e.RecordContentId).HasColumnName("RecordContentID");
@@ -118,12 +118,12 @@ public partial class TmwebContext : DbContext
             entity.HasOne(d => d.Item).WithMany(p => p.ItemRecordDetails)
                 .HasForeignKey(d => d.ItemId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ItemRecor__ItemI__4CA06362");
+                .HasConstraintName("FK__ItemRecor__ItemI__6477ECF3");
 
             entity.HasOne(d => d.RecordContent).WithMany(p => p.ItemRecordDetails)
                 .HasForeignKey(d => d.RecordContentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ItemRecor__Recor__4D94879B");
+                .HasConstraintName("FK__ItemRecor__Recor__656C112C");
         });
 
         modelBuilder.Entity<Machine>(entity =>
@@ -150,11 +150,11 @@ public partial class TmwebContext : DbContext
 
         modelBuilder.Entity<Process>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Procress__3214EC278A309CA1");
+            entity.HasKey(e => e.Id).HasName("PK__Process__3214EC2784EF8C87");
 
             entity.ToTable("Process");
 
-            entity.HasIndex(e => e.Name, "UQ__Procress__737584F65C4A7E94").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__Process__737584F6605BEB58").IsUnique();
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -164,9 +164,9 @@ public partial class TmwebContext : DbContext
 
         modelBuilder.Entity<Station>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Stations__3214EC270BCF7AA2");
+            entity.HasKey(e => e.Id).HasName("PK__Stations__3214EC2739A5326C");
 
-            entity.HasIndex(e => e.Name, "UQ__Stations__737584F6F3E14589").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__Stations__737584F624E8C286").IsUnique();
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -176,16 +176,16 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Process).WithMany(p => p.Stations)
                 .HasForeignKey(d => d.ProcessId)
-                .HasConstraintName("FK__Stations__Proces__7A672E12");
+                .HasConstraintName("FK__Stations__Proces__6754599E");
         });
 
         modelBuilder.Entity<Tag>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Tag__3214EC278708C4AC");
+            entity.HasKey(e => e.Id).HasName("PK__Tag__3214EC271E77490D");
 
             entity.ToTable("Tag");
 
-            entity.HasIndex(e => e.Name, "UQ__Tag__737584F6B79A56E3").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__Tag__737584F665FA3403").IsUnique();
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -200,16 +200,16 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Category).WithMany(p => p.Tags)
                 .HasForeignKey(d => d.CategoryId)
-                .HasConstraintName("FK__Tag__CategoryID__656C112C");
+                .HasConstraintName("FK__Tag__CategoryID__68487DD7");
         });
 
         modelBuilder.Entity<TagCategory>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TagCateg__3214EC27752950F3");
+            entity.HasKey(e => e.Id).HasName("PK__TagCateg__3214EC27E3E5293B");
 
             entity.ToTable("TagCategory");
 
-            entity.HasIndex(e => e.Name, "UQ__TagCateg__737584F698D4876C").IsUnique();
+            entity.HasIndex(e => e.Name, "UQ__TagCateg__737584F6D73F5353").IsUnique();
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -240,14 +240,14 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Station).WithMany(p => p.TaskDetails)
                 .HasForeignKey(d => d.StationId)
-                .HasConstraintName("FK__TaskDetai__Stati__3F115E1A");
+                .HasConstraintName("FK__TaskDetai__Stati__6A30C649");
         });
 
         modelBuilder.Entity<TaskRecordConfig>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TaskReco__3214EC2726CE366B");
+            entity.HasKey(e => e.Id).HasName("PK__TaskReco__3214EC279BA4306D");
 
-            entity.HasIndex(e => e.TaskRecordsCategory, "UQ__TaskReco__C644E696E488BD53").IsUnique();
+            entity.HasIndex(e => e.TaskRecordsCategory, "UQ__TaskReco__C644E6962C16C53F").IsUnique();
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -257,7 +257,7 @@ public partial class TmwebContext : DbContext
 
         modelBuilder.Entity<TaskRecordContent>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TaskReco__3214EC27FBA4FD56");
+            entity.HasKey(e => e.Id).HasName("PK__TaskReco__3214EC27B95E2126");
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -267,12 +267,12 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Config).WithMany(p => p.TaskRecordContents)
                 .HasForeignKey(d => d.ConfigId)
-                .HasConstraintName("FK__TaskRecor__Confi__4F7CD00D");
+                .HasConstraintName("FK__TaskRecor__Confi__6B24EA82");
         });
 
         modelBuilder.Entity<TaskRecordDetail>(entity =>
         {
-            entity.HasKey(e => new { e.TaskId, e.RecordContentId }).HasName("PK__TaskReco__66B48D228D2A2DFA");
+            entity.HasKey(e => new { e.TaskId, e.RecordContentId }).HasName("PK__TaskReco__66B48D227FAE267B");
 
             entity.Property(e => e.TaskId).HasColumnName("TaskID");
             entity.Property(e => e.RecordContentId).HasColumnName("RecordContentID");
@@ -281,7 +281,7 @@ public partial class TmwebContext : DbContext
             entity.HasOne(d => d.RecordContent).WithMany(p => p.TaskRecordDetails)
                 .HasForeignKey(d => d.RecordContentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__TaskRecor__Recor__5165187F");
+                .HasConstraintName("FK__TaskRecor__Recor__6C190EBB");
 
             entity.HasOne(d => d.Task).WithMany(p => p.TaskRecordDetails)
                 .HasForeignKey(d => d.TaskId)
@@ -289,11 +289,11 @@ public partial class TmwebContext : DbContext
                 .HasConstraintName("FK__TaskRecor__TaskI__5070F446");
         });
 
-        modelBuilder.Entity<Workerder>(entity =>
+        modelBuilder.Entity<Workorder>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Workerde__3214EC27B578A3E9");
 
-            entity.HasIndex(e => new { e.WorkerderNo, e.Lot }, "Workerders_index_0").IsUnique();
+            entity.HasIndex(e => new { e.WorkorderNo, e.Lot }, "Workerders_index_0").IsUnique();
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -308,35 +308,35 @@ public partial class TmwebContext : DbContext
             entity.Property(e => e.RecipeCategoryId).HasColumnName("RecipeCategoryID");
             entity.Property(e => e.StartTime).HasColumnType("datetime");
             entity.Property(e => e.TaskRecordCategoryId).HasColumnName("TaskRecordCategoryID");
-            entity.Property(e => e.WorkerderNo).HasMaxLength(50);
+            entity.Property(e => e.WorkorderNo).HasMaxLength(50);
             entity.Property(e => e.WorkorderRecordCategoryId).HasColumnName("WorkorderRecordCategoryID");
 
-            entity.HasOne(d => d.ItemRecordsCategory).WithMany(p => p.Workerders)
+            entity.HasOne(d => d.ItemRecordsCategory).WithMany(p => p.Workorders)
                 .HasForeignKey(d => d.ItemRecordsCategoryId)
                 .HasConstraintName("FK__Workerder__ItemR__4AB81AF0");
 
-            entity.HasOne(d => d.Process).WithMany(p => p.Workerders)
+            entity.HasOne(d => d.Process).WithMany(p => p.Workorders)
                 .HasForeignKey(d => d.ProcessId)
                 .HasConstraintName("FK__Workerder__Proce__02FC7413");
 
-            entity.HasOne(d => d.RecipeCategory).WithMany(p => p.Workerders)
+            entity.HasOne(d => d.RecipeCategory).WithMany(p => p.Workorders)
                 .HasForeignKey(d => d.RecipeCategoryId)
                 .HasConstraintName("FK__Workerder__Recip__4316F928");
 
-            entity.HasOne(d => d.TaskRecordCategory).WithMany(p => p.Workerders)
+            entity.HasOne(d => d.TaskRecordCategory).WithMany(p => p.Workorders)
                 .HasForeignKey(d => d.TaskRecordCategoryId)
                 .HasConstraintName("FK__Workerder__TaskR__4E88ABD4");
 
-            entity.HasOne(d => d.WorkorderRecordCategory).WithMany(p => p.Workerders)
+            entity.HasOne(d => d.WorkorderRecordCategory).WithMany(p => p.Workorders)
                 .HasForeignKey(d => d.WorkorderRecordCategoryId)
                 .HasConstraintName("FK__Workerder__Worko__46E78A0C");
         });
 
         modelBuilder.Entity<WorkorderRecipeConfig>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Workorde__3214EC2767255ACB");
+            entity.HasKey(e => e.Id).HasName("PK__Workorde__3214EC27E2E1F999");
 
-            entity.HasIndex(e => e.RecipeCategory, "UQ__Workorde__46E6E02CA09C21CA").IsUnique();
+            entity.HasIndex(e => e.RecipeCategory, "UQ__Workorde__46E6E02CF2D24212").IsUnique();
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -346,7 +346,7 @@ public partial class TmwebContext : DbContext
 
         modelBuilder.Entity<WorkorderRecipeContent>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Workorde__3214EC2797B01E46");
+            entity.HasKey(e => e.Id).HasName("PK__Workorde__3214EC270A32C573");
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -357,14 +357,14 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Config).WithMany(p => p.WorkorderRecipeContents)
                 .HasForeignKey(d => d.ConfigId)
-                .HasConstraintName("FK__Workorder__Confi__440B1D61");
+                .HasConstraintName("FK__Workorder__Confi__72C60C4A");
         });
 
         modelBuilder.Entity<WorkorderRecordConfig>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Workorde__3214EC277B93F476");
+            entity.HasKey(e => e.Id).HasName("PK__Workorde__3214EC27E67AC9BE");
 
-            entity.HasIndex(e => e.WorkorderRecordCategory, "UQ__Workorde__95EF011499FA8575").IsUnique();
+            entity.HasIndex(e => e.WorkorderRecordCategory, "UQ__Workorde__95EF01149DFF02D9").IsUnique();
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -374,7 +374,7 @@ public partial class TmwebContext : DbContext
 
         modelBuilder.Entity<WorkorderRecordContent>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__Workorde__3214EC27FE1A4E8A");
+            entity.HasKey(e => e.Id).HasName("PK__Workorde__3214EC27CD590F06");
 
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
@@ -384,12 +384,12 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Config).WithMany(p => p.WorkorderRecordContents)
                 .HasForeignKey(d => d.ConfigId)
-                .HasConstraintName("FK__Workorder__Confi__47DBAE45");
+                .HasConstraintName("FK__Workorder__Confi__73BA3083");
         });
 
         modelBuilder.Entity<WorkorderRecordDetail>(entity =>
         {
-            entity.HasKey(e => new { e.WorkerderId, e.RecordContentId }).HasName("PK__Workorde__E4F8D8DCF8CBC459");
+            entity.HasKey(e => new { e.WorkerderId, e.RecordContentId }).HasName("PK__Workorde__E4F8D8DC9E23FFD9");
 
             entity.Property(e => e.WorkerderId).HasColumnName("WorkerderID");
             entity.Property(e => e.RecordContentId).HasColumnName("RecordContentID");
@@ -398,7 +398,7 @@ public partial class TmwebContext : DbContext
             entity.HasOne(d => d.RecordContent).WithMany(p => p.WorkorderRecordDetails)
                 .HasForeignKey(d => d.RecordContentId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Workorder__Recor__49C3F6B7");
+                .HasConstraintName("FK__Workorder__Recor__74AE54BC");
 
             entity.HasOne(d => d.Workerder).WithMany(p => p.WorkorderRecordDetails)
                 .HasForeignKey(d => d.WorkerderId)

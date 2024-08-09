@@ -11,5 +11,5 @@ public partial class Process
 
     public virtual ICollection<Station> Stations { get; set; } = new List<Station>();
 
-    public virtual ICollection<Workerder> Workerders { get; set; } = new List<Workerder>();
+    public virtual ICollection<Workorder> Workorders { get; set; } = new List<Workorder>();
 }

@@ -9,7 +9,7 @@ public partial class WorkorderRecordConfig
 
     public string? WorkorderRecordCategory { get; set; }
 
-    public virtual ICollection<Workerder> Workerders { get; set; } = new List<Workerder>();
-
     public virtual ICollection<WorkorderRecordContent> WorkorderRecordContents { get; set; } = new List<WorkorderRecordContent>();
+
+    public virtual ICollection<Workorder> Workorders { get; set; } = new List<Workorder>();
 }
