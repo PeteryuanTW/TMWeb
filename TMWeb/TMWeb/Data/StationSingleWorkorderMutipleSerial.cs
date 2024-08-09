@@ -29,16 +29,19 @@ namespace TMWeb.Data
 			}
 		}
 
-		public override void RemoveItemDetail()
+		public override ItemDetail? RemoveItemDetail()
 		{
 			if (HasItem)
 			{
 				ItemDetail? target = itemDetails.OrderBy(x => x.StartTime).FirstOrDefault();
 				if (target != null)
 				{
-					itemDetails.Remove(target);
+					ItemDetail tmp = target;
+                    itemDetails.Remove(target);
+					return tmp;
 				}
 			}
+			return null;
 		}
 
 		private void RemoveItemDetailByTaskDetail(TaskDetail taskDetail)
@@ -61,7 +64,7 @@ namespace TMWeb.Data
 			}
 		}
 
-		public override void RemoveTaskDetail()
+		public override TaskDetail? RemoveTaskDetail()
 		{
 			if (HasTask)
 			{
@@ -71,10 +74,13 @@ namespace TMWeb.Data
 					taskDetails.Remove(target);
 					if (!taskDetails.Exists(x => x.ItemId == target.ItemId))
 					{
-						RemoveItemDetailByTaskDetail(target);
+						TaskDetail tmp = target;
+                        RemoveItemDetailByTaskDetail(target);
+						return tmp;
 					}
 				}
 			}
+			return null;
 		}
 	}
 }

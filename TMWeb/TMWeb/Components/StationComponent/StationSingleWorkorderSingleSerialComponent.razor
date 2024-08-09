@@ -13,7 +13,15 @@
         </DxFormLayout>
     </BodyContentTemplate>
     <FooterContentTemplate>
-        <DxButton Text="@operationString" Click="@StationOperation"></DxButton>
+        @if (!stationSingleWorkorderSingleSerial.HasTask)
+        {
+            <DxButton Text="Station in" Click="@StationInOperation"></DxButton>
+        }
+        else
+        {
+            <DxButton Text="OK" Click="@(()=>StationOutOperation(true))"></DxButton>
+            <DxButton Text="NG" Click="@(()=>StationOutOperation(false))"></DxButton>
+        }
     </FooterContentTemplate>
 </DxPopup>
 @if (stationSingleWorkorderSingleSerial != null)
@@ -94,8 +102,6 @@
 @code {
     private StationSingleWorkorderSingleSerial stationSingleWorkorderSingleSerial => (StationSingleWorkorderSingleSerial)StationParam;
 
-    private string operationString => stationSingleWorkorderSingleSerial.HasTask ? "Station out" : "Station in";
-
     private string serialNo = string.Empty;
 
     protected override void OnOperationPopupShow()
@@ -111,11 +117,19 @@
         base.OnOperationPopupShow();
     }
 
-    private async Task StationOperation()
+    private async Task StationInOperation()
     {
         if (!stationSingleWorkorderSingleSerial.HasTask)
         {
             await shopfloorService.StationInByName(stationSingleWorkorderSingleSerial.Name, serialNo);
+        }
+        CloseOperationPopup();
+    }
+    private async Task StationOutOperation(bool pass)
+    {
+        if (stationSingleWorkorderSingleSerial.HasTask)
+        {
+            await shopfloorService.StationOutBySerialNo(stationSingleWorkorderSingleSerial.Name, serialNo, pass);
         }
         CloseOperationPopup();
     }

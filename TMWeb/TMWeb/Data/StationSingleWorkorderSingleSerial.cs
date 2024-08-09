@@ -25,12 +25,15 @@ namespace TMWeb.Data
 				this.itemDetail = itemDetail;
 			}
 		}
-		public override void RemoveItemDetail()
+		public override ItemDetail? RemoveItemDetail()
 		{
 			if (HasItem)
 			{
-				itemDetail = null;
+                ItemDetail tmp = itemDetail;
+                itemDetail = null;
+				return tmp;
 			}
+			return null;
 		}
 		public override void AddTaskDetail(TaskDetail taskDetail)
 		{
@@ -40,12 +43,15 @@ namespace TMWeb.Data
 			}
 		}
 
-		public override void RemoveTaskDetail()
+		public override TaskDetail? RemoveTaskDetail()
 		{
-			if (!HasTask)
+			if (HasTask)
 			{
-				taskDetail = null;
+                TaskDetail tmp = taskDetail;
+                taskDetail = null;
+				return tmp;
 			}
+			return null;
 		}
 	}
 }

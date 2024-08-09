@@ -57,8 +57,8 @@ namespace TMWeb.Data
 		}
 
 		public abstract void AddItemDetail(ItemDetail itemDetail);
-		public abstract void RemoveItemDetail();
+		public abstract ItemDetail? RemoveItemDetail();
 		public abstract void AddTaskDetail(TaskDetail taskDetail);
-		public abstract void RemoveTaskDetail();
+		public abstract TaskDetail? RemoveTaskDetail();
 	}
 }

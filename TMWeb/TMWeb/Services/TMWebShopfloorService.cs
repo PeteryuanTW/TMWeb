@@ -155,7 +155,7 @@ namespace TMWeb.Services
 
             }
         }
-        public async Task StationOutBySerialNo(string stationName, string serialNo)
+        public async Task StationOutBySerialNo(string stationName, string serialNo, bool pass)
         {
             Station? targetStation = await GetStationsByName(stationName);
             if (targetStation != null)
@@ -165,11 +165,26 @@ namespace TMWeb.Services
                     switch (targetStation.StationType)
                     {
                         case 0:
-                            StationSingleWorkorder? stationSingleWorkorder = targetStation as StationSingleWorkorder;
-                            var itemDetail = await GetOrGenerateItemDetailByWorkorder(stationSingleWorkorder.Workerder, serialNo);
-                            stationSingleWorkorder?.AddItemDetail(itemDetail);
-                            var taskDetail = await GenerateTaskDetailByItem(targetStation, itemDetail);
-                            stationSingleWorkorder?.AddTaskDetail(taskDetail);
+                            StationSingleWorkorderSingleSerial? stationSingleWorkorderSingleSerial = targetStation as StationSingleWorkorderSingleSerial;
+                            TaskDetail? taskDetail = stationSingleWorkorderSingleSerial.RemoveTaskDetail();
+                            if (taskDetail != null)
+                            {
+                                if (pass)
+                                {
+                                    taskDetail.Okamount = 1;
+                                }
+                                else
+                                {
+                                    taskDetail.Ngamount = 1;
+                                }
+                                taskDetail.FinishedTime = DateTime.Now;
+                                using (var scope = scopeFactory.CreateScope())
+                                {
+                                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                                    await dbContext.SaveChangesAsync();
+                                }
+                            }
+                            
                             break;
                         case 1:
                             break;
@@ -182,7 +197,7 @@ namespace TMWeb.Services
 
             }
         }
-        public async Task StationOutByFIFO(string stationName)
+        public async Task StationOutByFIFO(string stationName, bool pass)
         {
             Station? targetStation = await GetStationsByName(stationName);
             if (targetStation != null)
@@ -192,11 +207,6 @@ namespace TMWeb.Services
                     switch (targetStation.StationType)
                     {
                         case 0:
-                            StationSingleWorkorder? stationSingleWorkorder = targetStation as StationSingleWorkorder;
-                            var itemDetail = await GetOrGenerateItemDetailByWorkorder(stationSingleWorkorder.Workerder, serialNo);
-                            stationSingleWorkorder?.AddItemDetail(itemDetail);
-                            var taskDetail = await GenerateTaskDetailByItem(targetStation, itemDetail);
-                            stationSingleWorkorder?.AddTaskDetail(taskDetail);
                             break;
                         case 1:
                             break;
