@@ -23,5 +23,15 @@
             Ngamount = 0;
             StartTime = DateTime.Now;
         }
+        public ItemDetail(Workorder wo)
+        {
+            Id = Guid.NewGuid();
+            WorkordersId = wo.Id;
+            SerialNo = string.Empty;
+            TargetAmount = 1;
+            Okamount = 0;
+            Ngamount = 0;
+            StartTime = DateTime.Now;
+        }
     }
 }

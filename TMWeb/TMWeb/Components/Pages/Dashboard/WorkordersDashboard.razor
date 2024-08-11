@@ -3,128 +3,131 @@
 @inject TMWebShopfloorService shopfloorService
 
 <DxGridLayout ColumnSpacing="1rem">
-	<Rows>
-		<DxGridLayoutRow></DxGridLayoutRow>
-	</Rows>
-	<Columns>
-		<DxGridLayoutColumn Width="30%"></DxGridLayoutColumn>
-		<DxGridLayoutColumn Width="50%"></DxGridLayoutColumn>
-	</Columns>
-	<Items>
-		<DxGridLayoutItem Row="0" Column="0">
-			<Template>
-				<div class="p-3">
-					<DxGrid Data="@workorders" FocusedRowEnabled="true" FocusedRowChanged="OnFocusedWorkorderChanged">
-						<Columns>
-							<DxGridDataColumn FieldName="@nameof(Workorder.Status)" />
-							<DxGridDataColumn FieldName="@nameof(Workorder.WorkorderNo)" />
-							<DxGridDataColumn FieldName="@nameof(Workorder.Lot)" />
-							<DxGridDataColumn FieldName="@nameof(Workorder.PartNo)" />
-						</Columns>
-					</DxGrid>
-				</div>
-			</Template>
-		</DxGridLayoutItem>
-		<DxGridLayoutItem Row="0" Column="1">
-			<Template>
-				<div class="p-3">
-					@if (detailWorkorder != null)
-					{
-						<DxFormLayout>
-							<DxTabs>
-								<DxTabPage Text="Workorder Recipe">
-										<div class="p-3">
-											<DxFormLayout CssClass="p-3">
-												<DxGrid Data="@workorderRecipeContents">
-													<Columns>
-														<DxGridDataColumn FieldName="@nameof(WorkorderRecipeContent.RecipeName)"></DxGridDataColumn>
-														<DxGridDataColumn FieldName="@nameof(WorkorderRecipeContent.DataType)"></DxGridDataColumn>
-														<DxGridDataColumn FieldName="@nameof(WorkorderRecipeContent.Value)"></DxGridDataColumn>
-													</Columns>
-												</DxGrid>
-											</DxFormLayout>
-										</div>
-								</DxTabPage>
-								<DxTabPage Text="Workorder Record">
-									<div class="p-3">
-										<DxFormLayout CssClass="p-3">
-											<DxGrid Data="@workorderRecordContents">
-												<Columns>
-													<DxGridDataColumn FieldName="@nameof(WorkorderRecordContent.RecordName)"></DxGridDataColumn>
-													<DxGridDataColumn FieldName="@nameof(WorkorderRecordContent.DataType)"></DxGridDataColumn>
-													<DxGridDataColumn FieldName="@nameof(WorkorderRecordContent.WorkorderRecordDetails)">
-														<CellDisplayTemplate>
-															<DxTextBox Text="@(Fun(context.Value))"></DxTextBox>
-														</CellDisplayTemplate>
-													</DxGridDataColumn>
-												</Columns>
-											</DxGrid>
-										</DxFormLayout>
-									</div>
-								</DxTabPage>
-								<DxTabPage Text="Workorder Details">
-									<div class="p-3">
-										<DxTreeView>
-											<Nodes>
-												@foreach (ItemDetail itemDetail in detailWorkorder.ItemDetails)
-												{
-													<DxTreeViewNode Text="@itemDetail.SerialNo">
-														<Nodes>
-															@foreach (TaskDetail taskDetail in itemDetail.TaskDetails)
-															{
-																<DxTreeViewNode Text="@taskDetail.Station.Name"></DxTreeViewNode>
-															}
-														</Nodes>
-													</DxTreeViewNode>
-												}
-											</Nodes>
-										</DxTreeView>
-									</div>
-								</DxTabPage>
-							</DxTabs>
-						</DxFormLayout>
-					}
-				</div>
-			</Template>
-		</DxGridLayoutItem>
-	</Items>
+    <Rows>
+        <DxGridLayoutRow></DxGridLayoutRow>
+    </Rows>
+    <Columns>
+        <DxGridLayoutColumn Width="30%"></DxGridLayoutColumn>
+        <DxGridLayoutColumn Width="50%"></DxGridLayoutColumn>
+    </Columns>
+    <Items>
+        <DxGridLayoutItem Row="0" Column="0">
+            <Template>
+                <div class="p-3">
+                    <DxGrid Data="@workorders" FocusedRowEnabled="true" FocusedRowChanged="OnFocusedWorkorderChanged">
+                        <Columns>
+                            <DxGridDataColumn FieldName="@nameof(Workorder.Status)" />
+                            <DxGridDataColumn FieldName="@nameof(Workorder.WorkorderNo)" />
+                            <DxGridDataColumn FieldName="@nameof(Workorder.Lot)" />
+                            <DxGridDataColumn FieldName="@nameof(Workorder.PartNo)" />
+                        </Columns>
+                    </DxGrid>
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+        <DxGridLayoutItem Row="0" Column="1">
+            <Template>
+                <div class="p-3">
+                    @if (detailWorkorder != null)
+                    {
+                        <DxFormLayout>
+                            <DxTabs>
+                                <DxTabPage Text="Workorder Recipe">
+                                    <div class="p-3">
+                                        @* <DxFormLayout CssClass="p-3">
+                                    <DxGrid Data="@workorderRecipeContents">
+                                    <Columns>
+                                    <DxGridDataColumn FieldName="@nameof(WorkorderRecipeContent.RecipeName)"></DxGridDataColumn>
+                                    <DxGridDataColumn FieldName="@nameof(WorkorderRecipeContent.DataType)"></DxGridDataColumn>
+                                    <DxGridDataColumn FieldName="@nameof(WorkorderRecipeContent.Value)"></DxGridDataColumn>
+                                    </Columns>
+                                    </DxGrid>
+                                    </DxFormLayout> *@
+                                    </div>
+                                </DxTabPage>
+                                <DxTabPage Text="Workorder Record">
+                                    <div class="p-3">
+                                        <DxFormLayout CssClass="p-3">
+                                            @* <DxGrid Data="@workorderRecordContents">
+                                        <Columns>
+                                        <DxGridDataColumn FieldName="@nameof(WorkorderRecordContent.RecordName)"></DxGridDataColumn>
+                                        <DxGridDataColumn FieldName="@nameof(WorkorderRecordContent.DataType)"></DxGridDataColumn>
+                                        <DxGridDataColumn FieldName="@nameof(WorkorderRecordContent.WorkorderRecordDetails)">
+                                        <CellDisplayTemplate>
+                                        <DxTextBox Text="@(Fun(context.Value))"></DxTextBox>
+                                        </CellDisplayTemplate>
+                                        </DxGridDataColumn>
+                                        </Columns>
+                                        </DxGrid> *@
+                                        </DxFormLayout>
+                                    </div>
+                                </DxTabPage>
+                                <DxTabPage Text="Workorder Details">
+                                    <div class="p-3">
+                                        <DxTreeView>
+                                            <Nodes>
+                                                @foreach (ItemDetail itemDetail in detailWorkorder.ItemDetails)
+                                                {
+                                                    <DxTreeViewNode Text="@itemDetail.SerialNo">
+                                                        <Nodes>
+                                                            @foreach (TaskDetail taskDetail in itemDetail.TaskDetails)
+                                                            {
+                                                                @if (taskDetail.Station != null)
+                                                                {
+                                                                    <DxTreeViewNode Text="@taskDetail.Station?.Name"></DxTreeViewNode>
+                                                                }
+                                                            }
+                                                        </Nodes>
+                                                    </DxTreeViewNode>
+                                                }
+                                            </Nodes>
+                                        </DxTreeView>
+                                    </div>
+                                </DxTabPage>
+                            </DxTabs>
+                        </DxFormLayout>
+                    }
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+    </Items>
 </DxGridLayout>
 
 @code {
-	private List<Workorder> workorders = new();
-	Workorder? selectedWorkorder;
-	Workorder? detailWorkorder;
-	private bool hasRecipe => detailWorkorder.RecipeCategoryId != null;
-	IEnumerable<WorkorderRecipeContent> workorderRecipeContents => detailWorkorder.RecipeCategory == null ? new List<WorkorderRecipeContent>() : detailWorkorder.RecipeCategory.WorkorderRecipeContents;
-	IEnumerable<WorkorderRecordContent> workorderRecordContents => detailWorkorder.WorkorderRecordCategory.WorkorderRecordContents;
+    private List<Workorder> workorders = new();
+    Workorder? selectedWorkorder;
+    Workorder? detailWorkorder;
+    private bool hasRecipe => detailWorkorder.RecipeCategoryId != null;
+    //IEnumerable<WorkorderRecipeContent> workorderRecipeContents => detailWorkorder.RecipeCategory == null ? new List<WorkorderRecipeContent>() : detailWorkorder.RecipeCategory.WorkorderRecipeContents;
+    //IEnumerable<WorkorderRecordContent> workorderRecordContents => detailWorkorder.WorkorderRecordCategory.WorkorderRecordContents;
 
-	protected override async Task OnInitializedAsync()
-	{
-		workorders = await shopfloorService.GetAllWorkorders();
-	}
+    protected override async Task OnInitializedAsync()
+    {
+        workorders = await shopfloorService.GetAllWorkorders();
+    }
 
-	private async void OnFocusedWorkorderChanged(GridFocusedRowChangedEventArgs e)
-	{
-		selectedWorkorder = e.DataItem as Workorder;
-		if (selectedWorkorder != null)
-		{
-			detailWorkorder = await shopfloorService.GetWorkordersDetails(selectedWorkorder.Id);
-		}
+    private async void OnFocusedWorkorderChanged(GridFocusedRowChangedEventArgs e)
+    {
+        selectedWorkorder = e.DataItem as Workorder;
+        if (selectedWorkorder != null)
+        {
+            detailWorkorder = await shopfloorService.GetWorkordersDetails(selectedWorkorder.Id);
+        }
 
-	}
+    }
 
-	private string Fun(object obj)
-	{
-		ICollection<WorkorderRecordDetail>? b = obj as ICollection<WorkorderRecordDetail>;
-		if (b.Any())
-		{
-			var res = b.FirstOrDefault(x => x.WorkerderId == selectedWorkorder.Id);
-			return b is null||res is null ? string.Empty : res.Value;
-		}
-		else
-		{
-			return string.Empty;
-		}
-	}
+    private string Fun(object obj)
+    {
+        ICollection<WorkorderRecordDetail>? b = obj as ICollection<WorkorderRecordDetail>;
+        if (b.Any())
+        {
+            var res = b.FirstOrDefault(x => x.WorkerderId == selectedWorkorder.Id);
+            return b is null || res is null ? string.Empty : res.Value;
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
 }
 

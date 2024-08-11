@@ -7,21 +7,25 @@
 <DxPopup HeaderText="@stationSingleWorkorderSingleSerial.Name" @bind-Visible="@showOperation" CloseOnOutsideClick="false" ShowFooter="true">
     <BodyContentTemplate>
         <DxFormLayout>
-            <DxFormLayoutItem ColSpanLg="12" Context="serialcontext">
+            <DxFormLayoutItem Caption=" SerialNo" ColSpanLg="12" Context="serialcontext" CaptionPosition="CaptionPosition.Vertical" Context="stationinserialnocontext">
                 <DxTextBox @bind-Text="@serialNo" ReadOnly="@stationSingleWorkorderSingleSerial.HasTask"></DxTextBox>
             </DxFormLayoutItem>
         </DxFormLayout>
     </BodyContentTemplate>
     <FooterContentTemplate>
-        @if (!stationSingleWorkorderSingleSerial.HasTask)
-        {
-            <DxButton Text="Station in" Click="@StationInOperation"></DxButton>
-        }
-        else
-        {
-            <DxButton Text="OK" Click="@(()=>StationOutOperation(true))"></DxButton>
-            <DxButton Text="NG" Click="@(()=>StationOutOperation(false))"></DxButton>
-        }
+        <DxToolbar>
+            <Items>
+                @if (!stationSingleWorkorderSingleSerial.HasTask)
+                {
+                    <DxToolbarItem Text="Station in" RenderStyle="ButtonRenderStyle.Info" Click="@StationInOperation" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
+                }
+                else
+                {
+                    <DxToolbarItem Text="OK" RenderStyle="ButtonRenderStyle.Success" Click="@(()=>StationOutOperation(true))" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
+                    <DxToolbarItem Text="NG" RenderStyle="ButtonRenderStyle.Danger" Click="@(()=>StationOutOperation(false))" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
+                }
+            </Items>
+        </DxToolbar>
     </FooterContentTemplate>
 </DxPopup>
 @if (stationSingleWorkorderSingleSerial != null)
@@ -62,16 +66,16 @@
                                 <DxFormLayoutItem Caption="Workorder" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxTextBox Text="@stationSingleWorkorderSingleSerial.Workerder?.WorkorderNo" ReadOnly="true"></DxTextBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="HasItem" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
-                                    <DxCheckBox Checked="@stationSingleWorkorderSingleSerial.HasItem" CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
-                                </DxFormLayoutItem>
+                                @* <DxFormLayoutItem Caption="HasItem" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                            <DxCheckBox Checked="@stationSingleWorkorderSingleSerial.HasItem" CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
+                            </DxFormLayoutItem> *@
                                 <DxFormLayoutItem Caption="SerialNo" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxTextBox Text="@stationSingleWorkorderSingleSerial.TaskDetail?.SerialNo" ReadOnly="true"></DxTextBox>
                                 </DxFormLayoutItem>
                                 <DxFormLayoutItem Caption="Start Time" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxDateEdit Date="@stationSingleWorkorderSingleSerial.TaskDetail?.StartTime" TimeSectionVisible="true" ReadOnly="true"></DxDateEdit>
                                 </DxFormLayoutItem>
-                                
+
                             </DxFormLayout>
                         </div>
                     </Template>
@@ -100,7 +104,7 @@
 
 
 @code {
-    private StationSingleWorkorderSingleSerial stationSingleWorkorderSingleSerial => (StationSingleWorkorderSingleSerial)StationParam;
+    private StationSingleWorkorderSingleSerial? stationSingleWorkorderSingleSerial => StationParam as StationSingleWorkorderSingleSerial;
 
     private string serialNo = string.Empty;
 
@@ -121,7 +125,7 @@
     {
         if (!stationSingleWorkorderSingleSerial.HasTask)
         {
-            await shopfloorService.StationInByName(stationSingleWorkorderSingleSerial.Name, serialNo);
+            await shopfloorService.StationInByNameAndSerialNo(stationSingleWorkorderSingleSerial.Name, serialNo);
         }
         CloseOperationPopup();
     }
@@ -129,7 +133,14 @@
     {
         if (stationSingleWorkorderSingleSerial.HasTask)
         {
-            await shopfloorService.StationOutBySerialNo(stationSingleWorkorderSingleSerial.Name, serialNo, pass);
+            if (string.IsNullOrEmpty(serialNo))
+            {
+                await shopfloorService.StationOutByFIFO(stationSingleWorkorderSingleSerial.Name, pass);
+            }
+            else
+            {
+                await shopfloorService.StationOutBySerialNo(stationSingleWorkorderSingleSerial.Name, serialNo, pass);
+            }
         }
         CloseOperationPopup();
     }

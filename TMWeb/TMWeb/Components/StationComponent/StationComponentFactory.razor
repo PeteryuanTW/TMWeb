@@ -6,10 +6,10 @@
             <StationSingleWorkorderSingleSerialComponent StationParam="@FactoryStationParam" />
             break;
         case 1:
+            <StationSingleWorkorderMutipleSerialComponent StationParam="@FactoryStationParam"/>
             break;
         case 2:
-            break;
-        case 3:
+            <StationSingleWorkorderNoSerialComponent StationParam="@FactoryStationParam" />
             break;
         default:
             break;
@@ -22,4 +22,9 @@
     [Parameter]
     public Station? FactoryStationParam { get; set; }
     private bool hasStation => FactoryStationParam != null;
+
+    protected override Task OnInitializedAsync()
+    {
+        return base.OnInitializedAsync();
+    }
 }

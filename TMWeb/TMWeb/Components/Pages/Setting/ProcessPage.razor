@@ -1,30 +1,134 @@
 ﻿@page "/Process"
 @rendermode InteractiveServer
 @inject TMWebShopfloorService shopfloorService
+<DxStackLayout Orientation="Orientation.Vertical">
+    <Items>
+        <DxStackLayoutItem Length="5rem">
+            <Template>
+                <div class="p-3">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-plus" Click="NewProcess" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                            <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowPopup" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
+                        </Items>
+                    </DxToolbar>
+                </div>
+            </Template>
+        </DxStackLayoutItem>
+        <DxStackLayoutItem>
+            <Template>
+                <div>
+                    <DxTreeView @ref="@dxTreeView" AnimationType="LayoutAnimationType.Slide" AllowSelectNodes="true" SelectionChanged="SelectProcess">
+                        <Nodes>
+                            @foreach (Process process in processes)
+                            {
+                                <DxTreeViewNode Text="@process.Name" Name="@process.Id.ToString()">
+                                    <Nodes>
+                                        @foreach (Station station in process.Stations)
+                                        {
+                                            <DxTreeViewNode Text="@($"{station.ProcessIndex}. {station.Name}")" Enabled="false" />
+                                        }
+                                    </Nodes>
+                                </DxTreeViewNode>
+                            }
+                        </Nodes>
+                    </DxTreeView>
+                </div>
+            </Template>
+        </DxStackLayoutItem>
+    </Items>
+</DxStackLayout>
 
-<DxTreeView AllowSelectNodes="true"
-			AnimationType="LayoutAnimationType.Slide">
-	<Nodes>
-		@foreach (Process process in processes)
-		{
-			<DxTreeViewNode Text="@process.Name">
-				<Nodes>
-					@foreach (Station station in process.Stations)
-					{
-						<DxTreeViewNode Text="@($"{station.ProcessIndex}-{station.Name}")" />
-					}
-				</Nodes>
-			</DxTreeViewNode>
-		}
-	</Nodes>
-</DxTreeView>
+<DxPopup @bind-Visible="@popupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="true" Width="50rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem>
+                        <Template Context="headercontext">
+                            <div>
+                                <DxTextBox @bind-Text="@targetProcess.Name" BindValueMode="BindValueMode.OnInput"></DxTextBox>
+                            </div>
+                        </Template>
+                    </DxToolbarItem>
+                    <DxToolbarItem IconCssClass="oi oi-plus" Click="NewStation" Enabled="@processNamed" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="ClosePopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Plain" />
+                </Items>
+            </DxToolbar>
+        </div>
+
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <DxFormLayout>
+            @foreach (Station? station in targetProcess?.Stations)
+            {
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="Name" ColSpanLg="6">
+                    <DxTextBox @bind-Text="@station.Name"></DxTextBox>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="Index" ColSpanLg="3">
+                    <DxSpinEdit @bind-Value="@station.ProcessIndex" MinValue="0" MaxValue="@(targetProcess?.Stations.Max(x=>x.ProcessIndex)+1)"></DxSpinEdit>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="Type" ColSpanLg="3">
+                    <DxSpinEdit @bind-Value="@station.StationType" MinValue="0" MaxValue="2"></DxSpinEdit>
+                </DxFormLayoutItem>
+            }
+        </DxFormLayout>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Click="UpsertProcessAndStation" Enabled="@processNamed" RenderStyle="ButtonRenderStyle.Primary" IconCssClass="oi oi-check" />
+    </FooterContentTemplate>
+</DxPopup>
 
 
 @code {
-	List<Process> processes = new();
+    DxTreeView? dxTreeView { get; set; }
 
-	protected override async Task OnInitializedAsync()
-	{
-		processes = await shopfloorService.GetAllProcess();
-	}
+    List<Process> processes = new();
+    private bool popupVisible = false;
+    private void ShowPopup() => popupVisible = true;
+    private void ClosePopup() => popupVisible = false;
+
+
+
+    private Process? targetProcess;
+    private bool processSelected => targetProcess != null;
+
+    private bool processNamed => !string.IsNullOrEmpty(targetProcess?.Name);
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetProcessData();
+    }
+
+    private async Task GetProcessData()
+    {
+        processes = await shopfloorService.GetAllProcessAndStations();
+    }
+
+    private void NewProcess()
+    {
+        targetProcess = new Process(string.Empty);
+        ShowPopup();
+    }
+
+    private void NewStation()
+    {
+        targetProcess?.Stations.Add(new Station(targetProcess, string.Empty));
+    }
+
+    private void SelectProcess(TreeViewNodeEventArgs e)
+    {
+        string? processId = e.NodeInfo?.Name;
+        if (processes != null)
+        {
+            targetProcess = processes.FirstOrDefault(x => x.Id.ToString() == processId);
+        }
+    }
+
+    private async Task UpsertProcessAndStation()
+    {
+        await shopfloorService.UpsertProcessAndStations(targetProcess);
+        await GetProcessData();
+        ClosePopup();
+    }
 }

@@ -20,7 +20,9 @@ builder.Services.AddMvc();
 
 builder.Services.AddDbContextFactory<TmwebContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var a = builder.Configuration.GetConnectionString("DefaultConnection");
+
+	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 builder.Services.AddSingleton<TMWebShopfloorService>();
 builder.Services.AddSingleton<TMWebMachineService>();

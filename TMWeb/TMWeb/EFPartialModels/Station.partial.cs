@@ -22,6 +22,20 @@ namespace TMWeb.EFModels
     /// </summary>
     public partial class Station
     {
+        public Station() { }
+
+        public Station(Process process, string name)
+        {
+            Process = process;
+            ProcessId = process.Id;
+            Id = Guid.NewGuid();
+            ProcessIndex = 0;
+            StationType = 0;
+            Name = name;
+        }
+
+
+
         private StationState stationStatus = StationState.Uninit;
         public StationState Status => stationStatus;
 
