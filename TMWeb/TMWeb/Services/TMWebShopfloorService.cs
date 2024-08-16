@@ -442,6 +442,7 @@ namespace TMWeb.Services
                 machines = tmp.Select(x => InitMachineToDerivesClass(x)).ToList();
                 foreach (Machine machine in machines)
                 {
+                    machine.InitMachine();
                     if (machine.Enabled)
                     {
                         machine.ConnectAsync();
@@ -457,6 +458,7 @@ namespace TMWeb.Services
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
                 var tmp = dbContext.Machines.Include(x => x.TagCategory).ThenInclude(x => x.Tags).AsNoTracking().FirstOrDefault(x=>x.Id == id);
                 tmp = InitMachineToDerivesClass(tmp);
+                tmp.InitMachine();
                 if (tmp.Enabled)
                 {
                     tmp.ConnectAsync();

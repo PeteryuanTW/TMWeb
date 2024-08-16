@@ -11,11 +11,11 @@ public partial class Tag
 
     public string? Name { get; set; }
 
-    public int? DataType { get; set; }
+    public int DataType { get; set; }
 
-    public bool? UpdateByTime { get; set; }
+    public bool UpdateByTime { get; set; }
 
-    public bool? IsHeartBeat { get; set; }
+    public bool IsHeartBeat { get; set; }
 
     public string? Param1 { get; set; }
 

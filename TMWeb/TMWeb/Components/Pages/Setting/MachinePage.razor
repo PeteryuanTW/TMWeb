@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @inject NavigationManager nav
 @inject TMWebShopfloorService shopfloorService
+@implements IDisposable
 
 @if (hasNachine)
 {
@@ -31,7 +32,7 @@
                     <DxFormLayout CaptionPosition="CaptionPosition.Vertical" Data="@machine" ReadOnly="@(!canEdit)">
                         <DxFormLayoutGroup Caption="Machine Config" CssClass="rounded">
                             <DxFormLayoutItem Caption="Name">
-                                <DxTextBox @bind-Text="@machine.Name" ReadOnly="@(!canEdit)"/>
+                                <DxTextBox @bind-Text="@machine.Name" ReadOnly="@(!canEdit)" />
                             </DxFormLayoutItem>
                             <DxFormLayoutItem Caption="Enable">
                                 <DxCheckBox @bind-Checked="@machine.Enabled" CheckType="CheckType.Switch" ReadOnly="@(!canEdit)"></DxCheckBox>
@@ -46,14 +47,7 @@
                                 <DxComboBox Data="@connectionType" Value="@(machine.ConnectionType)" ValueChanged="@((int i)=>SelectedConnectionType(i))" ReadOnly="@(!canEdit)" />
                             </DxFormLayoutItem>
                             <DxFormLayoutItem Caption="Tag Category">
-                                @* <DxComboBox Data="@tagCategories" Value="@()" ValueChanged="((TagCategory tc)=>SelectedNewCategry(tc))" EditFormat="{0}">
-                                    <Columns>
-                                        <DxListEditorColumn FieldName="@nameof(TagCategory.Name)" />
-                                    </Columns>
-                                </DxComboBox> *@
-                            </DxFormLayoutItem>
-                            <DxFormLayoutItem Caption="IP">
-                                <DxTextBox @bind-Text="@machine.TagCategory.Name"/>
+                                <DxComboBox Data="@tagCategories" @bind-Value="@machine.TagCategoryId" ReadOnly="@(!canEdit)" ValueFieldName="@nameof(TagCategory.Id)" TextFieldName="@nameof(TagCategory.Name)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
                             </DxFormLayoutItem>
                         </DxFormLayoutGroup>
                         <DxFormLayoutGroup Caption="Runtime data" CssClass="rounded">
@@ -74,12 +68,19 @@
                                     <DxGridDataColumn FieldName="@nameof(Tag.Name)" />
                                     <DxGridDataColumn FieldName="@nameof(Tag.DataType)" />
                                     <DxGridDataColumn FieldName="@nameof(Tag.UpdateByTime)" />
-                                    <DxGridDataColumn FieldName="@nameof(Tag.IsHeartBeat)" />
+                                    <DxGridDataColumn FieldName="@nameof(Tag.ValueString)" />
+                                    <DxGridDataColumn FieldName="@nameof(Tag.LastChangedTime)" DisplayFormat="G" />
+                                    <DxGridDataColumn FieldName="@nameof(Tag.LastUpdateTime)" DisplayFormat="G" />
                                     <DxGridDataColumn FieldName="@nameof(Tag.Param1)" />
                                     <DxGridDataColumn FieldName="@nameof(Tag.Param2)" />
                                     <DxGridDataColumn FieldName="@nameof(Tag.Param3)" />
                                     <DxGridDataColumn FieldName="@nameof(Tag.Param4)" />
                                     <DxGridDataColumn FieldName="@nameof(Tag.Param5)" />
+                                    <DxGridDataColumn>
+                                        <CellDisplayTemplate>
+                                            <DxButton IconCssClass="oi oi-pencil" Click="@(()=>Clickkk(context.DataItem))"></DxButton>
+                                        </CellDisplayTemplate>
+                                    </DxGridDataColumn>
                                 </Columns>
                             </DxGrid>
                         }
@@ -109,14 +110,33 @@ else
     private IEnumerable<MachineConnectType> connectionType = Enum.GetValues(typeof(MachineConnectType)).Cast<MachineConnectType>();
     private IEnumerable<TagCategory> tagCategories = new List<TagCategory>();
     private IEnumerable<Guid> ids => tagCategories.Select(x => x.Id);
-    TagCategory tmp;
 
 
     protected override async Task OnInitializedAsync()
     {
         machine = await shopfloorService.GetMachineByID(new Guid(machineId));
-        tmp = machine.TagCategory;
-        await RetriveTagCategory();
+        if (hasNachine)
+        {
+            await RetriveTagCategory();
+            machine.MachineStatechangedAct += UpdateUI;
+            machine.TagsStatechangedAct += UpdateUI;
+        }
+
+    }
+
+    public void Dispose()
+    {
+        if (hasNachine)
+        {
+            machine.MachineStatechangedAct -= UpdateUI;
+            machine.TagsStatechangedAct -= UpdateUI;
+        }
+
+    }
+
+    private async void UpdateUI()
+    {
+        await InvokeAsync(StateHasChanged);
     }
 
     private async void EditOrSave()
@@ -145,12 +165,22 @@ else
         await RetriveTagCategory();
     }
 
-    private void SelectedNewCategry(TagCategory tagCategory)
-    {
-        tmp = tagCategory;
-    }
-    private void SelectedNewCategry(Guid id)
-    {
 
+    private void SelectedNewCategry(Guid? id)
+    {
+        machine.TagCategoryId = id;
+    }
+
+    void Grid_UnboundColumnData(GridUnboundColumnDataEventArgs e)
+    {
+        if (e.FieldName == "Write")
+        {
+
+        }
+    }
+
+    void Clickkk(Object obj)
+    {
+        
     }
 }
