@@ -25,6 +25,9 @@
 
     private void Nav()
     {
-        navigationManager.NavigateTo($"/{NavLink}");
+        if (!string.IsNullOrEmpty(NavLink))
+        {
+            navigationManager.NavigateTo($"/{NavLink}");
+        }
     }
 }

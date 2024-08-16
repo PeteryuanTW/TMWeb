@@ -1,0 +1,20 @@
+﻿@inject IToastNotificationService toastSetvice
+@inject UIService uiService
+
+<DxToastProvider VerticalAlignment="VerticalEdge.Bottom" ThemeMode="ToastThemeMode.Pastel" />
+
+@code {
+    protected override void OnInitialized()
+    {
+        uiService.ToastAction += GetToastRequest;
+    }
+
+    private void GetToastRequest(RequestResult req)
+    {
+        toastSetvice.ShowToast(new ToastOptions()
+            {
+                RenderStyle = (ToastRenderStyle)((int)req.Success),
+                Text = req.Msg,
+            });
+    }
+}

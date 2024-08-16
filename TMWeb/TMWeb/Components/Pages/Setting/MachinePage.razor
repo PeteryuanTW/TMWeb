@@ -1,64 +1,156 @@
-﻿@page "/Machine/{machineName}"
+﻿@page "/Machine/{machineId}"
 @rendermode InteractiveServer
-@inject TMWebMachineService machineService
+@inject NavigationManager nav
+@inject TMWebShopfloorService shopfloorService
 
-<DxGridLayout ColumnSpacing="3rem">
-	<Rows>
-		<DxGridLayoutRow></DxGridLayoutRow>
-	</Rows>
-	<Columns>
-		<DxGridLayoutColumn Width="30%"></DxGridLayoutColumn>
-		<DxGridLayoutColumn Width="60%"></DxGridLayoutColumn>
-	</Columns>
-	<Items>
-		<DxGridLayoutItem Row="0" Column="0">
-			<Template>
+@if (hasNachine)
+{
+    <DxGridLayout ColumnSpacing="3rem" RowSpacing="1rem">
+        <Rows>
+            <DxGridLayoutRow Height="auto"></DxGridLayoutRow>
+            <DxGridLayoutRow Height="auto"></DxGridLayoutRow>
+        </Rows>
+        <Columns>
+            <DxGridLayoutColumn Width="30%"></DxGridLayoutColumn>
+            <DxGridLayoutColumn Width="60%"></DxGridLayoutColumn>
+        </Columns>
+        <Items>
+            <DxGridLayoutItem Row="0" Column="0">
+                <Template>
+                    <DxToolbar>
+                        <DxToolbar>
+                            <Items>
+                                <DxToolbarItem IconCssClass="@($"oi oi-{editOrSaveIcon}")" Click="EditOrSave" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
+                            </Items>
+                        </DxToolbar>
+                    </DxToolbar>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="0">
+                <Template>
+                    <DxFormLayout CaptionPosition="CaptionPosition.Vertical" Data="@machine" ReadOnly="@(!canEdit)">
+                        <DxFormLayoutGroup Caption="Machine Config" CssClass="rounded">
+                            <DxFormLayoutItem Caption="Name">
+                                <DxTextBox @bind-Text="@machine.Name" ReadOnly="@(!canEdit)"/>
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="Enable">
+                                <DxCheckBox @bind-Checked="@machine.Enabled" CheckType="CheckType.Switch" ReadOnly="@(!canEdit)"></DxCheckBox>
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="IP">
+                                <DxTextBox @bind-Text="@machine.Ip" ReadOnly="@(!canEdit)" />
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="Port">
+                                <DxSpinEdit @bind-Value="@machine.Port" ReadOnly="@(!canEdit)"></DxSpinEdit>
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="Connection Type">
+                                <DxComboBox Data="@connectionType" Value="@(machine.ConnectionType)" ValueChanged="@((int i)=>SelectedConnectionType(i))" ReadOnly="@(!canEdit)" />
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="Tag Category">
+                                @* <DxComboBox Data="@tagCategories" Value="@()" ValueChanged="((TagCategory tc)=>SelectedNewCategry(tc))" EditFormat="{0}">
+                                    <Columns>
+                                        <DxListEditorColumn FieldName="@nameof(TagCategory.Name)" />
+                                    </Columns>
+                                </DxComboBox> *@
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="IP">
+                                <DxTextBox @bind-Text="@machine.TagCategory.Name"/>
+                            </DxFormLayoutItem>
+                        </DxFormLayoutGroup>
+                        <DxFormLayoutGroup Caption="Runtime data" CssClass="rounded">
+                            <DxFormLayoutItem Caption="Status" Field="@nameof(Machine.StatusStr)" />
+                            <DxFormLayoutItem Caption="Running" Field="@nameof(Machine.RunFlag)" />
+                            <DxFormLayoutItem Caption="Error Message" Field="@nameof(Machine.ErrorMsg)" />
+                        </DxFormLayoutGroup>
+                    </DxFormLayout>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="0" Column="1" RowSpan="2">
+                <Template>
+                    <div>
+                        @if (machine.hasTags)
+                        {
+                            <DxGrid Data="@machine.TagCategory.Tags">
+                                <Columns>
+                                    <DxGridDataColumn FieldName="@nameof(Tag.Name)" />
+                                    <DxGridDataColumn FieldName="@nameof(Tag.DataType)" />
+                                    <DxGridDataColumn FieldName="@nameof(Tag.UpdateByTime)" />
+                                    <DxGridDataColumn FieldName="@nameof(Tag.IsHeartBeat)" />
+                                    <DxGridDataColumn FieldName="@nameof(Tag.Param1)" />
+                                    <DxGridDataColumn FieldName="@nameof(Tag.Param2)" />
+                                    <DxGridDataColumn FieldName="@nameof(Tag.Param3)" />
+                                    <DxGridDataColumn FieldName="@nameof(Tag.Param4)" />
+                                    <DxGridDataColumn FieldName="@nameof(Tag.Param5)" />
+                                </Columns>
+                            </DxGrid>
+                        }
+                    </div>
 
-				<DxFormLayout CaptionPosition="CaptionPosition.Vertical" Data="@machine" ReadOnly="true">
-					<DxFormLayoutGroup Caption="Machine Config" CssClass="rounded">
-						<DxFormLayoutItem Caption="Name" Field="@nameof(Machine.Name)" />
-						<DxFormLayoutItem Caption="Enable" Field="@nameof(Machine.Enabled)">
-							<DxCheckBox Checked="@(((bool)(((ValueEditContext)context).Value)))" CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
-						</DxFormLayoutItem>
-						<DxFormLayoutItem Caption="IP" Field="@nameof(Machine.Ip)" />
-						<DxFormLayoutItem Caption="Port" Field="@nameof(Machine.Port)" />
-						<DxFormLayoutItem Caption="Connection Type" Field="@nameof(Machine.ConnectionType)">
-							<DxTextBox Text="@(((MachineConnectType)(((ValueEditContext)context).Value)).ToString())"></DxTextBox>
-						</DxFormLayoutItem>
-						<DxFormLayoutItem Caption="Tag Category" Field="@nameof(Machine.TagCategory.Name)" />
-					</DxFormLayoutGroup>
-				</DxFormLayout>
+                </Template>
+            </DxGridLayoutItem>
+        </Items>
+    </DxGridLayout>
 
-			</Template>
-		</DxGridLayoutItem>
-		<DxGridLayoutItem Row="0" Column="1">
-			<Template>
-				<DxGrid Data="@machine.TagCategory.Tags">
-					<Columns>
-						<DxGridDataColumn FieldName="@nameof(Tag.Name)" />
-						<DxGridDataColumn FieldName="@nameof(Tag.DataType)" />
-						<DxGridDataColumn FieldName="@nameof(Tag.UpdateByTime)" />
-						<DxGridDataColumn FieldName="@nameof(Tag.IsHeartBeat)" />
-						<DxGridDataColumn FieldName="@nameof(Tag.Param1)" />
-						<DxGridDataColumn FieldName="@nameof(Tag.Param2)" />
-						<DxGridDataColumn FieldName="@nameof(Tag.Param3)" />
-						<DxGridDataColumn FieldName="@nameof(Tag.Param4)" />
-						<DxGridDataColumn FieldName="@nameof(Tag.Param5)" />
-					</Columns>
-				</DxGrid>
-			</Template>
-		</DxGridLayoutItem>
-	</Items>
-</DxGridLayout>
+}
+else
+{
+
+}
 
 
 @code {
-	[Parameter]
-	public string machineName { get; set; }
-	private Machine? machine;
+    [Parameter]
+    public string machineId { get; set; }
+    private Machine? machine;
+    private bool hasNachine => machine != null;
+    private DataMode mode = DataMode.View;
+    private bool canEdit => mode == DataMode.Edit;
+    private string editOrSaveIcon => canEdit ? "check" : "pencil";
 
-	protected override async Task OnInitializedAsync()
-	{
-		machine = await machineService.GetMachineByName(machineName);
-	}
+    private IEnumerable<MachineConnectType> connectionType = Enum.GetValues(typeof(MachineConnectType)).Cast<MachineConnectType>();
+    private IEnumerable<TagCategory> tagCategories = new List<TagCategory>();
+    private IEnumerable<Guid> ids => tagCategories.Select(x => x.Id);
+    TagCategory tmp;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        machine = await shopfloorService.GetMachineByID(new Guid(machineId));
+        tmp = machine.TagCategory;
+        await RetriveTagCategory();
+    }
+
+    private async void EditOrSave()
+    {
+        if (!canEdit)
+        {
+            mode = DataMode.Edit;
+        }
+        else
+        {
+            await shopfloorService.UpsertMachineConfig(machine);
+            nav.Refresh(true);
+            mode = DataMode.View;
+        }
+
+    }
+
+    private async Task RetriveTagCategory()
+    {
+        tagCategories = await shopfloorService.GetCategoryByConnectionType(machine.ConnectionType);
+    }
+
+    private async void SelectedConnectionType(int i)
+    {
+        machine.ConnectionType = i;
+        await RetriveTagCategory();
+    }
+
+    private void SelectedNewCategry(TagCategory tagCategory)
+    {
+        tmp = tagCategory;
+    }
+    private void SelectedNewCategry(Guid id)
+    {
+
+    }
 }

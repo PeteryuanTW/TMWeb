@@ -7,6 +7,8 @@ public partial class Machine
 {
     public Guid Id { get; set; }
 
+    public Guid? ProcessId { get; set; }
+
     public string Name { get; set; } = null!;
 
     public string Ip { get; set; } = null!;
@@ -18,6 +20,8 @@ public partial class Machine
     public Guid? TagCategoryId { get; set; }
 
     public bool Enabled { get; set; }
+
+    public virtual Process? Process { get; set; }
 
     public virtual TagCategory? TagCategory { get; set; }
 }

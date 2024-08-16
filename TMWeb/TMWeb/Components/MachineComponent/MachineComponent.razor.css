@@ -1,0 +1,17 @@
+﻿.panel {
+    width: 20rem;
+    height: 20rem;
+    border-radius:1rem;
+}
+
+.running {
+    background-color: rgb(1, 178, 104);
+}
+
+.idel {
+    background-color: rgb(0, 153, 153);
+}
+
+.error {
+    background-color: rgb(173, 0, 0);
+}

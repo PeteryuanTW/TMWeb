@@ -1,4 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Mvc.ViewFeatures
+@using System.Globalization
+@using Microsoft.AspNetCore.Localization
+
 @inject IFileVersionProvider FileVersionProvider
 
 <!DOCTYPE html>
@@ -27,4 +30,17 @@
 
 @code{
     private string AppendVersion(string path) => FileVersionProvider.AddFileVersionToPath("/", path);
+
+    [CascadingParameter]
+    public HttpContext? HttpContext { get; set; }
+
+    protected override void OnInitialized()
+    {
+        HttpContext?.Response.Cookies.Append(
+            CookieRequestCultureProvider.DefaultCookieName,
+            CookieRequestCultureProvider.MakeCookieValue(
+                new RequestCulture(
+                    CultureInfo.CurrentCulture,
+                    CultureInfo.CurrentUICulture)));
+    }
 }

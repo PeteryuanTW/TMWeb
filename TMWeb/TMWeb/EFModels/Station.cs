@@ -7,7 +7,7 @@ public partial class Station
 {
     public Guid Id { get; set; }
 
-    public Guid ProcessId { get; set; }
+    public Guid? ProcessId { get; set; }
 
     public string? Name { get; set; }
 

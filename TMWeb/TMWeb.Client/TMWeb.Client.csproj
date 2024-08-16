@@ -9,5 +9,6 @@
   <ItemGroup>
     <PackageReference Include="DevExpress.Blazor" Version="24.1.3" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.*-*" />
+    <PackageReference Include="Microsoft.Extensions.Localization" Version="8.0.7" />
   </ItemGroup>
 </Project>

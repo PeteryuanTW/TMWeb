@@ -1,8 +1,9 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using DevExpress.Pdf;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using System.Reflection.PortableExecutable;
 using TMWeb.Components.Pages.Setting;
 using TMWeb.Data;
+using TMWeb.Data.Message;
 using TMWeb.EFModels;
 
 namespace TMWeb.Services
@@ -16,27 +17,48 @@ namespace TMWeb.Services
             this.scopeFactory = scopeFactory;
 
             InitAllStations();
+            InitAllMachinesFromDB();
+
         }
         #region process
 
-        public async Task UpsertProcessAndStations(Process process)
+        public Task<List<string>> GetAllProcessName()
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                Process? targetProcess = dbContext.Processes.Include(x=>x.Stations).FirstOrDefault(x => x.Id == process.Id);
-                if (targetProcess != null)
-                {
-                    targetProcess.Name = process.Name;
-                    targetProcess.Stations = process.Stations;
-                    //targetProcess = process;
-                }
-                else
-                {
-                    var a = await dbContext.Processes.AddAsync(process);
-                }
-                await dbContext.SaveChangesAsync();
+                return Task.FromResult(dbContext.Processes.Select(x => x.Name).ToList());
             }
+        }
+
+        public async Task<RequestResult> UpsertProcessAndStations(Process process)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    Process? targetProcess = dbContext.Processes.Include(x => x.Stations).AsNoTracking().FirstOrDefault(x => x.Id == process.Id);
+                    if (targetProcess != null)
+                    {
+                        targetProcess.Name = process.Name;
+                        targetProcess.Stations = process.Stations;
+                        //targetProcess = process;
+                    }
+                    else
+                    {
+                        var a = await dbContext.Processes.AddAsync(process);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new RequestResult(2, "Upsert success");
+                }
+            }
+            catch (Exception ex)
+            {
+                return new RequestResult(4, ex.Message);
+            }
+
+
         }
 
         public Task<List<Process>> GetAllProcessAndStations()
@@ -44,7 +66,7 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Processes.Include(x => x.Stations.OrderBy(x => x.ProcessIndex).ThenBy(x=>x.Name)).ToList());
+                return Task.FromResult(dbContext.Processes.Include(x => x.Stations.OrderBy(x => x.ProcessIndex).ThenBy(x => x.Name)).ToList());
             }
         }
         public Task<Process?> GetProcessByName(string processName)
@@ -55,7 +77,7 @@ namespace TMWeb.Services
                 return Task.FromResult(dbContext.Processes.FirstOrDefault(x => x.Name == processName));
             }
         }
-        public Task<Process?> GetProcessByID(Guid processID)
+        public Task<Process?> GetProcessByID(Guid? processID)
         {
             using (var scope = scopeFactory.CreateScope())
             {
@@ -85,11 +107,11 @@ namespace TMWeb.Services
             Process? targetProcess = await GetProcessByName(processName);
             if (targetProcess != null)
             {
-                return Stations.Where(x => x.ProcessId == targetProcess.Id).OrderBy(x=>x.ProcessIndex).ThenBy(x=>x.Name).ToList();
+                return Stations.Where(x => x.ProcessId == targetProcess.Id).OrderBy(x => x.ProcessIndex).ThenBy(x => x.Name).ToList();
             }
             return new();
         }
-        public async Task<List<Station>> GetStationsByProcessID(Guid processID)
+        public async Task<List<Station>> GetStationsByProcessID(Guid? processID)
         {
             Process? targetProcess = await GetProcessByID(processID);
             if (targetProcess != null)
@@ -295,7 +317,7 @@ namespace TMWeb.Services
                                 taskDetail.FinishedTime = DateTime.Now;
                                 await UpdateTaskDetailWhenStationOut(taskDetail);
 
-                                
+
                                 bool isLast = await CheckStationIsLastInProcess(targetStation);
                                 if (isLast)
                                 {
@@ -407,6 +429,120 @@ namespace TMWeb.Services
 
         #endregion
 
+        #region machine
+
+        private List<Machine> machines = new();
+        public List<Machine> Machines => machines;
+        private void InitAllMachinesFromDB()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var tmp = dbContext.Machines.Include(x => x.TagCategory).ThenInclude(x => x.Tags).AsNoTracking().ToList();
+                machines = tmp.Select(x => InitMachineToDerivesClass(x)).ToList();
+                foreach (Machine machine in machines)
+                {
+                    if (machine.Enabled)
+                    {
+                        machine.ConnectAsync();
+                        machine.Running();
+                    }
+                }
+            }
+        }
+        private Machine? InitMachineFromDBById(Guid id)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var tmp = dbContext.Machines.Include(x => x.TagCategory).ThenInclude(x => x.Tags).AsNoTracking().FirstOrDefault(x=>x.Id == id);
+                tmp = InitMachineToDerivesClass(tmp);
+                if (tmp.Enabled)
+                {
+                    tmp.ConnectAsync();
+                    tmp.Running();
+                }
+                return tmp;
+            }
+        }
+        private Machine InitMachineToDerivesClass(Machine machine)
+        {
+            switch (machine.ConnectionType)
+            {
+                case 0:
+                    return new ModbusTCPMachine(machine);
+                case 1:
+                    return new TMRobotModbusTCP(machine);
+                case 2:
+                case 10:
+                default:
+                    return machine;
+            }
+        }
+        public async Task UpsertMachineConfig(Machine machine)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var target = dbContext.Machines.FirstOrDefault(x => x.Id == machine.Id);
+                if (target != null)
+                {
+                    target.Name = machine.Name;
+                    target.ProcessId = machine.ProcessId;
+                    target.Ip = machine.Ip;
+                    target.Port = machine.Port;
+                    target.ConnectionType = machine.ConnectionType;
+                    target.TagCategoryId = machine.TagCategoryId;
+                    target.Enabled = machine.Enabled;
+                }
+                else
+                {
+
+                }
+                await dbContext.SaveChangesAsync();
+                await RefreshMachine(target);
+            }
+        }
+        private async Task RefreshMachine(Machine machine)
+        {
+            Machine target = await GetMachineByID(machine.Id);
+            if (target != null)
+            {
+                machines.Remove(target);
+            }
+            machines.Add(InitMachineFromDBById(machine.Id));
+        }
+
+
+        public async Task<List<Machine>> GetMachineByProcessName(string processName)
+        {
+            Process? target = await GetProcessByName(processName);
+            return machines.Where(x => x.ProcessId == target.Id).ToList();
+        }
+        public Task<Machine?> GetMachineByID(Guid id)
+        {
+            return Task.FromResult(machines.FirstOrDefault(x => x.Id == id));
+        }
+        public Task<Machine?> GetMachineByName(string name)
+        {
+            return Task.FromResult(machines.FirstOrDefault(x => x.Name == name));
+        }
+        #endregion
+
+
+
+        #region tag
+
+        public Task<List<TagCategory>> GetCategoryByConnectionType(int connectionType)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.TagCategories.Where(x => x.ConnectionType == connectionType).ToList());
+            }
+        }
+
+        #endregion
         #region workorder
         public Task<List<Workorder>> GetAllWorkorderAndRecipe()
         {
@@ -437,7 +573,12 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Workorders.Where(x => x.ProcessId == processID && targetStatus.Contains(x.Status)).ToList());
+                return Task.FromResult(dbContext.Workorders
+                    .Include(x => x.WorkorderRecordCategory).ThenInclude(x => x.WorkorderRecordContents)
+                    .Include(x => x.ItemRecordsCategory).ThenInclude(x => x.ItemRecordContents)
+                    .Include(x => x.TaskRecordCategory).ThenInclude(x => x.TaskRecordContents)
+                    .Where(x => x.ProcessId == processID && targetStatus.Contains(x.Status)).ToList()
+                    );
             }
         }
         public Task<Workorder?> GetWorkordersDetails(Guid id)
@@ -462,12 +603,12 @@ namespace TMWeb.Services
                 return Task.FromResult(dbContext.Workorders.FirstOrDefault(x => x.WorkorderNo == wo && x.Lot == lot));
             }
         }
-        public Task<Workorder?> GetWorkorderAndRecipeByNoAndLot(string wo, string lot)
+        public Task<Workorder?> GetWorkorderAndRecipeByIdString(string id)
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Workorders.Include(x => x.WorkorderRecordCategoryId).FirstOrDefault(x => x.WorkorderNo == wo && x.Lot == lot));
+                return Task.FromResult(dbContext.Workorders.FirstOrDefault(x => x.Id == new Guid(id)));
             }
         }
         #endregion
@@ -536,6 +677,92 @@ namespace TMWeb.Services
 
         #endregion
 
+        #region item record
+
+        public List<ItemRecordDetail> RetriveOrGenerateItemRecordDetail(Workorder wo, ItemDetail item)
+        {
+            List<ItemRecordDetail> res = new();
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+
+                //get total item record
+                Workorder? targetWo = dbContext.Workorders
+                    .Include(x => x.ItemRecordsCategory).ThenInclude(x => x.ItemRecordContents)
+                    .FirstOrDefault(x => x.Id == wo.Id);
+                if (targetWo != null && targetWo.ItemRecordsCategory.ItemRecordContents.Count > 0)
+                {
+                    List<ItemRecordContent> totalRecord = targetWo.ItemRecordsCategory.ItemRecordContents.ToList();
+                    //current record
+                    ItemDetail? targetItem = dbContext.ItemDetails.Include(x => x.ItemRecordDetails)
+                        .FirstOrDefault(x => x.Id == item.Id);
+                    if (targetItem != null)
+                    {
+                        res = targetItem.ItemRecordDetails.ToList();
+                        //fill
+                        if (totalRecord.Count() > res.Count())
+                        {
+                            var emptyRecords = totalRecord.Where(x => !res.Exists(y => y.RecordContentId == x.Id));
+                            foreach (ItemRecordContent emptyRecord in emptyRecords)
+                            {
+                                var tmp = new ItemRecordDetail(targetItem, emptyRecord);
+                                tmp.RecordContent = emptyRecord;
+                                res.Add(tmp);
+                            }
+                        }
+                    }
+                }
+            }
+            return res;
+        }
+
+        public ItemRecordContent? GetItemDetailRecordContent(ItemRecordDetail itemRecordDetail)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                ItemRecordDetail? target = dbContext.ItemRecordDetails
+                    .Include(x => x.RecordContent)
+                    .FirstOrDefault(x => x.ItemId == itemRecordDetail.ItemId && x.RecordContentId == itemRecordDetail.RecordContentId);
+                return target?.RecordContent;
+            }
+        }
+
+        public async Task UpsertItemRecord(List<ItemRecordDetail> itemRecordDetails)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                foreach (ItemRecordDetail itemRecordDetail in itemRecordDetails)
+                {
+                    ItemRecordDetail? target = dbContext.ItemRecordDetails.FirstOrDefault(x => x.ItemId == itemRecordDetail.ItemId && x.RecordContentId == itemRecordDetail.RecordContentId);
+                    if (target != null)
+                    {
+                        string? newVal = itemRecordDetail.Value?.Trim();
+                        if (newVal != null && !string.IsNullOrEmpty(newVal))
+                        {
+                            if (target.Value.Trim() != itemRecordDetail.Value?.Trim())
+                            {
+                                target.Value = itemRecordDetail.Value?.Trim();
+                            }
+
+                        }
+                    }
+                    else
+                    {
+                        string? newVal = itemRecordDetail.Value?.Trim();
+                        if (newVal != null && !string.IsNullOrEmpty(newVal))
+                        {
+                            await dbContext.ItemRecordDetails.AddAsync(new ItemRecordDetail(itemRecordDetail));
+                        }
+                    }
+                }
+                await dbContext.SaveChangesAsync();
+            }
+        }
+
+        #endregion
+
         #region task
         private async Task<TaskDetail> GenerateTaskDetailByItem(Station station, ItemDetail itemDetail)
         {
@@ -566,6 +793,27 @@ namespace TMWeb.Services
             }
 
         }
+        #endregion
+
+        #region developer
+
+        public async Task ResetWorkorderById(Guid id)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var itemDetails = dbContext.ItemDetails.Include(x => x.ItemRecordDetails)
+                    .Include(x => x.TaskDetails).ThenInclude(x => x.TaskRecordDetails)
+                    .Where(x => x.WorkordersId == id).ToList();
+                if (itemDetails != null)
+                {
+                    dbContext.ItemDetails.RemoveRange(itemDetails);
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+        }
+
+
         #endregion
     }
 }

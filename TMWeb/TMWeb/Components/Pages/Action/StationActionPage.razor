@@ -1,4 +1,4 @@
-﻿@page "/StationAction/{Process}"
+﻿@page "/{Process}/StationAction"
 @rendermode InteractiveServer
 @inject TMWebShopfloorService shopfloorService
 
@@ -32,9 +32,9 @@
             </DxToolbar>
         </FooterTemplate>
         <TargetContent>
-            <DxStackLayout Orientation="Orientation.Vertical" ItemSpacing="5em" CssClass="h-100">
+            <DxStackLayout Orientation="Orientation.Vertical" ItemSpacing="1rem" CssClass="h-100">
                 <Items>
-                    <DxStackLayoutItem Length="auto">
+                    <DxStackLayoutItem Length="1fr">
                         <Template>
                             <div>
                                 <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="@Process">
@@ -49,24 +49,24 @@
                             </div>
                         </Template>
                     </DxStackLayoutItem>
-                    <DxStackLayoutItem Length="auto">
+                    <DxStackLayoutItem Length="9fr">
                         <Template>
-                            <div class="h-100 d-flex flex-wrap align-content-start gap-3 justify-content-evenly">
-                                @foreach (Station station in stations)
+                            <div class="h-100 w-100 d-flex flex-wrap align-content-center gap-1 justify-content-center">
+                                @foreach (Station station in currentPageStations)
                                 {
-                                    <StationComponentFactory FactoryStationParam="@station" />
+                                    <StationComponentFactory StationParam="@station" />
                                 }
                             </div>
                         </Template>
                     </DxStackLayoutItem>
-                    <DxStackLayoutItem Length="auto">
+                    <DxStackLayoutItem Length="1fr">
                         <Template>
-                            @* <div class="h-100 d-flex flex-wrap align-content-center gap-3 justify-content-center">
-                            <DxSpinEdit @bind-Value="@amountPerPage" MinValue="1"></DxSpinEdit>
-                            <DxPager PageCount="@pageCount"
-                            @bind-ActivePageIndex="@currentPage"
-                            NavigationMode=@PagerNavigationMode.InputBox />
-                            </div> *@
+                            <div class="d-flex flex-wrap align-content-center justify-content-center">
+                                <DxSpinEdit @bind-Value="@amountPerPage" MinValue="1"></DxSpinEdit>
+                                <DxPager PageCount="@pageCount"
+                                         @bind-ActivePageIndex="@currentPage"
+                                         NavigationMode=@PagerNavigationMode.InputBox />
+                            </div>
                         </Template>
                     </DxStackLayoutItem>
                 </Items>
@@ -80,7 +80,7 @@
     [Parameter]
     public string Process { get; set; }
     private List<Station> stations = new();
-    //private List<Station> currentPageStations => stations.Skip(amountPerPage * (currentPage - 1)).Take(amountPerPage).ToList();
+    private List<Station> currentPageStations => stations.Skip(amountPerPage * (currentPage)).Take(amountPerPage).ToList();
 
     private List<Workorder> workorders_start = new();
     private Workorder? selectedWorkorder_start;
@@ -89,15 +89,20 @@
 
     private bool drawerVisible = false;
 
-    // private int totalStationAmount => stations.Count();
-    // private int pageCount => totalStationAmount % amountPerPage == 0 ? totalStationAmount / amountPerPage : totalStationAmount / amountPerPage + 1;
-    // private int amountPerPage;
-    // private int currentPage;
+    private int totalStationAmount => stations.Count();
+    private int pageCount => totalStationAmount % amountPerPage == 0 ? totalStationAmount / amountPerPage : totalStationAmount / amountPerPage + 1;
+    private int amountPerPage;
+    private int currentPage;
 
     protected override async Task OnInitializedAsync()
     {
         stations = await shopfloorService.GetStationsByProcessName(Process);
-        //amountPerPage = totalStationAmount;
+        amountPerPage = totalStationAmount;
+    }
+
+    private void SelectedNewPage(int i)
+    {
+        currentPage = i;
     }
 
     private async Task SetAllStationsWorkorder(Workorder wo)

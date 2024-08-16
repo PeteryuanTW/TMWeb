@@ -1,4 +1,4 @@
-﻿@page "/Workorder/{WorkorderNo}/{Lot}"
+﻿@page "/Workorder/{Workorderid}"
 @rendermode InteractiveServer
 @inject TMWebShopfloorService shopfloorService
 
@@ -29,6 +29,7 @@
 		<DxGridLayoutItem Row="1" Column="1">
 			<Template>
 				<DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large">
+					<DxToolbarItem Click="ResetWorkorder" Text="Reset" RenderStyle="@ButtonRenderStyle.Danger" BeginGroup="true" />
 					<DxToolbarItem Text="Start" RenderStyle="@ButtonRenderStyle.Primary" BeginGroup="true" />
 					<DxToolbarItem Text="Pause" RenderStyle="@ButtonRenderStyle.Warning" BeginGroup="true" />
 					<DxToolbarItem Text="Stop" RenderStyle="@ButtonRenderStyle.Danger" BeginGroup="true" />
@@ -41,14 +42,17 @@
 @code {
 
 	[Parameter]
-	public string WorkorderNo { get; set; }
-	[Parameter]
-	public string Lot { get; set; }
+	public string Workorderid { get; set; }
 
 	private Workorder? workorder;
 
 	protected override async Task OnInitializedAsync()
 	{
-		workorder = await shopfloorService.GetWorkorderAndRecipeByNoAndLot(WorkorderNo, Lot);
+		workorder = await shopfloorService.GetWorkorderAndRecipeByIdString(Workorderid);
+	}
+
+	private async Task ResetWorkorder()
+	{
+		await shopfloorService.ResetWorkorderById(workorder.Id);
 	}
 }

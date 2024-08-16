@@ -18,11 +18,26 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Localization" Version="8.0.7" />
+    <PackageReference Include="NModbus" Version="3.0.81" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\TMWeb.Client\TMWeb.Client.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Components\ActionComponent\" />
+    <EmbeddedResource Update="Resource\Language.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Language.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Resource\Language.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Language.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
 </Project>

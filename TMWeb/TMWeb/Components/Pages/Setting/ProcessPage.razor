@@ -1,6 +1,10 @@
 ﻿@page "/Process"
 @rendermode InteractiveServer
+@inject NavigationManager nav
+@inject UIService uiService
 @inject TMWebShopfloorService shopfloorService
+
+
 <DxStackLayout Orientation="Orientation.Vertical">
     <Items>
         <DxStackLayoutItem Length="5rem">
@@ -10,6 +14,7 @@
                         <Items>
                             <DxToolbarItem IconCssClass="oi oi-plus" Click="NewProcess" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
                             <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowPopup" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
+                            <DxToolbarItem IconCssClass="oi oi-share" Click="@(()=>NavToProcessRouting(targetProcess?.Name))" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
                         </Items>
                     </DxToolbar>
                 </div>
@@ -127,8 +132,14 @@
 
     private async Task UpsertProcessAndStation()
     {
-        await shopfloorService.UpsertProcessAndStations(targetProcess);
+        var res = await shopfloorService.UpsertProcessAndStations(targetProcess);
+        uiService.ShowToast(res);
         await GetProcessData();
         ClosePopup();
+    }
+
+    private void NavToProcessRouting(string processName)
+    {
+        nav.NavigateTo($"/ProcessRoute/{processName}");
     }
 }

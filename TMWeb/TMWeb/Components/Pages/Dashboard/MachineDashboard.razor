@@ -1,0 +1,22 @@
+﻿@page "/{Process}/MachineDashboard"
+@rendermode InteractiveServer
+@inject TMWebShopfloorService shopfloorService
+
+<div class="h-100 d-flex flex-wrap align-content-start gap-3 justify-content-evenly">
+    @foreach (Machine machine in machines)
+    {
+        <MachineComponent MachineParam="@machine"/>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public string Process{ get; set; }
+
+    private List<Machine> machines = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        machines = await shopfloorService.GetMachineByProcessName(Process);
+    }
+}

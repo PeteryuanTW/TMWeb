@@ -53,9 +53,9 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<WorkorderRecordDetail> WorkorderRecordDetails { get; set; }
 
-//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Server=localhost;Database=TMWeb;Trusted_Connection=True; trustServerCertificate=true;");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=localhost;Database=TMWeb;Trusted_Connection=True; trustServerCertificate=true;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -117,12 +117,10 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Item).WithMany(p => p.ItemRecordDetails)
                 .HasForeignKey(d => d.ItemId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__ItemRecor__ItemI__6477ECF3");
 
             entity.HasOne(d => d.RecordContent).WithMany(p => p.ItemRecordDetails)
                 .HasForeignKey(d => d.RecordContentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__ItemRecor__Recor__656C112C");
         });
 
@@ -141,7 +139,12 @@ public partial class TmwebContext : DbContext
                 .HasMaxLength(50)
                 .HasColumnName("IP");
             entity.Property(e => e.Name).HasMaxLength(50);
+            entity.Property(e => e.ProcessId).HasColumnName("ProcessID");
             entity.Property(e => e.TagCategoryId).HasColumnName("TagCategoryID");
+
+            entity.HasOne(d => d.Process).WithMany(p => p.Machines)
+                .HasForeignKey(d => d.ProcessId)
+                .HasConstraintName("FK_Machine_Process");
 
             entity.HasOne(d => d.TagCategory).WithMany(p => p.Machines)
                 .HasForeignKey(d => d.TagCategoryId)

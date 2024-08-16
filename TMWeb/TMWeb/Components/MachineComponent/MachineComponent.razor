@@ -1,0 +1,86 @@
+﻿<div class="card shadow text-center background-card p-3 panel @(GetStatusCssClass())">
+    <DxGridLayout >
+        <Rows>
+            <DxGridLayoutRow Height="2fr" />
+            <DxGridLayoutRow Height="1fr" />
+            <DxGridLayoutRow Height="1fr" />
+            <DxGridLayoutRow Height="6fr" />
+        </Rows>
+        <Columns>
+            <DxGridLayoutColumn Width="12fr" />
+        </Columns>
+        <Items>
+            <DxGridLayoutItem Row="0" Column="0">
+                <Template>
+                    <h1 class="card-title">
+                        @MachineParam.Name
+                    </h1>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="0">
+                <Template>
+                    <div>
+                        <h5 class="card-subtitle">
+                            @($"{MachineParam.Ip}:{MachineParam.Port}")
+                        </h5>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="2" Column="0">
+                <Template>
+                    <div>
+                        <h5 class="card-subtitle">
+                            @($"{MachineParam.Status.ToString()}")
+                        </h5>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="3" Column="0">
+                <Template>
+                    <div class="w-100 h-100">
+                        <img src=@($"images/MyIcon/{GetImageString()}.svg") class="h-100 w-100"/>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+        </Items>
+    </DxGridLayout>
+</div>
+
+@code {
+    [Parameter]
+    public Machine MachineParam { get; set; }
+
+
+    private string GetImageString()
+    {
+        switch (MachineParam?.ConnectionType)
+        {
+            case 1:
+                return "robot";
+            case 2:
+                return "machine";
+            case 10:
+                return "api";
+            default:
+                return "machine";
+        }
+    }
+
+    private string GetStatusCssClass()
+    {
+        switch (MachineParam?.Status)
+        {
+            case MachineStatus.Init:
+                return string.Empty;
+            case MachineStatus.Running:
+                return "running";
+            case MachineStatus.Idel:
+                return "idel";
+            case MachineStatus.Disconnect:
+            case MachineStatus.Error:
+                return "error";
+            default:
+                return string.Empty;
+        }
+    }
+}

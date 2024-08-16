@@ -25,11 +25,18 @@ builder.Services.AddDbContextFactory<TmwebContext>(options =>
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 builder.Services.AddSingleton<TMWebShopfloorService>();
-builder.Services.AddSingleton<TMWebMachineService>();
+builder.Services.AddSingleton<UIService>();
+builder.Services.AddLocalization();
+//var supportedCultures = new[] { "xh-TW" };
+//var localizationOptions = new RequestLocalizationOptions()
+//    .SetDefaultCulture(supportedCultures[0])
+//    .AddSupportedCultures(supportedCultures)
+//    .AddSupportedUICultures(supportedCultures);
+
 
 //builder.Services.AddControllers();
 var app = builder.Build();
-
+//app.UseRequestLocalization(localizationOptions);
 // Configure the HTTP request pipeline.
 if(app.Environment.IsDevelopment()) {
     app.UseWebAssemblyDebugging();
@@ -39,6 +46,11 @@ if(app.Environment.IsDevelopment()) {
     app.UseHsts();
 }
 app.UseHttpsRedirection();
+
+
+
+string[] lan = ["zh-TW"];
+app.UseRequestLocalization(x => x.SetDefaultCulture(lan[0]));
 
 app.UseStaticFiles();
 app.UseAntiforgery();
