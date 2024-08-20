@@ -49,7 +49,7 @@ namespace TMWeb.Data
                 Disconnect(e.Message);
             }
         }
-        protected override async Task UpdateTag(Tag tag)
+        public override async Task UpdateTag(Tag tag)
         {
             int station = Int32.Parse(tag.Param1);
             int startIndex = Int32.Parse(tag.Param3);
@@ -119,6 +119,56 @@ namespace TMWeb.Data
             }
         }
 
-
+        public override async Task SetTag(Tag tag, object val)
+        {
+            int station = Int32.Parse(tag.Param1);
+            int startIndex = Int32.Parse(tag.Param3);
+            int offset = Int32.Parse(tag.Param4);
+            switch (tag.DataType)
+            {
+                //bool
+                case 1:
+                    if (val is bool)
+                    {
+                        bool bool_val = (bool)val;
+                        if (tag.Param2 == "out")
+                        {
+                            await master.WriteSingleCoilAsync((byte)station, (byte)startIndex, bool_val);
+                            bool bool_res = (await master.ReadCoilsAsync((byte)station, (byte)startIndex, (byte)offset)).FirstOrDefault();
+                            tag.SetValue(bool_res);
+                            TagsStatechange();
+                        }
+                        
+                    }
+                    
+                    break;
+                //ushort
+                case 2:
+                    if (val is ushort)
+                    {
+                        ushort ushort_val = (ushort)val;
+                        if (tag.Param2 == "out")
+                        {
+                            await master.WriteSingleRegisterAsync((byte)station, (byte)startIndex, ushort_val);
+                            ushort ushort_res = (await master.ReadHoldingRegistersAsync((byte)station, (byte)startIndex, (byte)offset)).FirstOrDefault();
+                            tag.SetValue(ushort_res);
+                            TagsStatechange();
+                        }
+                        
+                    }
+                    break;
+                case 3:
+                    break;
+                case 11:
+                    break;
+                case 22:
+                    break;
+                case 33:
+                    break;
+                default:
+                    break;
+            }
+        }
+    
     }
 }

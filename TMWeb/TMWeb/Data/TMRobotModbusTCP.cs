@@ -9,7 +9,7 @@ namespace TMWeb.Data
         }
 
 
-        protected override async Task UpdateTag(Tag tag)
+        public override async Task UpdateTag(Tag tag)
         {
             if (status != MachineStatus.Disconnect)
             {

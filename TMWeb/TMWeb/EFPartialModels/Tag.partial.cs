@@ -3,6 +3,7 @@ using TMWeb.Data.TagHelper;
 
 namespace TMWeb.EFModels
 {
+    
     public partial class Tag
     {
         //param 1: station, param2: in/out put, param 3: start index param, param 4: offset
@@ -23,6 +24,7 @@ namespace TMWeb.EFModels
         private DateTime lastChangedTime;
         public DateTime LastChangedTime => lastChangedTime;
 
+        public string DataTypeString => (TagTypeHelper.TypeCodeDict[DataType]).ToString();
         public Object Value => value;
         private Object value = new();
         public string ValueString => FormatingValueToString();

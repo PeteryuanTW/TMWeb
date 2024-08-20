@@ -6,90 +6,136 @@
 
 @if (hasNachine)
 {
-    <DxGridLayout ColumnSpacing="3rem" RowSpacing="1rem">
-        <Rows>
-            <DxGridLayoutRow Height="auto"></DxGridLayoutRow>
-            <DxGridLayoutRow Height="auto"></DxGridLayoutRow>
-        </Rows>
-        <Columns>
-            <DxGridLayoutColumn Width="30%"></DxGridLayoutColumn>
-            <DxGridLayoutColumn Width="60%"></DxGridLayoutColumn>
-        </Columns>
-        <Items>
-            <DxGridLayoutItem Row="0" Column="0">
-                <Template>
-                    <DxToolbar>
-                        <DxToolbar>
-                            <Items>
-                                <DxToolbarItem IconCssClass="@($"oi oi-{editOrSaveIcon}")" Click="EditOrSave" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
-                            </Items>
-                        </DxToolbar>
-                    </DxToolbar>
-                </Template>
-            </DxGridLayoutItem>
-            <DxGridLayoutItem Row="1" Column="0">
-                <Template>
-                    <DxFormLayout CaptionPosition="CaptionPosition.Vertical" Data="@machine" ReadOnly="@(!canEdit)">
-                        <DxFormLayoutGroup Caption="Machine Config" CssClass="rounded">
-                            <DxFormLayoutItem Caption="Name">
-                                <DxTextBox @bind-Text="@machine.Name" ReadOnly="@(!canEdit)" />
-                            </DxFormLayoutItem>
-                            <DxFormLayoutItem Caption="Enable">
-                                <DxCheckBox @bind-Checked="@machine.Enabled" CheckType="CheckType.Switch" ReadOnly="@(!canEdit)"></DxCheckBox>
-                            </DxFormLayoutItem>
-                            <DxFormLayoutItem Caption="IP">
-                                <DxTextBox @bind-Text="@machine.Ip" ReadOnly="@(!canEdit)" />
-                            </DxFormLayoutItem>
-                            <DxFormLayoutItem Caption="Port">
-                                <DxSpinEdit @bind-Value="@machine.Port" ReadOnly="@(!canEdit)"></DxSpinEdit>
-                            </DxFormLayoutItem>
-                            <DxFormLayoutItem Caption="Connection Type">
-                                <DxComboBox Data="@connectionType" Value="@(machine.ConnectionType)" ValueChanged="@((int i)=>SelectedConnectionType(i))" ReadOnly="@(!canEdit)" />
-                            </DxFormLayoutItem>
-                            <DxFormLayoutItem Caption="Tag Category">
-                                <DxComboBox Data="@tagCategories" @bind-Value="@machine.TagCategoryId" ReadOnly="@(!canEdit)" ValueFieldName="@nameof(TagCategory.Id)" TextFieldName="@nameof(TagCategory.Name)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
-                            </DxFormLayoutItem>
-                        </DxFormLayoutGroup>
-                        <DxFormLayoutGroup Caption="Runtime data" CssClass="rounded">
-                            <DxFormLayoutItem Caption="Status" Field="@nameof(Machine.StatusStr)" />
-                            <DxFormLayoutItem Caption="Running" Field="@nameof(Machine.RunFlag)" />
-                            <DxFormLayoutItem Caption="Error Message" Field="@nameof(Machine.ErrorMsg)" />
-                        </DxFormLayoutGroup>
-                    </DxFormLayout>
-                </Template>
-            </DxGridLayoutItem>
-            <DxGridLayoutItem Row="0" Column="1" RowSpan="2">
-                <Template>
-                    <div>
-                        @if (machine.hasTags)
-                        {
-                            <DxGrid Data="@machine.TagCategory.Tags">
-                                <Columns>
-                                    <DxGridDataColumn FieldName="@nameof(Tag.Name)" />
-                                    <DxGridDataColumn FieldName="@nameof(Tag.DataType)" />
-                                    <DxGridDataColumn FieldName="@nameof(Tag.UpdateByTime)" />
-                                    <DxGridDataColumn FieldName="@nameof(Tag.ValueString)" />
-                                    <DxGridDataColumn FieldName="@nameof(Tag.LastChangedTime)" DisplayFormat="G" />
-                                    <DxGridDataColumn FieldName="@nameof(Tag.LastUpdateTime)" DisplayFormat="G" />
-                                    <DxGridDataColumn FieldName="@nameof(Tag.Param1)" />
-                                    <DxGridDataColumn FieldName="@nameof(Tag.Param2)" />
-                                    <DxGridDataColumn FieldName="@nameof(Tag.Param3)" />
-                                    <DxGridDataColumn FieldName="@nameof(Tag.Param4)" />
-                                    <DxGridDataColumn FieldName="@nameof(Tag.Param5)" />
-                                    <DxGridDataColumn>
-                                        <CellDisplayTemplate>
-                                            <DxButton IconCssClass="oi oi-pencil" Click="@(()=>Clickkk(context.DataItem))"></DxButton>
-                                        </CellDisplayTemplate>
-                                    </DxGridDataColumn>
-                                </Columns>
-                            </DxGrid>
-                        }
-                    </div>
+    <DxDrawer @bind-IsOpen="@drawerOpen" PanelWidth="20rem" Mode="DrawerMode.Overlap" Position="DrawerPosition.Right" CloseOnTargetContentClick="false" CloseOnEscape="false">
+        <HeaderTemplate>
+            <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="@($"{machine?.Name}-{targetTag?.Name}")">
+                <Items>
+                    <DxToolbarItem RenderStyle="ButtonRenderStyle.Danger" IconCssClass="oi oi-x" Click="CloseDrawer" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" />
+                </Items>
+            </DxToolbar>
+        </HeaderTemplate>
+        <BodyTemplate>
+            <DxFormLayout CssClass="w-100">
+                @switch (targetTag?.DataType)
+                {
+                    case 1:
+                        <DxFormLayoutItem Caption="@($"{targetTag.Param3}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                            <DxCheckBox @bind-Checked="@setVal_bool" CheckType="CheckType.Switch" />
+                        </DxFormLayoutItem>
+                        break;
+                    case 2:
+                        <DxFormLayoutItem Caption="@($"{targetTag.Param3}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                            <DxSpinEdit @bind-Value="@setVal_ushort" />
+                        </DxFormLayoutItem>
+                        break;
+                    default:
+                        break;
+                }
 
-                </Template>
-            </DxGridLayoutItem>
-        </Items>
-    </DxGridLayout>
+            </DxFormLayout>
+        </BodyTemplate>
+        <FooterTemplate>
+            <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large">
+                <Items>
+                    <DxToolbarItem RenderStyle="ButtonRenderStyle.Info" IconCssClass="oi oi-data-transfer-download" Click="@(async () => await SetTagValue(targetTag))" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" />
+                </Items>
+            </DxToolbar>
+        </FooterTemplate>
+        <TargetContent>
+            <DxGridLayout ColumnSpacing="3rem" RowSpacing="1rem">
+                <Rows>
+                    <DxGridLayoutRow Height="auto"></DxGridLayoutRow>
+                    <DxGridLayoutRow Height="auto"></DxGridLayoutRow>
+                </Rows>
+                <Columns>
+                    <DxGridLayoutColumn Width="30%"></DxGridLayoutColumn>
+                    <DxGridLayoutColumn Width="65%"></DxGridLayoutColumn>
+                </Columns>
+                <Items>
+                    <DxGridLayoutItem Row="0" Column="0">
+                        <Template>
+                            <DxToolbar>
+                                <DxToolbar>
+                                    <Items>
+                                        <DxToolbarItem IconCssClass="@($"oi oi-{editOrSaveIcon}")" Click="EditOrSave" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
+                                    </Items>
+                                </DxToolbar>
+                            </DxToolbar>
+                        </Template>
+                    </DxGridLayoutItem>
+                    <DxGridLayoutItem Row="1" Column="0">
+                        <Template>
+                            <DxFormLayout CaptionPosition="CaptionPosition.Vertical" Data="@machine" ReadOnly="@(!canEdit)">
+                                <DxFormLayoutGroup Caption="Machine Config" CssClass="rounded">
+                                    <DxFormLayoutItem Caption="Name">
+                                        <DxTextBox @bind-Text="@machine.Name" ReadOnly="@(!canEdit)" />
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="Enable">
+                                        <DxCheckBox @bind-Checked="@machine.Enabled" CheckType="CheckType.Switch" ReadOnly="@(!canEdit)"></DxCheckBox>
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="IP">
+                                        <DxTextBox @bind-Text="@machine.Ip" ReadOnly="@(!canEdit)" />
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="Port">
+                                        <DxSpinEdit @bind-Value="@machine.Port" ReadOnly="@(!canEdit)"></DxSpinEdit>
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="Connection Type">
+                                        <DxComboBox Data="@connectionType" Value="@(machine.ConnectionType)" ValueChanged="@((int i)=>SelectedConnectionType(i))" ReadOnly="@(!canEdit)" />
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="Tag Category">
+                                        <DxComboBox Data="@tagCategories" @bind-Value="@machine.TagCategoryId" ReadOnly="@(!canEdit)" ValueFieldName="@nameof(TagCategory.Id)" TextFieldName="@nameof(TagCategory.Name)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                                    </DxFormLayoutItem>
+                                </DxFormLayoutGroup>
+                                <DxFormLayoutGroup Caption="Runtime data" CssClass="rounded">
+                                    <DxFormLayoutItem Caption="Status" Field="@nameof(Machine.StatusStr)" />
+                                    <DxFormLayoutItem Caption="Running" Field="@nameof(Machine.RunFlag)" />
+                                    <DxFormLayoutItem Caption="Error Message" Field="@nameof(Machine.ErrorMsg)" />
+                                </DxFormLayoutGroup>
+                            </DxFormLayout>
+                        </Template>
+                    </DxGridLayoutItem>
+                    <DxGridLayoutItem Row="0" Column="1" RowSpan="2">
+                        <Template>
+                            <div>
+                                @if (machine.hasTags)
+                                {
+                                    <DxGrid Data="@machine.TagCategory.Tags">
+                                        <Columns>
+                                            <DxGridDataColumn FieldName="@nameof(Tag.Name)" />
+                                            <DxGridDataColumn FieldName="@nameof(Tag.DataTypeString)" />
+                                            <DxGridDataColumn FieldName="@nameof(Tag.UpdateByTime)" />
+                                            <DxGridDataColumn FieldName="@nameof(Tag.ValueString)" />
+                                            <DxGridDataColumn FieldName="@nameof(Tag.LastChangedTime)" DisplayFormat="G" />
+                                            <DxGridDataColumn FieldName="@nameof(Tag.LastUpdateTime)" DisplayFormat="G" />
+                                            <DxGridDataColumn FieldName="@nameof(Tag.Param1)" />
+                                            <DxGridDataColumn FieldName="@nameof(Tag.Param2)" />
+                                            <DxGridDataColumn FieldName="@nameof(Tag.Param3)" />
+                                            <DxGridDataColumn FieldName="@nameof(Tag.Param4)" />
+                                            <DxGridDataColumn FieldName="@nameof(Tag.Param5)" />
+                                            <DxGridDataColumn>
+                                                <CellDisplayTemplate>
+                                                    <div class="d-flex justify-content-center">
+                                                        <DxToolbar>
+                                                            <Items>
+                                                                <DxToolbarItem Enabled="@(!(context.DataItem as Tag).UpdateByTime)" Click="@(()=>UpdateTagClicked(context.DataItem))" IconCssClass="oi oi-loop"></DxToolbarItem>
+                                                                <DxToolbarItem Click="@(()=>SetTagClicked(context.DataItem))" IconCssClass="oi oi-location"></DxToolbarItem>
+                                                            </Items>
+                                                        </DxToolbar>
+                                                    </div>
+                                                </CellDisplayTemplate>
+                                            </DxGridDataColumn>
+                                        </Columns>
+                                    </DxGrid>
+                                }
+                            </div>
+
+                        </Template>
+                    </DxGridLayoutItem>
+                </Items>
+            </DxGridLayout>
+        </TargetContent>
+    </DxDrawer>
+
 
 }
 else
@@ -109,7 +155,12 @@ else
 
     private IEnumerable<MachineConnectType> connectionType = Enum.GetValues(typeof(MachineConnectType)).Cast<MachineConnectType>();
     private IEnumerable<TagCategory> tagCategories = new List<TagCategory>();
-    private IEnumerable<Guid> ids => tagCategories.Select(x => x.Id);
+
+    private bool drawerOpen = false;
+    private Tag? targetTag;
+
+    private bool setVal_bool = false;
+    private ushort setVal_ushort = 0;
 
 
     protected override async Task OnInitializedAsync()
@@ -132,6 +183,16 @@ else
             machine.TagsStatechangedAct -= UpdateUI;
         }
 
+    }
+
+    private void OpenDrawer()
+    {
+        drawerOpen = true;
+    }
+
+    private void CloseDrawer()
+    {
+        drawerOpen = false;
     }
 
     private async void UpdateUI()
@@ -171,16 +232,57 @@ else
         machine.TagCategoryId = id;
     }
 
-    void Grid_UnboundColumnData(GridUnboundColumnDataEventArgs e)
+    private async Task UpdateTagClicked(Object tagObj)
     {
-        if (e.FieldName == "Write")
+        targetTag = tagObj as Tag;
+        if (targetTag != null)
         {
-
+            await machine?.UpdateTag(targetTag);
         }
+
     }
 
-    void Clickkk(Object obj)
+    private void SetTagClicked(Object tagObj)
     {
-        
+
+        targetTag = tagObj as Tag;
+        if (targetTag != null)
+        {
+            switch (targetTag.DataType)
+            {
+                case 1:
+                    setVal_bool = (bool)targetTag.Value;
+                    break;
+                case 2:
+                    setVal_ushort = (ushort)targetTag.Value;
+                    break;
+                default:
+                    break;
+
+            }
+            OpenDrawer();
+        }
+
+    }
+
+    private async Task SetTagValue(Object tagObj)
+    {
+        Tag? targetTag = tagObj as Tag;
+        if (targetTag != null)
+        {
+            switch (targetTag.DataType)
+            {
+                case 1:
+                    await machine.SetTag(targetTag, setVal_bool);
+                    break;
+                case 2:
+                    await machine.SetTag(targetTag, setVal_ushort);
+                    break;
+                default:
+                    break;
+
+            }
+        }
+        CloseDrawer();
     }
 }

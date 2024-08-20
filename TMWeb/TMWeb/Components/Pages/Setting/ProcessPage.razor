@@ -10,11 +10,11 @@
         <DxStackLayoutItem Length="5rem">
             <Template>
                 <div class="p-3">
-                    <DxToolbar>
+                    <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
                         <Items>
-                            <DxToolbarItem IconCssClass="oi oi-plus" Click="NewProcess" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
-                            <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowPopup" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
-                            <DxToolbarItem IconCssClass="oi oi-share" Click="@(()=>NavToProcessRouting(targetProcess?.Name))" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
+                            <DxToolbarItem IconCssClass="oi oi-plus" Click="NewProcess" RenderStyle="ButtonRenderStyle.Primary"  BeginGroup="true" />
+                            <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowPopup" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                            <DxToolbarItem IconCssClass="oi oi-share" Click="@(()=>NavToProcessRouting(targetProcess?.Name))" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
                         </Items>
                     </DxToolbar>
                 </div>
@@ -57,11 +57,10 @@
                         </Template>
                     </DxToolbarItem>
                     <DxToolbarItem IconCssClass="oi oi-plus" Click="NewStation" Enabled="@processNamed" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
-                    <DxToolbarItem IconCssClass="oi oi-x" Click="ClosePopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Plain" />
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="ClosePopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
                 </Items>
             </DxToolbar>
         </div>
-
     </HeaderTemplate>
     <BodyContentTemplate Context="bodycontext">
         <DxFormLayout>

@@ -14,15 +14,6 @@ namespace TMWeb.Controllers
 		{
 			this.scopeFactory = scopeFactory;
 		}
-		[HttpGet]
-		public IActionResult GetAll()
-		{
-			using (var scope = scopeFactory.CreateScope())
-			{
-				var shopfloorService = scope.ServiceProvider.GetRequiredService<TMWebShopfloorService>();
-				return Ok(shopfloorService.GetWorkorderRecipeConfigs());
-			}
-			
-		}
+		
 	}
 }

@@ -1,58 +1,201 @@
 ﻿@page "/Workorder/{Workorderid}"
 @rendermode InteractiveServer
+@inject NavigationManager nav
 @inject TMWebShopfloorService shopfloorService
 
-<DxGridLayout ColumnSpacing="1rem" RowSpacing="1rem">
-	<Rows>
-		<DxGridLayoutRow Height="7fr"></DxGridLayoutRow>
-		<DxGridLayoutRow Height="3fr"></DxGridLayoutRow>
-	</Rows>
-	<Columns>
-		<DxGridLayoutColumn Width="4fr"></DxGridLayoutColumn>
-		<DxGridLayoutColumn Width="8fr"></DxGridLayoutColumn>
-	</Columns>
-	<Items>
-		<DxGridLayoutItem Row="0" Column="0" ColumnSpan="2">
-			<Template>
-				<DxFormLayout>
-					<DxFormLayoutGroup Caption="@($"{workorder.WorkorderNo}-{workorder.Lot}")">
-						<DxFormLayoutItem></DxFormLayoutItem>
-					</DxFormLayoutGroup>
-				</DxFormLayout>
-			</Template>
-		</DxGridLayoutItem>
-		<DxGridLayoutItem Row="1" Column="0">
-			<Template>
-				
-			</Template>
-		</DxGridLayoutItem>
-		<DxGridLayoutItem Row="1" Column="1">
-			<Template>
-				<DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large">
-					<DxToolbarItem Click="ResetWorkorder" Text="Reset" RenderStyle="@ButtonRenderStyle.Danger" BeginGroup="true" />
-					<DxToolbarItem Text="Start" RenderStyle="@ButtonRenderStyle.Primary" BeginGroup="true" />
-					<DxToolbarItem Text="Pause" RenderStyle="@ButtonRenderStyle.Warning" BeginGroup="true" />
-					<DxToolbarItem Text="Stop" RenderStyle="@ButtonRenderStyle.Danger" BeginGroup="true" />
-				</DxToolbar>
-			</Template>
-		</DxGridLayoutItem>
-	</Items>
-</DxGridLayout>
+@if (hasWorkorder)
+{
+    <DxGridLayout ColumnSpacing="1rem" RowSpacing="1rem">
+        <Rows>
+            <DxGridLayoutRow Height="7fr"></DxGridLayoutRow>
+            <DxGridLayoutRow Height="3fr"></DxGridLayoutRow>
+        </Rows>
+        <Columns>
+            <DxGridLayoutColumn Width="6fr"></DxGridLayoutColumn>
+            <DxGridLayoutColumn Width="6fr"></DxGridLayoutColumn>
+        </Columns>
+        <Items>
+            <DxGridLayoutItem Row="0" Column="0">
+                <Template>
+                    <DxFormLayout CssClass="card p-3 h-100">
+                        <DxFormLayoutTabPages>
+                            <DxFormLayoutTabPage Caption="Details">
+                                <DxFormLayoutItem Caption="Process" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
+                                    <DxComboBox Data="@processes" @bind-Value="@workorder.ProcessId" ValueFieldName="@nameof(Process.Id)" TextFieldName="@nameof(Process.Name)" ReadOnly="@(!isEditMode)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Workorder No" CaptionPosition="CaptionPosition.Vertical">
+                                    <DxTextBox @bind-Text="@workorder.WorkorderNo" ReadOnly="@(!isEditMode)"></DxTextBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Lot" CaptionPosition="CaptionPosition.Vertical">
+                                    <DxTextBox @bind-Text="@workorder.Lot" ReadOnly="@(!isEditMode)"></DxTextBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Status" CaptionPosition="CaptionPosition.Vertical">
+                                    <DxTextBox Text="@(((WorkorderStatus)workorder?.Status).ToString())" ReadOnly="true"></DxTextBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Part No" CaptionPosition="CaptionPosition.Vertical">
+                                    <DxTextBox @bind-Text="@workorder.PartNo" ReadOnly="@(!isEditMode)"></DxTextBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Target Amount" CaptionPosition="CaptionPosition.Vertical">
+                                    <DxSpinEdit @bind-Value="@workorder.TargetAmount" ReadOnly="@(!isEditMode)"></DxSpinEdit>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Ok Amount" CaptionPosition="CaptionPosition.Vertical">
+                                    <DxSpinEdit Value="@workorder.Okamount" ReadOnly="true"></DxSpinEdit>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Ng Amount" CaptionPosition="CaptionPosition.Vertical">
+                                    <DxSpinEdit Value="@workorder.Ngamount" ReadOnly="true"></DxSpinEdit>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Workorder Recipe" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
+                                    <DxComboBox Data="@workorderRecipeConfigs" @bind-Value="@workorder.RecipeCategoryId" ValueFieldName="@nameof(WorkorderRecipeConfig.Id)" TextFieldName="@nameof(WorkorderRecipeConfig.RecipeCategory)" ReadOnly="@(!isEditMode)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Workorder Record" CaptionPosition="CaptionPosition.Vertical">
+                                    <DxComboBox Data="@workorderRecordConfigs" @bind-Value="@workorder.WorkorderRecordCategoryId" ValueFieldName="@nameof(WorkorderRecordConfig.Id)" TextFieldName="@nameof(WorkorderRecordConfig.WorkorderRecordCategory)" ReadOnly="@(!isEditMode)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Item Record" CaptionPosition="CaptionPosition.Vertical">
+                                    <DxComboBox Data="@itemRecordConfigs" @bind-Value="@workorder.ItemRecordsCategoryId" ValueFieldName="@nameof(ItemRecordConfig.Id)" TextFieldName="@nameof(ItemRecordConfig.ItemRecordCategory)" ReadOnly="@(!isEditMode)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Task Record" CaptionPosition="CaptionPosition.Vertical">
+                                    <DxComboBox Data="@taskRecordConfigs" @bind-Value="@workorder.TaskRecordCategoryId" ValueFieldName="@nameof(ItemRecordConfig.Id)" TextFieldName="@nameof(ItemRecordConfig.ItemRecordCategory)" ReadOnly="@(!isEditMode)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+                                </DxFormLayoutItem>
+                            </DxFormLayoutTabPage>
+                            @if (workorder.HasRecipe && workorder.RecipeIncluded)
+                            {
+                                <DxFormLayoutTabPage Caption="Recipe">
+
+                                    @foreach (var recipe in workorder.RecipeCategory?.WorkorderRecipeContents)
+                                    {
+                                        <DxFormLayoutItem>
+                                            <DxTextBox Text="@recipe.RecipeName"></DxTextBox>
+                                        </DxFormLayoutItem>
+                                    }
+
+                                </DxFormLayoutTabPage>
+                            }
+                            @if (workorder.HasWorkorderRecord && workorder.WorkorderRecordIncluded)
+                            {
+                                <DxFormLayoutTabPage Caption="Workorder Record">
+
+                                    @foreach (var workorderRecord in workorder.WorkorderRecordCategory?.WorkorderRecordContents)
+                                    {
+                                        <DxFormLayoutItem>
+                                            <DxTextBox Text="@workorderRecord.RecordName"></DxTextBox>
+                                        </DxFormLayoutItem>
+                                    }
+
+                                </DxFormLayoutTabPage>
+                            }
+                            @if (workorder.HasItemRecord && workorder.ItemRecordIncluded)
+                            {
+                                <DxFormLayoutTabPage Caption="Item Record">
+
+                                    @foreach (var itemRecord in workorder.ItemRecordsCategory?.ItemRecordContents)
+                                    {
+                                        <DxFormLayoutItem>
+                                            <DxTextBox Text="@itemRecord.RecordName"></DxTextBox>
+                                        </DxFormLayoutItem>
+                                    }
+
+                                </DxFormLayoutTabPage>
+                            }
+                            @if (workorder.HasTaskRecord && workorder.TaskRecordIncluded)
+                            {
+                                <DxFormLayoutTabPage Caption="Task Record">
+
+                                    @foreach (var taskRecord in workorder.TaskRecordCategory?.TaskRecordContents)
+                                    {
+                                        <DxFormLayoutItem>
+                                            <DxTextBox Text="@taskRecord.RecordName"></DxTextBox>
+                                        </DxFormLayoutItem>
+                                    }
+
+                                </DxFormLayoutTabPage>
+                            }
+                        </DxFormLayoutTabPages>
+                    </DxFormLayout>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="0" RowSpan="2">
+                <Template>
+
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="0">
+                <Template>
+                    <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large">
+                        <DxToolbarItem Text="@modeString" Enabled="@canEditOrSave" Click="SwitchEditMode" RenderStyle="@ButtonRenderStyle.Primary" BeginGroup="true" />
+                        <DxToolbarItem Text="Start" Enabled="@canStart" RenderStyle="@ButtonRenderStyle.Primary" BeginGroup="true" />
+                        <DxToolbarItem Text="Stop" Enabled="@canStop" RenderStyle="@ButtonRenderStyle.Danger" BeginGroup="true" />
+                    </DxToolbar>
+                </Template>
+            </DxGridLayoutItem>
+        </Items>
+    </DxGridLayout>
+}
+
 
 @code {
 
-	[Parameter]
-	public string Workorderid { get; set; }
+    [Parameter]
+    public string Workorderid { get; set; }
 
-	private Workorder? workorder;
+    private DataMode dataMode = DataMode.View;
+    private bool isEditMode => dataMode == DataMode.Edit;
+    private string modeString => isEditMode ? "Save" : "Edit";
 
-	protected override async Task OnInitializedAsync()
-	{
-		workorder = await shopfloorService.GetWorkorderAndRecipeByIdString(Workorderid);
-	}
+    private Workorder? workorder;
 
-	private async Task ResetWorkorder()
-	{
-		await shopfloorService.ResetWorkorderById(workorder.Id);
-	}
+    private bool hasWorkorder => workorder != null;
+
+    private bool canEditOrSave => workorder.Status == (int)WorkorderStatus.Init;
+    private bool canStart => workorder.Status == (int)WorkorderStatus.Init && !isEditMode;
+    private bool canStop => workorder.Status == (int)WorkorderStatus.Running && !isEditMode;
+
+    private IEnumerable<Process> processes;
+    private IEnumerable<WorkorderRecipeConfig> workorderRecipeConfigs;
+    private IEnumerable<WorkorderRecordConfig> workorderRecordConfigs;
+    private IEnumerable<ItemRecordConfig> itemRecordConfigs;
+    private IEnumerable<TaskRecordConfig> taskRecordConfigs;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetParameter();
+        await GetWorkorderDetail();
+    }
+    private async Task GetWorkorderDetail()
+    {
+        workorder = await shopfloorService.GetWorkordersDetails(new Guid(Workorderid));
+    }
+    private async Task GetParameter()
+    {
+        processes = await shopfloorService.GetAllProcess();
+        workorderRecipeConfigs = await shopfloorService.GetWorkorderRecipeConfigs();
+        workorderRecordConfigs = await shopfloorService.GetWorkorderRecordConfigs();
+        itemRecordConfigs = await shopfloorService.GetItemRecordConfigs();
+        taskRecordConfigs = await shopfloorService.GetTaskRecordConfigs();
+    }
+
+    private void SwitchEditMode()
+    {
+        if (isEditMode)
+        {
+            StopEdit();
+        }
+        else
+        {
+            StartEdit();
+        }
+    }
+    private void StartEdit()
+    {
+        dataMode = DataMode.Edit;
+    }
+    private async void StopEdit()
+    {
+        await UpdateWorkorder();
+        dataMode = DataMode.View;
+        nav.Refresh(forceReload:true);
+    }
+    private async Task UpdateWorkorder()
+    {
+        await shopfloorService.UpsertWorkorderConfig(workorder);
+    }
 }

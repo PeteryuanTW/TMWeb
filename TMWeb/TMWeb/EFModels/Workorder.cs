@@ -7,9 +7,9 @@ public partial class Workorder
 {
     public Guid Id { get; set; }
 
-    public string? WorkorderNo { get; set; }
+    public string WorkorderNo { get; set; }
 
-    public string? Lot { get; set; }
+    public string Lot { get; set; }
 
     public int Status { get; set; }
 
@@ -21,15 +21,15 @@ public partial class Workorder
 
     public Guid? TaskRecordCategoryId { get; set; }
 
-    public Guid? ProcessId { get; set; }
+    public Guid ProcessId { get; set; }
 
     public string? PartNo { get; set; }
 
     public int? TargetAmount { get; set; }
 
-    public int? Okamount { get; set; }
+    public int Okamount { get; set; }
 
-    public int? Ngamount { get; set; }
+    public int Ngamount { get; set; }
 
     public DateTime? StartTime { get; set; }
 
@@ -39,7 +39,7 @@ public partial class Workorder
 
     public virtual ItemRecordConfig? ItemRecordsCategory { get; set; }
 
-    public virtual Process? Process { get; set; }
+    public virtual Process Process { get; set; }
 
     public virtual WorkorderRecipeConfig? RecipeCategory { get; set; }
 

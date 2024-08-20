@@ -16,7 +16,14 @@
         <DxGridLayoutItem Row="1" Column="0">
             <Template>
                 <div class="p-3">
-                    <DxGrid Data="@workorders" FocusedRowEnabled="true">
+                    <DxGrid Data="@workorders" FocusedRowEnabled="true" FocusedRowChanged="OnFocusedRowChanged">
+                        <ToolbarTemplate>
+                            <DxToolbar SizeMode="SizeMode.Large" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                <DxToolbarItem IconCssClass="oi oi-plus" Click="EditNewWorkorder" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
+                                <DxToolbarItem Enabled="@workorderSelected" IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                <DxToolbarItem Enabled="@workorderSelected" Click="@(()=>NavToWorkorderDetail(selectedWorkorder.Id))" IconCssClass="oi oi-magnifying-glass" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                            </DxToolbar>
+                        </ToolbarTemplate>
                         <Columns>
                             <DxGridDataColumn FieldName="@nameof(Workorder.Status)" Caption="@($"{localizer["Status"]}")" />
                             <DxGridDataColumn FieldName="@nameof(Workorder.WorkorderNo)" />
@@ -24,13 +31,7 @@
                             <DxGridDataColumn FieldName="@nameof(Workorder.PartNo)" />
                             <DxGridDataColumn FieldName="@nameof(Workorder.TargetAmount)" />
                             <DxGridDataColumn FieldName="@nameof(Workorder.Ngamount)" />
-                            <DxGridDataColumn FieldName="@nameof(Workorder.Id)" Caption="Detail">
-                                <CellDisplayTemplate>
-                                    <div class="d-flex justify-content-center">
-                                        <DxButton Click="@(()=>NavToWorkorderDetail((context.DataItem as Workorder).Id))" RenderStyle="ButtonRenderStyle.Info" IconCssClass="oi oi-ellipses"></DxButton>
-                                    </div>
-                                </CellDisplayTemplate>
-                            </DxGridDataColumn>
+                            <DxGridDataColumn FieldName="@nameof(Workorder.Okamount)" />
                         </Columns>
                     </DxGrid>
                 </div>
@@ -38,33 +39,110 @@
         </DxGridLayoutItem>
     </Items>
 </DxGridLayout>
-
+<DxPopup @bind-Visible="@popupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="true" Width="50rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="ClosePopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <DxFormLayout>
+            <DxFormLayoutItem Caption="Process" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
+                <DxComboBox Data="@processes" @bind-Value="@selectedWorkorder.ProcessId" ValueFieldName="@nameof(Process.Id)" TextFieldName="@nameof(Process.Name)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="WorkorderNo" ColSpanLg="6">
+                <DxTextBox @bind-Text="@selectedWorkorder.WorkorderNo" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="Lot" ColSpanLg="6">
+                <DxTextBox @bind-Text="@selectedWorkorder.Lot" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="PartNo" ColSpanLg="6">
+                <DxTextBox @bind-Text="@selectedWorkorder.PartNo" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="TargetAmount" ColSpanLg="6">
+                <DxSpinEdit @bind-Value="@selectedWorkorder.TargetAmount" MinValue="0" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Workorder Recipe" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
+                <DxComboBox Data="@workorderRecipeConfigs" @bind-Value="@selectedWorkorder.RecipeCategoryId" ValueFieldName="@nameof(WorkorderRecipeConfig.Id)" TextFieldName="@nameof(WorkorderRecipeConfig.RecipeCategory)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Workorder Record" CaptionPosition="CaptionPosition.Vertical">
+                <DxComboBox Data="@workorderRecordConfigs" @bind-Value="@selectedWorkorder.WorkorderRecordCategoryId" ValueFieldName="@nameof(WorkorderRecordConfig.Id)" TextFieldName="@nameof(WorkorderRecordConfig.WorkorderRecordCategory)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Item Record" CaptionPosition="CaptionPosition.Vertical">
+                <DxComboBox Data="@itemRecordConfigs" @bind-Value="@selectedWorkorder.ItemRecordsCategoryId" ValueFieldName="@nameof(ItemRecordConfig.Id)" TextFieldName="@nameof(ItemRecordConfig.ItemRecordCategory)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Task Record" CaptionPosition="CaptionPosition.Vertical">
+                <DxComboBox Data="@taskRecordConfigs" @bind-Value="@selectedWorkorder.TaskRecordCategoryId" ValueFieldName="@nameof(ItemRecordConfig.Id)" TextFieldName="@nameof(ItemRecordConfig.ItemRecordCategory)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Click="AddNewWorkorder" RenderStyle="ButtonRenderStyle.Primary" Enabled="@workorderNoAndLotValid" IconCssClass="oi oi-check" />
+    </FooterContentTemplate>
+</DxPopup>
 @code {
+
     private List<Workorder> workorders = new();
     Workorder? selectedWorkorder;
-    Workorder? detailWorkorder;
-    private bool hasRecipe => detailWorkorder.RecipeCategoryId != null;
-    //IEnumerable<WorkorderRecipeContent> workorderRecipeContents => detailWorkorder.RecipeCategory == null ? new List<WorkorderRecipeContent>() : detailWorkorder.RecipeCategory.WorkorderRecipeContents;
-    //IEnumerable<WorkorderRecordContent> workorderRecordContents => detailWorkorder.WorkorderRecordCategory.WorkorderRecordContents;
+    private bool workorderSelected => selectedWorkorder != null;
+
+    private bool popupVisible = false;
+    private IEnumerable<Process> processes;
+    private IEnumerable<WorkorderRecipeConfig> workorderRecipeConfigs;
+    private IEnumerable<WorkorderRecordConfig> workorderRecordConfigs;
+    private IEnumerable<ItemRecordConfig> itemRecordConfigs;
+    private IEnumerable<TaskRecordConfig> taskRecordConfigs;
+
+    private bool workorderNoAndLotValid => selectedWorkorder != null && !string.IsNullOrEmpty(selectedWorkorder.WorkorderNo) && !string.IsNullOrEmpty(selectedWorkorder.Lot);
 
     protected override async Task OnInitializedAsync()
     {
         workorders = await shopfloorService.GetAllWorkorders();
     }
 
-    private async void OnFocusedWorkorderChanged(GridFocusedRowChangedEventArgs e)
+    private async Task GetParameter()
     {
-        selectedWorkorder = e.DataItem as Workorder;
-        if (selectedWorkorder != null)
-        {
-            detailWorkorder = await shopfloorService.GetWorkordersDetails(selectedWorkorder.Id);
-        }
-
+        processes = await shopfloorService.GetAllProcess();
+        workorderRecipeConfigs = await shopfloorService.GetWorkorderRecipeConfigs();
+        workorderRecordConfigs = await shopfloorService.GetWorkorderRecordConfigs();
+        itemRecordConfigs = await shopfloorService.GetItemRecordConfigs();
+        taskRecordConfigs = await shopfloorService.GetTaskRecordConfigs();
+    }
+    private void ShowPopup() => popupVisible = true;
+    private void ClosePopup() => popupVisible = false;
+    private void OnFocusedRowChanged(GridFocusedRowChangedEventArgs e)
+    {
+        var wo = e.DataItem as Workorder;
+        selectedWorkorder = wo != null ? wo : null;
     }
 
     private void NavToWorkorderDetail(Guid id)
     {
         nav.NavigateTo($"/Workorder/{id.ToString()}");
     }
+
+    private async Task EditNewWorkorder()
+    {
+        await GetParameter();
+        var process_tmp = processes?.FirstOrDefault();
+        if (process_tmp != null)
+        {
+            selectedWorkorder = new Workorder(process_tmp.Id);
+            ShowPopup();
+        }
+
+    }
+
+    private async Task AddNewWorkorder()
+    {
+        await shopfloorService.UpsertWorkorderConfig(selectedWorkorder);
+        ClosePopup();
+        nav.Refresh(forceReload: true);
+    }
+
 }
 

@@ -26,6 +26,8 @@
         public MachineStatus Status => status;
         public string StatusStr => status.ToString();
 
+        //public bool 
+
         private DateTime initTime;
         private DateTime lastStatusChangedTime;
         private DateTime lastTagUpdateTime;
@@ -40,7 +42,7 @@
         private void MachineStatechanged() => MachineStatechangedAct?.Invoke();
 
         public Action? TagsStatechangedAct;
-        private void TagsStatechange() => TagsStatechangedAct?.Invoke();
+        protected void TagsStatechange() => TagsStatechangedAct?.Invoke();
 
 
 
@@ -61,7 +63,11 @@
             Init();
             return Task.CompletedTask;
         }
-        protected virtual Task UpdateTag(Tag tag)
+        public virtual Task UpdateTag(Tag tag)
+        {
+            return Task.CompletedTask;
+        }
+        public virtual Task SetTag(Tag tag, object val)
         {
             return Task.CompletedTask;
         }
