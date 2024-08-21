@@ -11,7 +11,7 @@
         public Workorder() { }
         public Workorder(Guid processId)
         {
-            Id = new Guid();
+            Id = Guid.NewGuid();
             ProcessId = processId;
             Status = 0;
             TargetAmount = 0;

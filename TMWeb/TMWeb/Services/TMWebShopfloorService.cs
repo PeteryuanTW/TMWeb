@@ -567,7 +567,7 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Workorders.ToList());
+                return Task.FromResult(dbContext.Workorders.Include(x=>x.Process).ToList());
             }
         }
         public Task<List<Workorder>> GetWorkordersByStatus(List<int> targetStatus)
@@ -871,6 +871,43 @@ namespace TMWeb.Services
         }
 
         #endregion
+
+        #region map
+        public Task<List<MapImage>> GetMapImages()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.MapImages.AsNoTracking().ToList());
+            }
+        }
+        public async Task UpsertImage(MapImage mapImage)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var target = dbContext.MapImages.FirstOrDefault(x => x.Id == mapImage.Id);
+                if (target != null)
+                {
+                    target.Name = mapImage.Name;
+                    target.DataByte = mapImage.DataByte;
+                }
+                else
+                {
+                    await dbContext.AddAsync(mapImage);
+                }
+                await dbContext.SaveChangesAsync();
+            }
+        }
+
+        public async Task UpsertMapConfig()
+        {
+
+        }
+
+
+        #endregion
+
 
         #region developer
 

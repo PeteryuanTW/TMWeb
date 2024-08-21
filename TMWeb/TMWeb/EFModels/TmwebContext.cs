@@ -25,6 +25,12 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<Machine> Machines { get; set; }
 
+    public virtual DbSet<MapComponent> MapComponents { get; set; }
+
+    public virtual DbSet<MapConfig> MapConfigs { get; set; }
+
+    public virtual DbSet<MapImage> MapImages { get; set; }
+
     public virtual DbSet<Process> Processes { get; set; }
 
     public virtual DbSet<Station> Stations { get; set; }
@@ -149,6 +155,49 @@ public partial class TmwebContext : DbContext
             entity.HasOne(d => d.TagCategory).WithMany(p => p.Machines)
                 .HasForeignKey(d => d.TagCategoryId)
                 .HasConstraintName("FK__Machine__TagCate__6477ECF3");
+        });
+
+        modelBuilder.Entity<MapComponent>(entity =>
+        {
+            entity.ToTable("MapComponent");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("ID");
+            entity.Property(e => e.MapId).HasColumnName("MapID");
+            entity.Property(e => e.PositionX).HasColumnName("Position_x");
+            entity.Property(e => e.PositionY).HasColumnName("Position_y");
+
+            entity.HasOne(d => d.Map).WithMany(p => p.MapComponents)
+                .HasForeignKey(d => d.MapId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MapComponent");
+        });
+
+        modelBuilder.Entity<MapConfig>(entity =>
+        {
+            entity.ToTable("MapConfig");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("ID");
+            entity.Property(e => e.ImageId).HasColumnName("ImageID");
+            entity.Property(e => e.Name).HasMaxLength(50);
+
+            entity.HasOne(d => d.Image).WithMany(p => p.MapConfigs)
+                .HasForeignKey(d => d.ImageId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_MapImage");
+        });
+
+        modelBuilder.Entity<MapImage>(entity =>
+        {
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("ID");
+            entity.Property(e => e.DataByte).HasColumnType("image");
+            entity.Property(e => e.DataType).HasMaxLength(10);
+            entity.Property(e => e.Name).HasMaxLength(50);
         });
 
         modelBuilder.Entity<Process>(entity =>
@@ -320,6 +369,7 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Process).WithMany(p => p.Workorders)
                 .HasForeignKey(d => d.ProcessId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Workerder__Proce__02FC7413");
 
             entity.HasOne(d => d.RecipeCategory).WithMany(p => p.Workorders)

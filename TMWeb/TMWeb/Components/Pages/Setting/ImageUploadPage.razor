@@ -1,0 +1,146 @@
+﻿@page "/ImageUpload"
+@rendermode InteractiveServer
+@inject NavigationManager nav
+@inject UIService uiService
+@inject TMWebShopfloorService shopfloorService
+
+<DxGridLayout RowSpacing="1rem" ColumnSpacing="1rem">
+    <Rows>
+        <DxGridLayoutRow />
+    </Rows>
+    <Columns>
+        <DxGridLayoutColumn Width="35%" />
+        <DxGridLayoutColumn Width="65%" />
+    </Columns>
+    <Items>
+        <DxGridLayoutItem Row="0" Column="0">
+            <Template>
+                <div class="p-3">
+                    <DxGrid Data="@mapImage" FocusedRowEnabled="true" FocusedRowChanged="OnFocusedRowChanged">
+                        <ToolbarTemplate>
+                            <DxToolbar SizeMode="SizeMode.Large" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                <DxToolbarItem Click="NewImageClicked" IconCssClass="oi oi-plus" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
+                                <DxToolbarItem IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                <DxToolbarItem IconCssClass="oi oi-magnifying-glass" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                            </DxToolbar>
+                        </ToolbarTemplate>
+                        <Columns>
+                            <DxGridDataColumn FieldName="@nameof(MapImage.Name)" />
+                        </Columns>
+                    </DxGrid>
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+        <DxGridLayoutItem Row="0" Column="1">
+            <Template>
+                @if (imageSelected && !popupVisible)
+                {
+                    <div class="h-100 card">
+                        <img class="h-100 w-100 p-3" src="@($"data:{FileType};base64,{Convert.ToBase64String(FileBytes ?? Array.Empty<byte>())}") " />
+                    </div>
+                }
+            </Template>
+        </DxGridLayoutItem>
+    </Items>
+</DxGridLayout>
+<DxPopup @bind-Visible="@popupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="true" Width="50rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="ClosePopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <DxFormLayout>
+            <DxFormLayoutItem Caption="Name" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
+                <DxTextBox @bind-Text="@(targetMapImage.Name)" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Type" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
+                <DxTextBox @bind-Text="@(targetMapImage.DataType)" Enabled="false" />
+            </DxFormLayoutItem>
+            <DxFormLayoutItem ColSpanLg="6" BeginRow="true">
+                <DxFileInput FilesUploading="OnFilesUploading"
+                             AllowMultiFileUpload="false"
+                             MaxFileSize="15000000"
+                             AcceptedFileTypes="AllowedFileExtensions">
+                </DxFileInput>
+            </DxFormLayoutItem>
+
+        </DxFormLayout>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Click="UpsertImage" RenderStyle="ButtonRenderStyle.Primary" IconCssClass="oi oi-check" />
+    </FooterContentTemplate>
+</DxPopup>
+
+
+@code {
+    private bool popupVisible = false;
+    private bool uploading = false;
+    private readonly List<string> AllowedFileExtensions = new() { ".jpg", ".jpeg", ".png" };
+    private IEnumerable<MapImage> mapImage;
+    private MapImage? targetMapImage;
+    private bool imageSelected => targetMapImage != null;
+    private string FileType => imageSelected ? targetMapImage.DataType : string.Empty;
+    private byte[] FileBytes => imageSelected ? targetMapImage.DataByte : Array.Empty<byte>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        mapImage = await shopfloorService.GetMapImages();
+    }
+
+    private void ShowPopup() => popupVisible = true;
+    private void ClosePopup() => popupVisible = false;
+
+    private void OnFocusedRowChanged(GridFocusedRowChangedEventArgs e)
+    {
+        var image = e.DataItem as MapImage;
+        targetMapImage = image != null ? image : null;
+    }
+
+    private void NewImageClicked()
+    {
+        targetMapImage = new MapImage(Guid.NewGuid());
+        ShowPopup();
+    }
+
+    private async Task OnFilesUploading(FilesUploadingEventArgs args)
+    {
+        uploading = true;
+        var file = args.Files[0];
+        int fileSize = (int)file.Size;
+        targetMapImage.DataByte = new byte[fileSize];
+        targetMapImage.DataType = file.Type;
+        var stream = file.OpenReadStream(file.Size);
+        int TotalBytesRead = 0;
+        try
+        {
+            int bytesReadAsyncCount;
+            while ((bytesReadAsyncCount = await stream.ReadAsync(targetMapImage.DataByte, TotalBytesRead, fileSize - TotalBytesRead)) != 0)
+            {
+                TotalBytesRead += bytesReadAsyncCount;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (Exception e)
+        {
+
+        }
+        finally
+        {
+            stream.Close();
+            uploading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task UpsertImage()
+    {
+        await shopfloorService.UpsertImage(targetMapImage);
+        ClosePopup();
+        nav.Refresh(forceReload: true);
+    }
+}

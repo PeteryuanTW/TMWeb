@@ -22,7 +22,11 @@
             </DxMenuItem>
             <DxMenuItem Position="ItemPosition.Center" Text="Machine" IconCssClass="oi oi-laptop" BeginGroup="true" />
             <DxMenuItem Position="ItemPosition.Center" Text="Tags" IconCssClass="oi oi-tags" />
-            <DxMenuItem Position="ItemPosition.Center" Text="Setting" IconCssClass="oi oi-cog" BeginGroup="true" />
+            <DxMenuItem Position="ItemPosition.Center" Text="Setting" IconCssClass="oi oi-cog" BeginGroup="true" >
+                <Items>
+                    <DxMenuItem Text="Image" IconCssClass="oi oi-image" NavigateUrl="/ImageUpload" />
+                </Items>
+            </DxMenuItem>
             <DxMenuItem Position="ItemPosition.Center" Text="Developer" IconCssClass="oi oi-person" BeginGroup="true">
                 <Items>
                     <DxMenuItem Text="Command" IconCssClass="oi oi-terminal" NavigateUrl="/Developer" />

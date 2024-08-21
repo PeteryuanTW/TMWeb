@@ -9,7 +9,7 @@ public partial class Tag
 
     public Guid? CategoryId { get; set; }
 
-    public string? Name { get; set; }
+    public string Name { get; set; }
 
     public int DataType { get; set; }
 
