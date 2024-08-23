@@ -21,6 +21,8 @@ public partial class Machine
 
     public bool Enabled { get; set; }
 
+    public virtual ICollection<MapComponent> MapComponents { get; set; } = new List<MapComponent>();
+
     public virtual Process? Process { get; set; }
 
     public virtual TagCategory? TagCategory { get; set; }

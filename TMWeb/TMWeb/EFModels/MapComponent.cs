@@ -11,6 +11,10 @@ public partial class MapComponent
 
     public Guid MapId { get; set; }
 
+    public Guid? MachineId { get; set; }
+
+    public Guid? StationId { get; set; }
+
     public int PositionX { get; set; }
 
     public int PositionY { get; set; }
@@ -19,5 +23,9 @@ public partial class MapComponent
 
     public int Width { get; set; }
 
+    public virtual Machine? Machine { get; set; }
+
     public virtual MapConfig Map { get; set; } = null!;
+
+    public virtual Station? Station { get; set; }
 }

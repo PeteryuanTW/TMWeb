@@ -9,9 +9,9 @@ public partial class MapImage
 
     public string Name { get; set; } = null!;
 
-    public byte[] DataByte { get; set; } = null!;
-
     public string DataType { get; set; } = null!;
+
+    public byte[] DataByte { get; set; } = null!;
 
     public virtual ICollection<MapConfig> MapConfigs { get; set; } = new List<MapConfig>();
 }

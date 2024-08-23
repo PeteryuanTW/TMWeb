@@ -10,13 +10,13 @@
 
     protected IEnumerable<Workorder> workOrderCandidates;
 
-    protected bool canedit => hasStation? StationParam.Status == StationState.Uninit:false;
-    protected bool canrun => hasStation ? StationParam.Status == StationState.Uninit : false;
-    protected bool canoperate => hasStation ? StationParam.Status == StationState.Running : false;
-    protected bool canpause => hasStation ? StationParam.Status == StationState.Running : false;
-    protected bool canstop => hasStation ? StationParam.Status == StationState.Running : false;
-    protected bool canretry => hasStation ? (StationParam.Status == StationState.Stop || StationParam.Status == StationState.Error || StationParam.Status == StationState.Pause) : false;
-    protected bool iserror => hasStation ? StationParam.Status == StationState.Error : false;
+    protected bool canedit => hasStation ? StationParam.Status == Status.Uninit : false;
+    protected bool canrun => hasStation ? StationParam.Status == Status.Uninit : false;
+    protected bool canoperate => hasStation ? StationParam.Status == Status.Running : false;
+    protected bool canpause => hasStation ? StationParam.Status == Status.Running : false;
+    protected bool canstop => hasStation ? StationParam.Status == Status.Running : false;
+    protected bool canretry => hasStation ? (StationParam.Status == Status.Stop || StationParam.Status == Status.Error) : false;
+    protected bool iserror => hasStation ? StationParam.Status == Status.Error : false;
 
     public bool showErrorMsg = false;
     public bool showOperation = false;
@@ -25,14 +25,15 @@
     {
         switch (StationParam?.Status)
         {
-            case StationState.Uninit:
+            case Status.Uninit:
+            case Status.Init:
                 return ButtonRenderStyle.Secondary;
-            case StationState.Running:
+            case Status.Running:
                 return ButtonRenderStyle.Success;
-            case StationState.Pause:
-                return ButtonRenderStyle.Warning;
-            case StationState.Stop:
-            case StationState.Error:
+            // case Status.Pause:
+            //     return ButtonRenderStyle.Warning;
+            case Status.Stop:
+            case Status.Error:
                 return ButtonRenderStyle.Danger;
             default:
                 return ButtonRenderStyle.None;
@@ -42,14 +43,14 @@
     {
         switch (StationParam?.Status)
         {
-            case StationState.Uninit:
+            case Status.Uninit:
                 return "uninit";
-            case StationState.Running:
+            case Status.Running:
                 return "running";
-            case StationState.Pause:
-                return "pause";
-            case StationState.Stop:
-            case StationState.Error:
+            // case Status.Pause:
+            //     return "pause";
+            case Status.Stop:
+            case Status.Error:
                 return "stop";
             default:
                 return "uninit";

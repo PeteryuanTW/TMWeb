@@ -21,7 +21,7 @@ namespace TMWeb.Data
 
 		public override bool SetWorkorder(Workorder wo)
 		{
-			if (!HasWorkorder && Status== StationState.Uninit)
+			if (!HasWorkorder && Status== Status.Uninit)
 			{
                 workorder = wo;
                 //UIUpdate();

@@ -1,4 +1,6 @@
-﻿namespace TMWeb.EFModels
+﻿using TMWeb.Data;
+
+namespace TMWeb.EFModels
 {
     public enum MachineConnectType
     {
@@ -8,22 +10,15 @@
         WebAPI = 10,
 
     }
-    public enum MachineStatus
-    {
-        Init,
-        Disconnect,
-        Running,
-        Idel,
-        Error,
-    }
+    
     public partial class Machine
     {
         public bool hasCategory => TagCategory != null;
         public bool hasTags => hasCategory && TagCategory?.Tags.Count > 0;
         public bool hasTagsUpdateByTime => hasTags && TagCategory.Tags.Any(x => x.UpdateByTime);
 
-        protected MachineStatus status;
-        public MachineStatus Status => status;
+        protected Status status;
+        public Status Status => status;
         public string StatusStr => status.ToString();
 
         //public bool 
@@ -48,7 +43,7 @@
 
         public void InitMachine()
         {
-            status = MachineStatus.Init;
+            status = Status.Init;
             if (hasTags)
             {
                 foreach (var item in TagCategory.Tags)
@@ -113,14 +108,14 @@
 
         protected void Init()
         {
-            status = MachineStatus.Init;
+            status = Status.Init;
             errorMsg = string.Empty;
             lastStatusChangedTime = DateTime.Now;
             MachineStatechanged();
         }
         protected void Idel()
         {
-            status = MachineStatus.Idel;
+            status = Status.Idel;
             errorMsg = string.Empty;
             lastStatusChangedTime = DateTime.Now;
             MachineStatechanged();
@@ -128,7 +123,7 @@
         public void Running()
         {
             runFlag = true;
-            status = MachineStatus.Running;
+            status = Status.Running;
             errorMsg = string.Empty;
             lastStatusChangedTime = DateTime.Now;
             StartUpdating();
@@ -142,7 +137,7 @@
         }
         protected void Disconnect(string msg)
         {
-            status = MachineStatus.Disconnect;
+            status = Status.Stop;
             lastStatusChangedTime = DateTime.Now;
             if (!string.IsNullOrEmpty(msg))
             {
@@ -157,7 +152,7 @@
         protected void Error(string msg)
         {
             
-            status = MachineStatus.Error;
+            status = Status.Error;
             errorMsg = msg;
             lastStatusChangedTime = DateTime.Now;
             Stop();

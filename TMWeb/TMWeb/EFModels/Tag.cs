@@ -7,9 +7,9 @@ public partial class Tag
 {
     public Guid Id { get; set; }
 
-    public Guid? CategoryId { get; set; }
+    public Guid CategoryId { get; set; }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = null!;
 
     public int DataType { get; set; }
 
@@ -27,5 +27,5 @@ public partial class Tag
 
     public string? Param5 { get; set; }
 
-    public virtual TagCategory? Category { get; set; }
+    public virtual TagCategory Category { get; set; } = null!;
 }

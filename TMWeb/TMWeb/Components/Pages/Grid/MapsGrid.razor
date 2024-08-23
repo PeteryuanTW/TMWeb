@@ -1,0 +1,102 @@
+﻿@page "/MapsGrid"
+@rendermode InteractiveServer
+@inject IStringLocalizer<Language> localizer
+@inject NavigationManager nav
+@inject TMWebShopfloorService shopfloorService
+
+
+<div class="p-3">
+    <DxGrid Data="@mapConfigs" FocusedRowEnabled="true" FocusedRowChanged="OnFocusedRowChanged">
+        <ToolbarTemplate>
+            <DxToolbar SizeMode="SizeMode.Large" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                <DxToolbarItem IconCssClass="oi oi-plus" Click="EditNewMapconfig" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
+                <DxToolbarItem Enabled="@mapSelected" IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                <DxToolbarItem Enabled="@mapSelected" Click="@(()=>NavToMapEditor(selectedMapConfig.Id))" IconCssClass="oi oi-pencil" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                <DxToolbarItem Enabled="@mapSelected" Click="@(()=>NavToMapDashboard(selectedMapConfig.Id))" IconCssClass="oi oi-map" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+            </DxToolbar>
+        </ToolbarTemplate>
+        <Columns>
+            <DxGridDataColumn FieldName="@nameof(MapConfig.Name)" />
+        </Columns>
+    </DxGrid>
+</div>
+
+<DxPopup @bind-Visible="@popupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="true" Width="50rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="ClosePopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <DxFormLayout>
+            <DxFormLayoutItem Caption="Name" CaptionPosition="CaptionPosition.Vertical">
+                <DxTextBox @bind-Text="@selectedMapConfig.Name"></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem Caption="Image" CaptionPosition="CaptionPosition.Vertical">
+                <DxComboBox Data="@mapImages" @bind-Value="selectedMapConfig.ImageId" TextFieldName="@(nameof(MapImage.Name))" ValueFieldName="@(nameof(MapImage.Id))"></DxComboBox>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+    </BodyContentTemplate>
+    <FooterContentTemplate>
+        <DxButton Click="UpsertMapconfig" RenderStyle="ButtonRenderStyle.Primary" IconCssClass="oi oi-check" />
+    </FooterContentTemplate>
+</DxPopup>
+
+@code {
+    private bool popupVisible = false;
+    private void ShowPopup() => popupVisible = true;
+    private void ClosePopup() => popupVisible = false;
+    private IEnumerable<MapConfig> mapConfigs;
+    private IEnumerable<MapImage> mapImages;
+
+    private MapConfig? selectedMapConfig;
+    private bool mapSelected => selectedMapConfig != null;
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitParameter();
+    }
+
+    private async Task InitParameter()
+    {
+        mapConfigs = await shopfloorService.GetAllMapConfigs();
+        mapImages = await shopfloorService.GetAllMapImages();
+    } 
+
+
+    private void OnFocusedRowChanged(GridFocusedRowChangedEventArgs e)
+    {
+        var map = e.DataItem as MapConfig;
+        selectedMapConfig = map != null ? map : null;
+    }
+
+    private void EditNewMapconfig()
+    {
+        ShowPopup();
+        selectedMapConfig = new MapConfig(Guid.NewGuid());
+    }
+
+    private async Task UpsertMapconfig()
+    {
+        await shopfloorService.UpsertMapConfig(selectedMapConfig);
+        nav.Refresh(forceReload: true);
+        ClosePopup();
+    }
+
+    private void NavToMapEditor(Guid id)
+    {
+        nav.NavigateTo($"/MapEditorPage/{id.ToString()}");
+    }
+
+    private void NavToMapDashboard(Guid id)
+    {
+        nav.NavigateTo($"/MapDashboard/{id.ToString()}");
+    }
+
+}

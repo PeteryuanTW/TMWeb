@@ -70,14 +70,14 @@
     {
         switch (MachineParam?.Status)
         {
-            case MachineStatus.Init:
+            case Status.Init:
                 return string.Empty;
-            case MachineStatus.Running:
+            case Status.Running:
                 return "running";
-            case MachineStatus.Idel:
+            case Status.Idel:
                 return "idel";
-            case MachineStatus.Disconnect:
-            case MachineStatus.Error:
+            case Status.Stop:
+            case Status.Error:
                 return "error";
             default:
                 return string.Empty;

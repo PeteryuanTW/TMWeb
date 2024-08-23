@@ -1,6 +1,7 @@
 ﻿using DevExpress.Pdf;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 using TMWeb.Components.Pages.Setting;
 using TMWeb.Data;
 using TMWeb.Data.Message;
@@ -109,8 +110,18 @@ namespace TMWeb.Services
         #endregion
 
         #region station
+        public Task<List<Station>> GetAllStationsConfig()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.Stations.AsNoTracking().ToList());
+            }
+        }
+
         private List<Station> stations = new List<Station>();
         public List<Station> Stations => stations;
+
         public async Task<List<Station>> GetStationsByProcessName(string processName)
         {
             Process? targetProcess = await GetProcessByName(processName);
@@ -133,6 +144,10 @@ namespace TMWeb.Services
         public Task<Station?> GetStationsByName(string stationName)
         {
             return Task.FromResult(stations.FirstOrDefault(x => x.Name == stationName));
+        }
+        public Task<Station?> GetStationsById(Guid? id)
+        {
+            return Task.FromResult(stations.FirstOrDefault(x => x.Id == id));
         }
         public void InitAllStations()
         {
@@ -440,6 +455,15 @@ namespace TMWeb.Services
 
         #region machine
 
+        public Task<List<Machine>> GetAllMachinesConfig()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.Machines.AsNoTracking().ToList());
+            }
+        }
+
         private List<Machine> machines = new();
         public List<Machine> Machines => machines;
         private void InitAllMachinesFromDB()
@@ -530,7 +554,7 @@ namespace TMWeb.Services
             Process? target = await GetProcessByName(processName);
             return machines.Where(x => x.ProcessId == target.Id).ToList();
         }
-        public Task<Machine?> GetMachineByID(Guid id)
+        public Task<Machine?> GetMachineByID(Guid? id)
         {
             return Task.FromResult(machines.FirstOrDefault(x => x.Id == id));
         }
@@ -567,7 +591,7 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Workorders.Include(x=>x.Process).ToList());
+                return Task.FromResult(dbContext.Workorders.Include(x => x.Process).ToList());
             }
         }
         public Task<List<Workorder>> GetWorkordersByStatus(List<int> targetStatus)
@@ -599,8 +623,8 @@ namespace TMWeb.Services
                 return Task.FromResult(dbContext.Workorders.Include(x => x.Process)
                     .Include(x => x.RecipeCategory).ThenInclude(x => x.WorkorderRecipeContents)
                     .Include(x => x.WorkorderRecordCategory).ThenInclude(x => x.WorkorderRecordContents).ThenInclude(x => x.WorkorderRecordDetails)
-                    .Include(x=>x.ItemRecordsCategory).ThenInclude(x=>x.ItemRecordContents).ThenInclude(x=>x.ItemRecordDetails)
-                    .Include(x=>x.TaskRecordCategory).ThenInclude(x=>x.TaskRecordContents).ThenInclude(x=>x.TaskRecordDetails)
+                    .Include(x => x.ItemRecordsCategory).ThenInclude(x => x.ItemRecordContents).ThenInclude(x => x.ItemRecordDetails)
+                    .Include(x => x.TaskRecordCategory).ThenInclude(x => x.TaskRecordContents).ThenInclude(x => x.TaskRecordDetails)
                     .AsNoTracking()
                     .FirstOrDefault(x => x.Id == id));
             }
@@ -775,7 +799,7 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                
+
                 return Task.FromResult(dbContext.ItemRecordConfigs.ToList());
             }
         }
@@ -873,7 +897,7 @@ namespace TMWeb.Services
         #endregion
 
         #region map
-        public Task<List<MapImage>> GetMapImages()
+        public Task<List<MapImage>> GetAllMapImages()
         {
             using (var scope = scopeFactory.CreateScope())
             {
@@ -900,9 +924,73 @@ namespace TMWeb.Services
             }
         }
 
-        public async Task UpsertMapConfig()
+        public Task<List<MapConfig>> GetAllMapConfigs()
         {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.MapConfigs.ToList());
+            }
+        }
 
+        public Task<MapConfig?> GetMapConfigAndComponentById(Guid id)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.MapConfigs
+                    .Include(x => x.Image)
+                    .Include(x => x.MapComponents)
+                    .FirstOrDefault(x => x.Id == id));
+            }
+        }
+
+        public async Task UpsertMapConfig(MapConfig mapConfig)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var target = dbContext.MapConfigs.FirstOrDefault(x => x.Id == mapConfig.Id);
+                if (target != null)
+                {
+                    target.Name = mapConfig.Name;
+                    target.ImageId = mapConfig.ImageId;
+                }
+                else
+                {
+                    await dbContext.AddAsync(mapConfig);
+                }
+                await dbContext.SaveChangesAsync();
+            }
+        }
+
+        public async Task UpsertMapComponents(IEnumerable<MapComponent> mapComponents)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                foreach (MapComponent mapComponent in mapComponents)
+                {
+                    var target = dbContext.MapComponents.FirstOrDefault(x => x.Id == mapComponent.Id);
+                    if (target != null)
+                    {
+                        target.Type = mapComponent.Type;
+                        target.MapId = mapComponent.MapId;
+                        target.MachineId = mapComponent.MachineId;
+                        target.StationId = mapComponent.StationId;
+                        target.PositionX = mapComponent.PositionX;
+                        target.PositionY = mapComponent.PositionY;
+                        target.Height = mapComponent.Height;
+                        target.Width = mapComponent.Width;
+                    }
+                    else
+                    {
+                        await dbContext.AddAsync(mapComponent);
+                    }
+                }
+
+                await dbContext.SaveChangesAsync();
+            }
         }
 
 

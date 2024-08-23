@@ -11,7 +11,7 @@ namespace TMWeb.Data
 
         public override async Task UpdateTag(Tag tag)
         {
-            if (status != MachineStatus.Disconnect)
+            if (status != Status.Error || status != Status.Stop)
             {
                 try
                 {
@@ -52,21 +52,21 @@ namespace TMWeb.Data
             
         }
 
-        private MachineStatus GetRobotState(bool isError, bool isRunProject)
+        private Status GetRobotState(bool isError, bool isRunProject)
         {
             if (isError)
             {
-                return MachineStatus.Error;
+                return Status.Error;
             }
             else
             {
                 if (isRunProject)
                 {
-                    return MachineStatus.Running;
+                    return Status.Running;
                 }
                 else
                 {
-                    return MachineStatus.Idel; ;
+                    return Status.Idel; ;
                 }
             }
         }

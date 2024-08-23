@@ -1,0 +1,60 @@
+﻿@rendermode InteractiveServer
+@inject IStringLocalizer<Language> localizer
+@inject TMWebShopfloorService shopfloorService
+
+@if (componentAssigned)
+{
+    <div class="d-flex align-items-center justify-content-center position-absolute rounded border" style=@($"left:{MapComponentConfig.PositionX}%; top:{MapComponentConfig.PositionY}%; width:{MapComponentConfig.Width}%; height:{MapComponentConfig.Height}%;")>
+        <h2>
+            @name
+        </h2>
+    </div>
+}
+
+
+@code {
+    [Parameter]
+    public MapComponent? MapComponentConfig { get; set; }
+    private bool componentAssigned => MapComponentConfig != null;
+
+    //private Action? StatusAct;
+
+    private string name = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RetriveName();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task RetriveName()
+    {
+        if (componentAssigned)
+        {
+            switch (MapComponentConfig.Type)
+            {
+                case 0:
+                    Station? station = await shopfloorService.GetStationsById(MapComponentConfig.StationId);
+                    if (station != null)
+                    {
+                        name = station.Name;
+                        //StatusAct = station.UIUpdateAct;
+                        //status = station.Status;
+                    }
+                    break;
+                case 1:
+                    Machine? machine = await shopfloorService.GetMachineByID(MapComponentConfig.MachineId);
+                    if (machine != null)
+                    {
+                        name = machine.Name;
+                        //StatusAct = machine.MachineStatechangedAct;
+                        //status = machine.Status;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+

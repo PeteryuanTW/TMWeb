@@ -1,15 +1,8 @@
-﻿using Microsoft.Data.SqlClient;
+﻿using TMWeb.Data;
 
 namespace TMWeb.EFModels
 {
-    public enum StationState
-    {
-        Uninit,
-        Running,
-        Pause,
-        Error,
-        Stop,
-    }
+    
     /// <summary>
     /// station type:
     /// *0: 1 wo 1 serial
@@ -36,8 +29,8 @@ namespace TMWeb.EFModels
 
 
 
-        private StationState stationStatus = StationState.Uninit;
-        public StationState Status => stationStatus;
+        private Status stationStatus = Status.Uninit;
+        public Status Status => stationStatus;
 
         protected void UIUpdate()
         {
@@ -50,7 +43,7 @@ namespace TMWeb.EFModels
         public string ErrorMsg => errorMsg;
         public void InitStation()
         {
-            stationStatus = StationState.Uninit;
+            stationStatus = Status.Init;
             errorMsg = String.Empty;
         }
         public virtual bool SetWorkorder(Workorder wo)
@@ -64,14 +57,14 @@ namespace TMWeb.EFModels
         }
         public virtual void Run()
         {
-            stationStatus = StationState.Running;
+            stationStatus = Status.Running;
         }
         public virtual void Pause() { }
         public virtual void Stop() { }
         public virtual void Error(string msg)
         {
             errorMsg = msg;
-            stationStatus = StationState.Error;
+            stationStatus = Status.Error;
         }
 
     }

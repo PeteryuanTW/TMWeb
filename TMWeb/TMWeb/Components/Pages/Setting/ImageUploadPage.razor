@@ -35,8 +35,8 @@
             <Template>
                 @if (imageSelected && !popupVisible)
                 {
-                    <div class="h-100 card">
-                        <img class="h-100 w-100 p-3" src="@($"data:{FileType};base64,{Convert.ToBase64String(FileBytes ?? Array.Empty<byte>())}") " />
+                    <div class="h-100 w-100 card">
+                        <img class="object-fit-contain h-100 w-100 p-3" src="@($"data:{FileType};base64,{Convert.ToBase64String(FileBytes ?? Array.Empty<byte>())}") " />
                     </div>
                 }
             </Template>
@@ -89,7 +89,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        mapImage = await shopfloorService.GetMapImages();
+        mapImage = await shopfloorService.GetAllMapImages();
     }
 
     private void ShowPopup() => popupVisible = true;
