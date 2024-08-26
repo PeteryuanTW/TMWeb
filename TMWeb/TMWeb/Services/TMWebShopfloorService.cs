@@ -964,30 +964,50 @@ namespace TMWeb.Services
             }
         }
 
-        public async Task UpsertMapComponents(IEnumerable<MapComponent> mapComponents)
+        public async Task UpsertAndRemoveMapComponents(Guid mapId, IEnumerable<MapComponent> mapComponents)
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                foreach (MapComponent mapComponent in mapComponents)
+                var componentsInDbs = dbContext.MapComponents.Where(x => x.MapId == mapId);
+                foreach (var componentsInDb in componentsInDbs)
                 {
-                    var target = dbContext.MapComponents.FirstOrDefault(x => x.Id == mapComponent.Id);
-                    if (target != null)
+                    if (!mapComponents.Any(x => x.MapId == componentsInDb.MapId))
                     {
-                        target.Type = mapComponent.Type;
-                        target.MapId = mapComponent.MapId;
-                        target.MachineId = mapComponent.MachineId;
-                        target.StationId = mapComponent.StationId;
-                        target.PositionX = mapComponent.PositionX;
-                        target.PositionY = mapComponent.PositionY;
-                        target.Height = mapComponent.Height;
-                        target.Width = mapComponent.Width;
+                        dbContext.MapComponents.Remove(componentsInDb);
                     }
                     else
                     {
-                        await dbContext.AddAsync(mapComponent);
+                        var target = mapComponents.FirstOrDefault(x => x.Id == componentsInDb.Id);
+                        componentsInDb.Type = target.Type;
+                        componentsInDb.MapId = target.MapId;
+                        componentsInDb.MachineId = target.MachineId;
+                        componentsInDb.StationId = target.StationId;
+                        componentsInDb.PositionX = target.PositionX;
+                        componentsInDb.PositionY = target.PositionY;
+                        componentsInDb.Height = target.Height;
+                        componentsInDb.Width = target.Width;
                     }
                 }
+                //foreach (MapComponent mapComponent in mapComponents)
+                //{
+                //    var target = dbContext.MapComponents.FirstOrDefault(x => x.Id == mapComponent.Id);
+                //    if (target != null)
+                //    {
+                //        target.Type = mapComponent.Type;
+                //        target.MapId = mapComponent.MapId;
+                //        target.MachineId = mapComponent.MachineId;
+                //        target.StationId = mapComponent.StationId;
+                //        target.PositionX = mapComponent.PositionX;
+                //        target.PositionY = mapComponent.PositionY;
+                //        target.Height = mapComponent.Height;
+                //        target.Width = mapComponent.Width;
+                //    }
+                //    else
+                //    {
+                //        await dbContext.AddAsync(mapComponent);
+                //    }
+                //}
 
                 await dbContext.SaveChangesAsync();
             }

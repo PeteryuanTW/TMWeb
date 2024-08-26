@@ -4,10 +4,8 @@
 
 @if (componentAssigned)
 {
-    <div class="d-flex align-items-center justify-content-center position-absolute rounded border" style=@($"left:{MapComponentConfig.PositionX}%; top:{MapComponentConfig.PositionY}%; width:{MapComponentConfig.Width}%; height:{MapComponentConfig.Height}%;")>
-        <h2>
-            @name
-        </h2>
+    <div class=@($"icon rounded {IsMainCss}") @onclick="@(()=>OnComponentClicked(MapComponentConfig.Id))" data-toggle="tooltip" data-placement="top" title="@($"{name}")" style="@shapeCss">
+        <img src=@($"/images/MyIcon/{IconCss()}.svg") class="w-50 h-50 object-fit-contain" />
     </div>
 }
 
@@ -15,10 +13,14 @@
 @code {
     [Parameter]
     public MapComponent? MapComponentConfig { get; set; }
+    [Parameter]
+    public EventCallback<Task<Guid>> ClickCallback { get; set; }
+    [Parameter]
+    public bool IsMain { get; set; }
+
     private bool componentAssigned => MapComponentConfig != null;
 
-    //private Action? StatusAct;
-
+    private string shapeCss => componentAssigned ? $"left:{MapComponentConfig.PositionX}%; top:{MapComponentConfig.PositionY}%; width:{MapComponentConfig.Width}%; height:{MapComponentConfig.Height}%;" : string.Empty;
     private string name = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -26,6 +28,34 @@
         await RetriveName();
         await base.OnInitializedAsync();
     }
+
+    private async Task OnComponentClicked(Guid componentId)
+    {
+        await ClickCallback.InvokeAsync(Task.FromResult(MapComponentConfig.Id));
+    }
+
+    private string IsMainCss => IsMain ? "main" : string.Empty;
+
+    private string IconCss()
+    {
+        if (componentAssigned)
+        {
+            switch (MapComponentConfig?.Type)
+            {
+                case 0:
+                    return "station";
+                case 1:
+                    return "machine";
+                default:
+                    return "";
+            }
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
 
     private async Task RetriveName()
     {

@@ -1,0 +1,39 @@
+﻿.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    background-color: rgb(79, 79, 79, 0.9);
+}
+
+    .icon :hover {
+        animation-name: shaking;
+        animation-duration: 1s;
+    }
+
+.main {
+    outline-style: solid;
+    outline-color: rgb(0, 255, 255);
+}
+
+@keyframes shaking {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(10deg);
+    }
+
+    50% {
+        transform: rotate(0eg);
+    }
+
+    75% {
+        transform: rotate(-10deg);
+    }
+
+    100% {
+        transform: rotate(0deg);
+    }
+}
