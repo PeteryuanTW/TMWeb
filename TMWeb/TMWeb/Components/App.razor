@@ -36,6 +36,8 @@
 
     protected override void OnInitialized()
     {
+        var a = CultureInfo.CurrentCulture.DisplayName;
+        var b = CultureInfo.CurrentUICulture.DisplayName;
         HttpContext?.Response.Cookies.Append(
             CookieRequestCultureProvider.DefaultCookieName,
             CookieRequestCultureProvider.MakeCookieValue(

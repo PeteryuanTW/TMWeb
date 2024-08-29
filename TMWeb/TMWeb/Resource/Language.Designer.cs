@@ -61,6 +61,114 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Command 的當地語系化字串。
+        /// </summary>
+        public static string Command {
+            get {
+                return ResourceManager.GetString("Command", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Detail 的當地語系化字串。
+        /// </summary>
+        public static string Detail {
+            get {
+                return ResourceManager.GetString("Detail", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Developer 的當地語系化字串。
+        /// </summary>
+        public static string Developer {
+            get {
+                return ResourceManager.GetString("Developer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Image 的當地語系化字串。
+        /// </summary>
+        public static string Image {
+            get {
+                return ResourceManager.GetString("Image", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Item Record 的當地語系化字串。
+        /// </summary>
+        public static string Item_Record {
+            get {
+                return ResourceManager.GetString("Item Record", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Lot 的當地語系化字串。
+        /// </summary>
+        public static string Lot {
+            get {
+                return ResourceManager.GetString("Lot", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Machine 的當地語系化字串。
+        /// </summary>
+        public static string Machine {
+            get {
+                return ResourceManager.GetString("Machine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Map 的當地語系化字串。
+        /// </summary>
+        public static string Map {
+            get {
+                return ResourceManager.GetString("Map", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 NG 的當地語系化字串。
+        /// </summary>
+        public static string NG {
+            get {
+                return ResourceManager.GetString("NG", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 OK 的當地語系化字串。
+        /// </summary>
+        public static string OK {
+            get {
+                return ResourceManager.GetString("OK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Process 的當地語系化字串。
+        /// </summary>
+        public static string Process {
+            get {
+                return ResourceManager.GetString("Process", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Recipe 的當地語系化字串。
+        /// </summary>
+        public static string Recipe {
+            get {
+                return ResourceManager.GetString("Recipe", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Service 的當地語系化字串。
         /// </summary>
         public static string Service {
@@ -70,11 +178,83 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Setting 的當地語系化字串。
+        /// </summary>
+        public static string Setting {
+            get {
+                return ResourceManager.GetString("Setting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Shopfloor 的當地語系化字串。
+        /// </summary>
+        public static string Shopfloor {
+            get {
+                return ResourceManager.GetString("Shopfloor", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Station 的當地語系化字串。
+        /// </summary>
+        public static string Station {
+            get {
+                return ResourceManager.GetString("Station", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Status 的當地語系化字串。
         /// </summary>
         public static string Status {
             get {
                 return ResourceManager.GetString("Status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Tag 的當地語系化字串。
+        /// </summary>
+        public static string Tag {
+            get {
+                return ResourceManager.GetString("Tag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Target 的當地語系化字串。
+        /// </summary>
+        public static string Target {
+            get {
+                return ResourceManager.GetString("Target", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Task Record 的當地語系化字串。
+        /// </summary>
+        public static string Task_Record {
+            get {
+                return ResourceManager.GetString("Task Record", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Workorder 的當地語系化字串。
+        /// </summary>
+        public static string Workorder {
+            get {
+                return ResourceManager.GetString("Workorder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Workorder Record 的當地語系化字串。
+        /// </summary>
+        public static string Workorder_Record {
+            get {
+                return ResourceManager.GetString("Workorder Record", resourceCulture);
             }
         }
     }

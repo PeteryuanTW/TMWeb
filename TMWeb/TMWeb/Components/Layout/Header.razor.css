@@ -11,3 +11,21 @@
     border-color: rgb(220, 56, 72);
 }
 
+.menu-icon {
+    width: 1rem;
+    height: 1rem;
+    min-width: 1rem;
+    min-height: 1rem;
+    background-size: contain;
+    mask-repeat: no-repeat;
+    -webkit-mask-repeat: no-repeat;
+    background-position: center center;
+    background-color: currentColor;
+    opacity: 0.7;
+}
+
+.menu-icon-api {
+    mask-image: url("..//..//wwwroot//images//MyIcon//api.svg");
+    -webkit-mask-image: url("..//..//wwwroot//images//MyIcon//api.svg");
+}
+

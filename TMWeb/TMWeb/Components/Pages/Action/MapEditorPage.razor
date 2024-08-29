@@ -3,7 +3,7 @@
 @inject IStringLocalizer<Language> localizer
 @inject NavigationManager nav
 @inject TMWebShopfloorService shopfloorService
-
+@inject UIService uiService
 @if (hasImage)
 {
     <DxGridLayout RowSpacing="1rem" ColumnSpacing="1rem">
@@ -36,10 +36,10 @@
                                 <DxToolbarItem Enabled="@componentSelected" IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true"></DxToolbarItem>
                                 <DxToolbarItem Click="UpsertComponents" IconCssClass="oi oi-data-transfer-download" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true"></DxToolbarItem>
                                 @* <DxToolbarItem>
-                                    <Template>
-                                        <DxComboBox Data="mapComponents" @bind-Value="@targetMapComponent" TextFieldName="@(nameof(MapComponent.MachineId))" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
-                                    </Template>
-                                </DxToolbarItem> *@
+                            <Template>
+                            <DxComboBox Data="mapComponents" @bind-Value="@targetMapComponent" TextFieldName="@(nameof(MapComponent.MachineId))" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+                            </Template>
+                            </DxToolbarItem> *@
                             </Items>
                         </DxToolbar>
                     </div>
@@ -53,18 +53,42 @@
                                 @if (componentSelected)
                                 {
                                     <DxFormLayout>
-                                        <DxFormLayoutItem Caption="X" CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="6">
-                                            <DxSpinEdit @bind-Value="@targetMapComponent.PositionX"></DxSpinEdit>
-                                        </DxFormLayoutItem>
-                                        <DxFormLayoutItem Caption="Y" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
-                                            <DxSpinEdit @bind-Value="@targetMapComponent.PositionY"></DxSpinEdit>
-                                        </DxFormLayoutItem>
-                                        <DxFormLayoutItem Caption="Width" CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="6">
-                                            <DxSpinEdit @bind-Value="@targetMapComponent.Width"></DxSpinEdit>
-                                        </DxFormLayoutItem>
-                                        <DxFormLayoutItem Caption="Height" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
-                                            <DxSpinEdit @bind-Value="@targetMapComponent.Height"></DxSpinEdit>
-                                        </DxFormLayoutItem>
+                                        <DxFormLayoutGroup>
+                                            <DxFormLayoutItem Caption="Type" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
+                                                <DxComboBox Data="@targetTypes" Value="@targetMapComponent.Type" ValueChanged="@((int i)=>SetComponentType(i))"></DxComboBox>
+                                            </DxFormLayoutItem>
+                                            <DxFormLayoutItem ColSpanLg="6">
+                                                @if (targetMapComponent.Type == 0)
+                                                {
+                                                    <DxComboBox Data="@stations" @bind-Value="@targetMapComponent.StationId" ValueFieldName="@(nameof(Station.Id))" TextFieldName="@(nameof(Station.Name))"></DxComboBox>
+                                                }
+                                                else if (targetMapComponent.Type == 1)
+                                                {
+
+                                                    <DxComboBox Data="@machines" @bind-Value="@targetMapComponent.MachineId" ValueFieldName="@(nameof(Machine.Id))" TextFieldName="@(nameof(Machine.Name))"></DxComboBox>
+
+                                                }
+                                                else
+                                                {
+
+                                                }
+                                            </DxFormLayoutItem>
+                                        </DxFormLayoutGroup>
+                                        <DxFormLayoutGroup>
+                                            <DxFormLayoutItem Caption="X" CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="6">
+                                                <DxSpinEdit @bind-Value="@targetMapComponent.PositionX"></DxSpinEdit>
+                                            </DxFormLayoutItem>
+                                            <DxFormLayoutItem Caption="Y" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
+                                                <DxSpinEdit @bind-Value="@targetMapComponent.PositionY"></DxSpinEdit>
+                                            </DxFormLayoutItem>
+                                            <DxFormLayoutItem Caption="Width" CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="6">
+                                                <DxSpinEdit @bind-Value="@targetMapComponent.Width"></DxSpinEdit>
+                                            </DxFormLayoutItem>
+                                            <DxFormLayoutItem Caption="Height" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
+                                                <DxSpinEdit @bind-Value="@targetMapComponent.Height"></DxSpinEdit>
+                                            </DxFormLayoutItem>
+                                        </DxFormLayoutGroup>
+
                                     </DxFormLayout>
                                 }
                             </BodyTemplate>
@@ -91,9 +115,12 @@
     <BodyContentTemplate Context="bodycontext">
         <DxFormLayout>
             <DxFormLayoutItem Caption="Type" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
-                <DxComboBox Data="@targetTypes" @bind-Value="@targetMapComponent.Type"></DxComboBox>
+                <DxComboBox Data="@targetTypes" Value="@targetMapComponent.Type" ValueChanged="@((int i)=>SetComponentType(i))"></DxComboBox>
             </DxFormLayoutItem>
             <DxFormLayoutItem ColSpanLg="6">
+                @* <DxComboBox Data="@stations" @bind-Value="@targetMapComponent.StationId" ValueFieldName="@(nameof(Station.Id))" TextFieldName="@(nameof(Station.Name))"></DxComboBox>
+                <DxComboBox Data="@machines" @bind-Value="@targetMapComponent.MachineId" ValueFieldName="@(nameof(Machine.Id))" TextFieldName="@(nameof(Machine.Name))"></DxComboBox>
+                *@
                 @if (targetMapComponent.Type == 0)
                 {
                     <DxComboBox Data="@stations" @bind-Value="@targetMapComponent.StationId" ValueFieldName="@(nameof(Station.Id))" TextFieldName="@(nameof(Station.Name))"></DxComboBox>
@@ -176,6 +203,14 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private void SetComponentType(int i)
+    {
+        if (componentSelected)
+        {
+            targetMapComponent.SetType(i);
+        }
+    }
+
     private void SetTargetNull()
     {
         targetMapComponent = null;
@@ -195,7 +230,8 @@
 
     private async Task UpsertComponents()
     {
-        await shopfloorService.UpsertAndRemoveMapComponents(mapConfig.Id, mapConfig.MapComponents);
+        var res = await shopfloorService.UpsertAndRemoveMapComponents(mapConfig.Id, mapConfig.MapComponents);
+        uiService.ShowToast(res);
     }
 
 }

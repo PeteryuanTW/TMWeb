@@ -1,7 +1,8 @@
 ﻿@rendermode InteractiveServer
 @inject IStringLocalizer<Language> localizer
+@inject NavigationManager nav
 
-<ToastComponent/>
+<ToastComponent />
 
 <div class="card p-2 " style="margin:1rem">
     <DxMenu Orientation="Orientation.Horizontal"
@@ -13,36 +14,70 @@
             <DxButton RenderStyle="ButtonRenderStyle.None" Text="@($"{localizer["Service"]}")"></DxButton>
         </TitleTemplate>
         <Items>
-            <DxMenuItem Position="ItemPosition.Center" Text="Shopfloor" IconCssClass="oi oi-list">
+            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Shopfloor"]}")" IconCssClass="oi oi-list">
                 <Items>
-                    <DxMenuItem Text="Process" IconCssClass="oi oi-ellipses" NavigateUrl="/Process" />
-                    <DxMenuItem Text="Station" IconCssClass="oi oi-monitor" />
-                    <DxMenuItem Text="Workorder" IconCssClass="oi oi-clipboard" NavigateUrl="/WorkordersGrid" />
+                    <DxMenuItem Text="@($"{localizer["Process"]}")" IconCssClass="oi oi-ellipses" NavigateUrl="/Process" />
+                    @* <DxMenuItem Text="Station" IconCssClass="oi oi-monitor" /> *@
+                    <DxMenuItem Text="@($"{localizer["Workorder"]}")" IconCssClass="oi oi-clipboard" NavigateUrl="/WorkordersGrid" />
                 </Items>
             </DxMenuItem>
-            <DxMenuItem Position="ItemPosition.Center" Text="Machine" IconCssClass="oi oi-laptop" BeginGroup="true" />
-            <DxMenuItem Position="ItemPosition.Center" Text="Tags" IconCssClass="oi oi-tags" />
-            <DxMenuItem Position="ItemPosition.Center" Text="Map" IconCssClass="oi oi-map"  NavigateUrl="/MapsGrid" />
-            <DxMenuItem Position="ItemPosition.Center" Text="Setting" IconCssClass="oi oi-cog" BeginGroup="true" >
+            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Machine"]}")" IconCssClass="oi oi-laptop" BeginGroup="true" />
+            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Tag"]}")" IconCssClass="oi oi-tags" />
+            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Map"]}")" IconCssClass="oi oi-map" NavigateUrl="/MapsGrid" />
+            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Setting"]}")" IconCssClass="oi oi-cog" BeginGroup="true">
                 <Items>
-                    <DxMenuItem Text="Image" IconCssClass="oi oi-image" NavigateUrl="/ImageUpload" />
+                    <DxMenuItem Text="@($"{localizer["Image"]}")" IconCssClass="oi oi-image" NavigateUrl="/ImageUpload" />
                 </Items>
             </DxMenuItem>
-            <DxMenuItem Position="ItemPosition.Center" Text="Developer" IconCssClass="oi oi-person" BeginGroup="true">
+            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Developer"]}")" IconCssClass="oi oi-person" BeginGroup="true">
                 <Items>
-                    <DxMenuItem Text="Command" IconCssClass="oi oi-terminal" NavigateUrl="/Developer" />
+                    <DxMenuItem Text="@($"{localizer["Command"]}")" IconCssClass="oi oi-terminal" NavigateUrl="/Developer" />
+                    <DxMenuItem Text="@($"{localizer["Swagger"]}")" IconCssClass="oi oi-wrench" NavigateUrl="/Swagger" />
+                    <DxMenuItem Text="@($"{localizer["Modbus TCP"]}")" IconCssClass="oi oi-tablet" NavigateUrl="/ModbusTCPTesting" />
                 </Items>
+            </DxMenuItem>
+            <DxMenuItem Position="ItemPosition.End" IconCssClass="oi oi-person">
+                <Template>
+                    <div class="h-100 d-flex flex-wrap justify-content-center align-content-center">
+                        <div>
+                            <DxComboBox Data="supportedCultures" Value="selectedCulture" TextFieldName="@(nameof(CultureInfo.Name))" ValueChanged="((CultureInfo cultureInfo)=>ApplySelectedCultureAsync(cultureInfo))"></DxComboBox>
+                        </div>
+                    </div>
+                </Template>
             </DxMenuItem>
         </Items>
     </DxMenu>
 </div>
 
 @code {
+    private CultureInfo[] supportedCultures = new[]
+    {
+        new CultureInfo("zh-TW"),
+        new CultureInfo("en-US"),
+    };
 
+    private CultureInfo? selectedCulture;
 
     protected override Task OnInitializedAsync()
     {
+        selectedCulture = CultureInfo.CurrentCulture;
         return base.OnInitializedAsync();
+    }
+
+    private async Task ApplySelectedCultureAsync(CultureInfo cultureInfo)
+    {
+        if (CultureInfo.CurrentCulture != cultureInfo)
+        {
+            selectedCulture = cultureInfo;
+            var uri = new Uri(nav.Uri)
+                .GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
+            var cultureEscaped = Uri.EscapeDataString(selectedCulture.Name);
+            var uriEscaped = Uri.EscapeDataString(uri);
+
+            nav.NavigateTo(
+                $"Culture/Set?culture={cultureEscaped}&redirectUri={uriEscaped}",
+                forceLoad: true);
+        }
     }
 
 

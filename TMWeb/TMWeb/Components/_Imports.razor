@@ -8,6 +8,7 @@
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
 
 @using Microsoft.Extensions.Localization
+@using System.Globalization
 @using TMWeb.Resource
 
 @using TMWeb
@@ -22,11 +23,15 @@
 @using TMWeb.Components.Pages.Dashboard
 @using TMWeb.Components.Pages.Setting
 
+@using CommonLibrary.API.Message
 
 @using TMWeb.EFModels
 @using TMWeb.Services
 @using TMWeb.Data
-@using TMWeb.Data.Message
 @using TMWeb.Data.Developer
 
 @using DevExpress.Blazor
+
+@inject IStringLocalizer<Language> localizer
+@inject NavigationManager nav
+@inject TMWebShopfloorService shopfloorService

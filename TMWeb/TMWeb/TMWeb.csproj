@@ -20,8 +20,10 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Localization" Version="8.0.7" />
     <PackageReference Include="NModbus" Version="3.0.81" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.2" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CommonLibrary\CommonLibrary.csproj" />
     <ProjectReference Include="..\TMWeb.Client\TMWeb.Client.csproj" />
   </ItemGroup>
   <ItemGroup>

@@ -1,22 +1,17 @@
 ﻿namespace TMWeb.Data
 {
-    //public enum StationState
-    //{
-    //    Uninit,
-    //    Running,
-    //    Pause,
-    //    Error,
-    //    Stop,
-    //}
+    public enum ModbusTCPAction
+    {
+        ReadCoils = 1,
+        ReadDiscreteInputs = 2,
+        ReadHoldingRegisters = 3,
+        ReadInputRegisters = 4,
+        WriteSingleCoil = 5,
+        WriteSingleRegister = 6,
+        WriteMultipleCoils = 15,
+        WriteMultipleRegisters = 16,
+    }
 
-    //public enum MachineStatus
-    //{
-    //    Init,
-    //    Disconnect,
-    //    Running,
-    //    Idel,
-    //    Error,
-    //}
 
     public enum Status
     {

@@ -23,6 +23,22 @@ namespace TMWeb.EFModels
             Height = 10;
         }
 
+        public void SetType(int i)
+        {
+            switch (i)
+            {
+                case 0:
+                    MachineId = null;
+                    break;
+                case 1:
+                    StationId = null;
+                    break;
+                default:
+                    break;
+            }
+            Type = i;
+        }
+
         
     }
 }

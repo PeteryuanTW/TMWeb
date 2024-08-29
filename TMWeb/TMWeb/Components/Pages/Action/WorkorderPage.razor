@@ -19,47 +19,47 @@
                 <Template>
                     <DxFormLayout CssClass="card p-3 h-100">
                         <DxFormLayoutTabPages>
-                            <DxFormLayoutTabPage Caption="Details">
-                                <DxFormLayoutItem Caption="Process" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
+                            <DxFormLayoutTabPage Caption="@($"{localizer["Detail"]}")">
+                                <DxFormLayoutItem Caption="@($"{localizer["Process"]}")" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
                                     <DxComboBox Data="@processes" @bind-Value="@workorder.ProcessId" ValueFieldName="@nameof(Process.Id)" TextFieldName="@nameof(Process.Name)" ReadOnly="@(!isEditMode)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Workorder No" CaptionPosition="CaptionPosition.Vertical">
+                                <DxFormLayoutItem Caption="@($"{localizer["Workorder"]}")" CaptionPosition="CaptionPosition.Vertical">
                                     <DxTextBox @bind-Text="@workorder.WorkorderNo" ReadOnly="@(!isEditMode)"></DxTextBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Lot" CaptionPosition="CaptionPosition.Vertical">
+                                <DxFormLayoutItem Caption="@($"{localizer["Lot"]}")" CaptionPosition="CaptionPosition.Vertical">
                                     <DxTextBox @bind-Text="@workorder.Lot" ReadOnly="@(!isEditMode)"></DxTextBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Status" CaptionPosition="CaptionPosition.Vertical">
+                                <DxFormLayoutItem Caption="@($"{localizer["Status"]}")" CaptionPosition="CaptionPosition.Vertical">
                                     <DxTextBox Text="@(((WorkorderStatus)workorder?.Status).ToString())" ReadOnly="true"></DxTextBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Part No" CaptionPosition="CaptionPosition.Vertical">
+                                <DxFormLayoutItem Caption="@($"{localizer["Part"]}")" CaptionPosition="CaptionPosition.Vertical">
                                     <DxTextBox @bind-Text="@workorder.PartNo" ReadOnly="@(!isEditMode)"></DxTextBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Target Amount" CaptionPosition="CaptionPosition.Vertical">
+                                <DxFormLayoutItem Caption="@($"{localizer["Target"]}")" CaptionPosition="CaptionPosition.Vertical">
                                     <DxSpinEdit @bind-Value="@workorder.TargetAmount" ReadOnly="@(!isEditMode)"></DxSpinEdit>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Ok Amount" CaptionPosition="CaptionPosition.Vertical">
+                                <DxFormLayoutItem Caption="@($"{localizer["OK"]}")" CaptionPosition="CaptionPosition.Vertical">
                                     <DxSpinEdit Value="@workorder.Okamount" ReadOnly="true"></DxSpinEdit>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Ng Amount" CaptionPosition="CaptionPosition.Vertical">
+                                <DxFormLayoutItem Caption="@($"{localizer["NG"]}")" CaptionPosition="CaptionPosition.Vertical">
                                     <DxSpinEdit Value="@workorder.Ngamount" ReadOnly="true"></DxSpinEdit>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Workorder Recipe" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
+                                <DxFormLayoutItem Caption="@($"{localizer["Recipe"]}")" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
                                     <DxComboBox Data="@workorderRecipeConfigs" @bind-Value="@workorder.RecipeCategoryId" ValueFieldName="@nameof(WorkorderRecipeConfig.Id)" TextFieldName="@nameof(WorkorderRecipeConfig.RecipeCategory)" ReadOnly="@(!isEditMode)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Workorder Record" CaptionPosition="CaptionPosition.Vertical">
+                                <DxFormLayoutItem Caption="@($"{localizer["Workorder Record"]}")" CaptionPosition="CaptionPosition.Vertical">
                                     <DxComboBox Data="@workorderRecordConfigs" @bind-Value="@workorder.WorkorderRecordCategoryId" ValueFieldName="@nameof(WorkorderRecordConfig.Id)" TextFieldName="@nameof(WorkorderRecordConfig.WorkorderRecordCategory)" ReadOnly="@(!isEditMode)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Item Record" CaptionPosition="CaptionPosition.Vertical">
+                                <DxFormLayoutItem Caption="@($"{localizer["Item Record"]}")" CaptionPosition="CaptionPosition.Vertical">
                                     <DxComboBox Data="@itemRecordConfigs" @bind-Value="@workorder.ItemRecordsCategoryId" ValueFieldName="@nameof(ItemRecordConfig.Id)" TextFieldName="@nameof(ItemRecordConfig.ItemRecordCategory)" ReadOnly="@(!isEditMode)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Task Record" CaptionPosition="CaptionPosition.Vertical">
+                                <DxFormLayoutItem Caption="@($"{localizer["Task Record"]}")" CaptionPosition="CaptionPosition.Vertical">
                                     <DxComboBox Data="@taskRecordConfigs" @bind-Value="@workorder.TaskRecordCategoryId" ValueFieldName="@nameof(ItemRecordConfig.Id)" TextFieldName="@nameof(ItemRecordConfig.ItemRecordCategory)" ReadOnly="@(!isEditMode)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
                                 </DxFormLayoutItem>
                             </DxFormLayoutTabPage>
                             @if (workorder.HasRecipe && workorder.RecipeIncluded)
                             {
-                                <DxFormLayoutTabPage Caption="Recipe">
+                                <DxFormLayoutTabPage Caption="@($"{localizer["Recipe"]}")">
 
                                     @foreach (var recipe in workorder.RecipeCategory?.WorkorderRecipeContents)
                                     {
@@ -72,7 +72,7 @@
                             }
                             @if (workorder.HasWorkorderRecord && workorder.WorkorderRecordIncluded)
                             {
-                                <DxFormLayoutTabPage Caption="Workorder Record">
+                                <DxFormLayoutTabPage Caption="@($"{localizer["Workorder Record"]}")">
 
                                     @foreach (var workorderRecord in workorder.WorkorderRecordCategory?.WorkorderRecordContents)
                                     {
@@ -85,7 +85,7 @@
                             }
                             @if (workorder.HasItemRecord && workorder.ItemRecordIncluded)
                             {
-                                <DxFormLayoutTabPage Caption="Item Record">
+                                <DxFormLayoutTabPage Caption="@($"{localizer["Item Record"]}")">
 
                                     @foreach (var itemRecord in workorder.ItemRecordsCategory?.ItemRecordContents)
                                     {
@@ -98,7 +98,7 @@
                             }
                             @if (workorder.HasTaskRecord && workorder.TaskRecordIncluded)
                             {
-                                <DxFormLayoutTabPage Caption="Task Record">
+                                <DxFormLayoutTabPage Caption="@($"{localizer["Task Record"]}")">
 
                                     @foreach (var taskRecord in workorder.TaskRecordCategory?.TaskRecordContents)
                                     {
@@ -121,9 +121,9 @@
             <DxGridLayoutItem Row="1" Column="0">
                 <Template>
                     <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large">
-                        <DxToolbarItem Text="@modeString" Enabled="@canEditOrSave" Click="SwitchEditMode" RenderStyle="@ButtonRenderStyle.Primary" BeginGroup="true" />
-                        <DxToolbarItem Text="Start" Enabled="@canStart" RenderStyle="@ButtonRenderStyle.Primary" BeginGroup="true" />
-                        <DxToolbarItem Text="Stop" Enabled="@canStop" RenderStyle="@ButtonRenderStyle.Danger" BeginGroup="true" />
+                        <DxToolbarItem IconCssClass=@($"oi oi-{modeCssString}") Enabled="@canEditOrSave" Click="SwitchEditMode" RenderStyle="@ButtonRenderStyle.Primary" BeginGroup="true" />
+                        <DxToolbarItem IconCssClass="oi oi-media-play" Enabled="@canStart" RenderStyle="@ButtonRenderStyle.Success" BeginGroup="true" />
+                        <DxToolbarItem IconCssClass="oi oi-media-stop" Enabled="@canStop" RenderStyle="@ButtonRenderStyle.Danger" BeginGroup="true" />
                     </DxToolbar>
                 </Template>
             </DxGridLayoutItem>
@@ -139,7 +139,7 @@
 
     private DataMode dataMode = DataMode.View;
     private bool isEditMode => dataMode == DataMode.Edit;
-    private string modeString => isEditMode ? "Save" : "Edit";
+    private string modeCssString => isEditMode ? "check" : "pencil";
 
     private Workorder? workorder;
 

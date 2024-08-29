@@ -13,7 +13,7 @@
     {
         toastSetvice.ShowToast(new ToastOptions()
             {
-                RenderStyle = (ToastRenderStyle)((int)req.Success),
+                RenderStyle = (ToastRenderStyle)((int)req.ReturnCode),
                 Text = req.Msg,
             });
     }

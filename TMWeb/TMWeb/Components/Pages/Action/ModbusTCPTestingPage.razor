@@ -1,0 +1,123 @@
+﻿@using System.Net.Sockets;
+@using NModbus
+@page "/ModbusTCPTesting"
+@rendermode InteractiveServer
+<DxGridLayout>
+    <Rows>
+        <DxGridLayoutRow Height="4rf" />
+        <DxGridLayoutRow Height="4fr" />
+        <DxGridLayoutRow Height="4fr" />
+    </Rows>
+    <Columns>
+        <DxGridLayoutColumn Width="5fr" />
+        <DxGridLayoutColumn Width="7fr" />
+    </Columns>
+    <Items>
+        <DxGridLayoutItem>
+            <Template>
+                <DxFormLayout>
+                    <DxFormLayoutItem Caption="IP" CaptionPosition="CaptionPosition.Vertical">
+                        <DxTextBox @bind-Text="@ip" />
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Port" CaptionPosition="CaptionPosition.Vertical">
+                        <DxSpinEdit @bind-Value="@port"></DxSpinEdit>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical">
+                        <DxButton IconCssClass="oi oi-link-intact"></DxButton>
+                    </DxFormLayoutItem>
+                </DxFormLayout>
+            </Template>
+        </DxGridLayoutItem>
+        <DxGridLayoutItem>
+            <Template>
+                <DxFormLayout>
+                    <DxFormLayoutItem Caption="Station" CaptionPosition="CaptionPosition.Vertical">
+                        <DxSpinEdit @bind-Value="@station"></DxSpinEdit>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Function" CaptionPosition="CaptionPosition.Vertical">
+                        <DxComboBox Data="@modbusTcpCommand" @bind-Value="@cmd"></DxComboBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Start" CaptionPosition="CaptionPosition.Vertical">
+                        <DxSpinEdit @bind-Value="@startIndex"></DxSpinEdit>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="Offset" CaptionPosition="CaptionPosition.Vertical">
+                        <DxSpinEdit @bind-Value="@offset"></DxSpinEdit>
+                    </DxFormLayoutItem>
+                </DxFormLayout>
+            </Template>
+        </DxGridLayoutItem>
+        <DxGridLayoutItem>
+            <Template>
+                <DxFormLayout>
+                    @if (isBool)
+                    {
+                        @foreach (bool b in coils)
+                        {
+                            @* <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical">
+                                <DxCheckBox @bind-Checked="@b"></DxCheckBox>
+                            </DxFormLayoutItem> *@
+                        }
+                    }
+                    else
+                    {
+                        @foreach (ushort u in registers)
+                        {
+                            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical">
+                                <DxSpinEdit Value="@u"></DxSpinEdit>
+                            </DxFormLayoutItem>
+                        }
+                    }
+                </DxFormLayout>
+            </Template>
+        </DxGridLayoutItem>
+    </Items>
+
+</DxGridLayout>
+@code {
+    private string ip = string.Empty;
+    private int port = 0;
+
+    private TcpClient? tcpClient;
+    private IModbusFactory? modbusFactory;
+    public IModbusMaster? master;
+
+    private IEnumerable<ModbusTCPAction> modbusTcpCommand = Enum.GetValues(typeof(ModbusTCPAction)).Cast<ModbusTCPAction>();
+    private ModbusTCPAction? cmd;
+    private bool commandSelected => cmd != null;
+
+    private int station = 0;
+    private int startIndex = 0;
+    private int offset = 0;
+
+    private bool isRead => commandSelected ? false : (int)cmd < 4;
+
+    private bool isBool => (int)cmd == 1 || (int)cmd == 2 || (int)cmd == 5 || (int)cmd == 15;
+
+    private List<bool> coils = new();
+    private List<ushort> registers = new();
+
+    protected override Task OnInitializedAsync()
+    {
+        ip = "127.0.0.1";
+        port = 502;
+        tcpClient = new TcpClient();
+        modbusFactory = new ModbusFactory();
+        return base.OnInitializedAsync();
+    }
+
+    private async Task TryConnect()
+    {
+        try
+        {
+
+            await tcpClient?.ConnectAsync(ip, port);
+            master = modbusFactory?.CreateMaster(tcpClient);
+        }
+        catch (Exception e)
+        {
+
+        }
+
+    }
+
+}

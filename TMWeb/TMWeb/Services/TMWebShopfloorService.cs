@@ -3,8 +3,8 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 using TMWeb.Components.Pages.Setting;
+using CommonLibrary.API.Message;
 using TMWeb.Data;
-using TMWeb.Data.Message;
 using TMWeb.EFModels;
 using static System.Collections.Specialized.BitVector32;
 
@@ -140,7 +140,6 @@ namespace TMWeb.Services
             }
             return new();
         }
-
         public Task<Station?> GetStationsByName(string stationName)
         {
             return Task.FromResult(stations.FirstOrDefault(x => x.Name == stationName));
@@ -197,31 +196,43 @@ namespace TMWeb.Services
                 StationChanged(targetStation);
             }
         }
-
-        public async Task StationInByNameAndSerialNo(string stationName, string serialNo)
+        public async Task<RequestResult> StationInByNameAndSerialNo(string stationName, string serialNo)
         {
             Station? targetStation = await GetStationsByName(stationName);
             if (targetStation != null)
             {
-                if (targetStation.StationType <= 2)//single workorder
+                if (targetStation.Status == Status.Running)
                 {
                     switch (targetStation.StationType)
                     {
                         case 0:
                         case 1:
-                            StationSingleWorkorder? stationSingleWorkorder = targetStation as StationSingleWorkorder;
-                            var itemDetail = await GetOrGenerateItemDetailByWorkorderAndSerialNo(stationSingleWorkorder.Workerder, serialNo);
-                            stationSingleWorkorder?.AddItemDetail(itemDetail);
-                            var taskDetail = await GenerateTaskDetailByItem(targetStation, itemDetail);
-                            stationSingleWorkorder?.AddTaskDetail(taskDetail);
-                            break;
-                        case 2:
-                            break;
+                            try
+                            {
+                                StationSingleWorkorder? stationSingleWorkorder = targetStation as StationSingleWorkorder;
+                                var itemDetail = await GetOrGenerateItemDetailByWorkorderAndSerialNo(stationSingleWorkorder.Workerder, serialNo);
+                                stationSingleWorkorder?.AddItemDetail(itemDetail);
+                                var taskDetail = await GenerateTaskDetailByItem(targetStation, itemDetail);
+                                stationSingleWorkorder?.AddTaskDetail(taskDetail);
+                                return new(2, $"{stationName} stationIn with {serialNo} success");
+                            }
+                            catch (Exception ex)
+                            {
+                                return new(4, ex.Message);
+                            }
                         default:
-                            break;
+                            return new(3, $"station {stationName} deosn't support this command");
                     }
-                }
 
+                }
+                else
+                {
+                    return new(3, $"station {stationName} isn't running");
+                }
+            }
+            else
+            {
+                return new(3, $"station {stationName} not found");
             }
         }
         public async Task StationInByNameAndAmount(string stationName, int amount)
@@ -794,6 +805,75 @@ namespace TMWeb.Services
             return res;
         }
 
+        public async Task<RequestResult> WriteItemRecord(string serialNo, string recordName, string recordValue)
+        {
+            Workorder? wo = null;
+            ItemDetail? itemDetail = null;
+            bool woAndItemFound = false;
+            try
+            {
+                foreach (Station station in stations)
+                {
+                    wo = null;
+                    switch (station.StationType)
+                    {
+                        case 0:
+                            StationSingleWorkorderSingleSerial? stationSingleWorkorderSingleSerial = station as StationSingleWorkorderSingleSerial;
+                            if (stationSingleWorkorderSingleSerial != null)
+                            {
+                                wo = stationSingleWorkorderSingleSerial.Workerder;
+                                itemDetail = stationSingleWorkorderSingleSerial.ItemDetail;
+                            }
+                            break;
+                        case 1:
+                            StationSingleWorkorderMutipleSerial? stationSingleWorkorderMutipleSerial = station as StationSingleWorkorderMutipleSerial;
+                            if (stationSingleWorkorderMutipleSerial != null)
+                            {
+                                wo = stationSingleWorkorderMutipleSerial.Workerder;
+                                itemDetail = stationSingleWorkorderMutipleSerial.ItemDetails.FirstOrDefault(x => x.SerialNo == serialNo);
+                            }
+                            break;
+                        case 2:
+                            break;
+                        default:
+                            break;
+                    }
+                    if (wo != null && itemDetail != null)
+                    {
+                        woAndItemFound = true;
+                        break;
+                    }
+                }
+
+                if (woAndItemFound)
+                {
+                    var itemContents = wo?.ItemRecordsCategory?.ItemRecordContents;
+                    if (itemContents.Any(x => x.RecordName == recordName))
+                    {
+                        var targetContent = itemContents.FirstOrDefault(x => x.RecordName == recordName);
+                        ItemRecordDetail newItemRecord = new(itemDetail, targetContent);
+                        newItemRecord.Value = recordValue;
+                        await UpsertItemRecord(new List<ItemRecordDetail> { newItemRecord });
+                        return new RequestResult(2, $"record {recordName} for {serialNo} with {recordValue} success");
+                    }
+                    else
+                    {
+                        return new RequestResult(4, $"record {recordName} not found in item record category");
+                    }
+                }
+                else
+                {
+                    return new RequestResult(4, $"serial no {serialNo} not found in running workorder");
+                }
+            }
+            catch (Exception ex)
+            {
+                return new RequestResult(4, $"{ex.Message}");
+            }
+
+
+        }
+
         public Task<List<ItemRecordConfig>> GetItemRecordConfigs()
         {
             using (var scope = scopeFactory.CreateScope())
@@ -804,17 +884,17 @@ namespace TMWeb.Services
             }
         }
 
-        public ItemRecordContent? GetItemDetailRecordContent(ItemRecordDetail itemRecordDetail)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                ItemRecordDetail? target = dbContext.ItemRecordDetails
-                    .Include(x => x.RecordContent)
-                    .FirstOrDefault(x => x.ItemId == itemRecordDetail.ItemId && x.RecordContentId == itemRecordDetail.RecordContentId);
-                return target?.RecordContent;
-            }
-        }
+        //public ItemRecordContent? GetItemDetailRecordContent(ItemRecordDetail itemRecordDetail)
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        ItemRecordDetail? target = dbContext.ItemRecordDetails
+        //            .Include(x => x.RecordContent)
+        //            .FirstOrDefault(x => x.ItemId == itemRecordDetail.ItemId && x.RecordContentId == itemRecordDetail.RecordContentId);
+        //        return target?.RecordContent;
+        //    }
+        //}
 
         public async Task UpsertItemRecord(List<ItemRecordDetail> itemRecordDetails)
         {
@@ -964,53 +1044,49 @@ namespace TMWeb.Services
             }
         }
 
-        public async Task UpsertAndRemoveMapComponents(Guid mapId, IEnumerable<MapComponent> mapComponents)
+        public async Task<RequestResult> UpsertAndRemoveMapComponents(Guid mapId, IEnumerable<MapComponent> mapComponents)
         {
-            using (var scope = scopeFactory.CreateScope())
+            try
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                var componentsInDbs = dbContext.MapComponents.Where(x => x.MapId == mapId);
-                foreach (var componentsInDb in componentsInDbs)
+                using (var scope = scopeFactory.CreateScope())
                 {
-                    if (!mapComponents.Any(x => x.MapId == componentsInDb.MapId))
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var componentsInDbs = dbContext.MapComponents.Where(x => x.MapId == mapId);
+                    if (!componentsInDbs.Any())
                     {
-                        dbContext.MapComponents.Remove(componentsInDb);
+                        await dbContext.MapComponents.AddRangeAsync(mapComponents);
                     }
                     else
                     {
-                        var target = mapComponents.FirstOrDefault(x => x.Id == componentsInDb.Id);
-                        componentsInDb.Type = target.Type;
-                        componentsInDb.MapId = target.MapId;
-                        componentsInDb.MachineId = target.MachineId;
-                        componentsInDb.StationId = target.StationId;
-                        componentsInDb.PositionX = target.PositionX;
-                        componentsInDb.PositionY = target.PositionY;
-                        componentsInDb.Height = target.Height;
-                        componentsInDb.Width = target.Width;
+                        foreach (var componentsInDb in componentsInDbs)
+                        {
+                            if (!mapComponents.Any(x => x.MapId == componentsInDb.MapId))
+                            {
+                                dbContext.MapComponents.Remove(componentsInDb);
+                            }
+                            else
+                            {
+                                var target = mapComponents.FirstOrDefault(x => x.Id == componentsInDb.Id);
+                                componentsInDb.Type = target.Type;
+                                componentsInDb.MapId = target.MapId;
+                                componentsInDb.MachineId = target.MachineId;
+                                componentsInDb.StationId = target.StationId;
+                                componentsInDb.PositionX = target.PositionX;
+                                componentsInDb.PositionY = target.PositionY;
+                                componentsInDb.Height = target.Height;
+                                componentsInDb.Width = target.Width;
+                            }
+                        }
                     }
+                    await dbContext.SaveChangesAsync();
                 }
-                //foreach (MapComponent mapComponent in mapComponents)
-                //{
-                //    var target = dbContext.MapComponents.FirstOrDefault(x => x.Id == mapComponent.Id);
-                //    if (target != null)
-                //    {
-                //        target.Type = mapComponent.Type;
-                //        target.MapId = mapComponent.MapId;
-                //        target.MachineId = mapComponent.MachineId;
-                //        target.StationId = mapComponent.StationId;
-                //        target.PositionX = mapComponent.PositionX;
-                //        target.PositionY = mapComponent.PositionY;
-                //        target.Height = mapComponent.Height;
-                //        target.Width = mapComponent.Width;
-                //    }
-                //    else
-                //    {
-                //        await dbContext.AddAsync(mapComponent);
-                //    }
-                //}
-
-                await dbContext.SaveChangesAsync();
+                return new(2, "save map success");
             }
+            catch (Exception ex)
+            {
+                return new(4, $"save map fail({ex.Message})");
+            }
+
         }
 
 
