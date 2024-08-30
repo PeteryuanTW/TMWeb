@@ -4,16 +4,16 @@
 @rendermode InteractiveServer
 <DxGridLayout>
     <Rows>
-        <DxGridLayoutRow Height="4rf" />
-        <DxGridLayoutRow Height="4fr" />
-        <DxGridLayoutRow Height="4fr" />
+        <DxGridLayoutRow Height="2rf" />
+        <DxGridLayoutRow Height="2fr" />
+        <DxGridLayoutRow Height="8fr" />
     </Rows>
     <Columns>
         <DxGridLayoutColumn Width="5fr" />
         <DxGridLayoutColumn Width="7fr" />
     </Columns>
     <Items>
-        <DxGridLayoutItem>
+        <DxGridLayoutItem Row="0" Column="0">
             <Template>
                 <DxFormLayout>
                     <DxFormLayoutItem Caption="IP" CaptionPosition="CaptionPosition.Vertical">
@@ -23,12 +23,12 @@
                         <DxSpinEdit @bind-Value="@port"></DxSpinEdit>
                     </DxFormLayoutItem>
                     <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical">
-                        <DxButton IconCssClass="oi oi-link-intact"></DxButton>
+                        <DxButton Click="TryConnect" IconCssClass="oi oi-link-intact"></DxButton>
                     </DxFormLayoutItem>
                 </DxFormLayout>
             </Template>
         </DxGridLayoutItem>
-        <DxGridLayoutItem>
+        <DxGridLayoutItem Row="1" Column="0">
             <Template>
                 <DxFormLayout>
                     <DxFormLayoutItem Caption="Station" CaptionPosition="CaptionPosition.Vertical">
@@ -38,35 +38,34 @@
                         <DxComboBox Data="@modbusTcpCommand" @bind-Value="@cmd"></DxComboBox>
                     </DxFormLayoutItem>
                     <DxFormLayoutItem Caption="Start" CaptionPosition="CaptionPosition.Vertical">
-                        <DxSpinEdit @bind-Value="@startIndex"></DxSpinEdit>
+                        <DxSpinEdit Value="@startIndex" ValueChanged="@((int i)=>StartChanged(i))"></DxSpinEdit>
                     </DxFormLayoutItem>
                     <DxFormLayoutItem Caption="Offset" CaptionPosition="CaptionPosition.Vertical">
-                        <DxSpinEdit @bind-Value="@offset"></DxSpinEdit>
+                        <DxSpinEdit Value="@offset" ValueChanged="@((int o)=>OffsetChanged(o))"></DxSpinEdit>
                     </DxFormLayoutItem>
                 </DxFormLayout>
             </Template>
         </DxGridLayoutItem>
-        <DxGridLayoutItem>
+        <DxGridLayoutItem Row="2" Column="0">
             <Template>
                 <DxFormLayout>
-                    @if (isBool)
+                    @foreach (Tag val in values)
                     {
-                        @foreach (bool b in coils)
-                        {
-                            @* <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical">
-                                <DxCheckBox @bind-Checked="@b"></DxCheckBox>
-                            </DxFormLayoutItem> *@
-                        }
+                        <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical">
+                            @if (isBool)
+                            {
+                                <DxCheckBox Checked="@(Convert.ToBoolean(val.ValueString))" ReadOnly="@isRead" />
+                            }
+                            else
+                            {
+                                <DxSpinEdit Value="@(Convert.ToUInt16(val.Value))" ReadOnly="@isRead" />
+                            }
+
+                        </DxFormLayoutItem>
                     }
-                    else
-                    {
-                        @foreach (ushort u in registers)
-                        {
-                            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical">
-                                <DxSpinEdit Value="@u"></DxSpinEdit>
-                            </DxFormLayoutItem>
-                        }
-                    }
+                    <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical">
+                        <DxButton Click="CommandRun" IconCssClass="oi oi-chevron-right"></DxButton>
+                    </DxFormLayoutItem>
                 </DxFormLayout>
             </Template>
         </DxGridLayoutItem>
@@ -85,21 +84,21 @@
     private ModbusTCPAction? cmd;
     private bool commandSelected => cmd != null;
 
-    private int station = 0;
-    private int startIndex = 0;
-    private int offset = 0;
+    private int station = 1;
+    private ushort startIndex = 0;
+    private ushort offset = 0;
 
-    private bool isRead => commandSelected ? false : (int)cmd < 4;
+    private bool isRead => commandSelected ? (int)cmd < 4 : false;
 
-    private bool isBool => (int)cmd == 1 || (int)cmd == 2 || (int)cmd == 5 || (int)cmd == 15;
+    private bool isBool => commandSelected ? (int)cmd == 1 || (int)cmd == 2 || (int)cmd == 5 || (int)cmd == 15 : false;
 
-    private List<bool> coils = new();
-    private List<ushort> registers = new();
+    private List<Tag> values = new();
 
     protected override Task OnInitializedAsync()
     {
         ip = "127.0.0.1";
         port = 502;
+        cmd = modbusTcpCommand.FirstOrDefault();
         tcpClient = new TcpClient();
         modbusFactory = new ModbusFactory();
         return base.OnInitializedAsync();
@@ -118,6 +117,95 @@
 
         }
 
+    }
+
+    private void StartChanged(int i)
+    {
+        startIndex = (ushort)i;
+        IntervalCahnged();
+    }
+
+    private void OffsetChanged(int o)
+    {
+        offset = (ushort)o;
+        IntervalCahnged();
+    }
+
+    private async void IntervalCahnged()
+    {
+        int dataType = 1;
+        if (isBool)
+        {
+            dataType = 1;
+        }
+        else
+        {
+            dataType = 2;
+        }
+        values = Enumerable.Repeat(new Tag() { DataType = dataType }, offset).ToList();
+        values.ForEach(x => x.Init());
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CommandRun()
+    {
+        switch ((int)cmd)
+        {
+            case 1:
+                bool[] res1 = await master.ReadCoilsAsync((byte)station, startIndex, offset);
+                SetValues(res1);
+                break;
+            case 2:
+                bool[] res2 = await master.ReadInputsAsync((byte)station, startIndex, offset);
+                SetValues(res2);
+                break;
+            case 3:
+                ushort[] res3 = await master.ReadHoldingRegistersAsync((byte)station, startIndex, offset);
+                SetValues(res3);
+                break;
+            case 4:
+                ushort[] res4 = await master.ReadInputRegistersAsync((byte)station, startIndex, offset);
+                SetValues(res4);
+                break;
+            case 5:
+                break;
+            case 6:
+                break;
+            case 15:
+                break;
+            case 16:
+                break;
+            default:
+                break;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void SetValues(bool[] bools)
+    {
+        int len_tag = values.Count();
+        int len_res = bools.Length;
+        if (len_tag != len_res)
+        {
+            return;
+        }
+        for (int i = 0; i < len_tag; i++)
+        {
+            values[i].SetValue(bools[i]);
+        }
+    }
+    private async void SetValues(ushort[] ushorts)
+    {
+        int len_tag = values.Count();
+        int len_res = ushorts.Length;
+        if (len_tag != len_res)
+        {
+            return;
+        }
+        for (int i = 0; i < len_tag; i++)
+        {
+            values[i].SetValue(ushorts[i]);
+        }
     }
 
 }
