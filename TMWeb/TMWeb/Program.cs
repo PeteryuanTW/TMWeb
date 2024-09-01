@@ -26,7 +26,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddDbContextFactory<TmwebContext>(options =>
 {
-    //var a = builder.Configuration.GetConnectionString("DefaultConnection");
+    var a = builder.Configuration.GetConnectionString("DefaultConnection");
 
 	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
