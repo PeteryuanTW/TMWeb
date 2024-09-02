@@ -13,11 +13,11 @@ namespace TMWeb.Services
     public class TMWebShopfloorService
     {
         private readonly IServiceScopeFactory scopeFactory;
-
-        public TMWebShopfloorService(IServiceScopeFactory scopeFactory)
+        private readonly ILogger<TMWebShopfloorService> logger;
+        public TMWebShopfloorService(ILogger<TMWebShopfloorService> tmWebShopfloorServicelogger, IServiceScopeFactory scopeFactory)
         {
             this.scopeFactory = scopeFactory;
-
+            logger = tmWebShopfloorServicelogger;
             InitAllStations();
             InitAllMachinesFromDB();
 

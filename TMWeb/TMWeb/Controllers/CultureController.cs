@@ -7,6 +7,7 @@ namespace TMWeb.Controllers
     [Route("[controller]/[action]")]
     public class CultureController : Controller
     {
+        [ApiExplorerSettings(IgnoreApi = true)]
         public IActionResult Set(string culture, string redirectUri)
         {
             if (culture != null)

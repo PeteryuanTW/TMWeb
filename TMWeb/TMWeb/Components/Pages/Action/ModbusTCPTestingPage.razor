@@ -3,15 +3,14 @@
 @page "/ModbusTCPTesting"
 @implements IDisposable
 @rendermode InteractiveServer
-<DxGridLayout>
+<DxGridLayout RowSpacing="3rem" ColumnSpacing="3rem">
     <Rows>
-        <DxGridLayoutRow Height="2rf" />
-        <DxGridLayoutRow Height="2fr" />
-        <DxGridLayoutRow Height="8fr" />
+        <DxGridLayoutRow Height="5rf" />
+        <DxGridLayoutRow Height="5fr" />
     </Rows>
     <Columns>
         <DxGridLayoutColumn Width="5fr" />
-        <DxGridLayoutColumn Width="7fr" />
+        <DxGridLayoutColumn Width="5fr" />
     </Columns>
     <Items>
         <DxGridLayoutItem Row="0" Column="0">
@@ -50,6 +49,9 @@
                             <DxFormLayoutItem Caption="Offset" CaptionPosition="CaptionPosition.Vertical">
                                 <DxSpinEdit Value="@offset" ValueChanged="@((int o)=>OffsetChanged(o))" ReadOnly="@isSingle"></DxSpinEdit>
                             </DxFormLayoutItem>
+                            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
+                                <DxButton Click="CommandRun" IconCssClass="oi oi-chevron-right"></DxButton>
+                            </DxFormLayoutItem>
                         </DxFormLayoutGroup>
 
                     </DxFormLayout>
@@ -57,7 +59,7 @@
 
             </Template>
         </DxGridLayoutItem>
-        <DxGridLayoutItem Row="2" Column="0">
+        <DxGridLayoutItem Row="0" Column="1" ColumnSpan="2">
             <Template>
                 <DxFormLayout>
                     @if (connected)
@@ -74,13 +76,10 @@
                                     {
                                         <DxSpinEdit Value="@(Convert.ToUInt16(val.Value))" ValueChanged="@((ushort u)=>SetInput(val, u))" ReadOnly="@isRead" />
                                     }
-
                                 </DxFormLayoutItem>
                             }
                         </DxFormLayoutGroup>
-                        <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
-                            <DxButton Click="CommandRun" IconCssClass="oi oi-chevron-right"></DxButton>
-                        </DxFormLayoutItem>
+                        
                     }
 
                 </DxFormLayout>

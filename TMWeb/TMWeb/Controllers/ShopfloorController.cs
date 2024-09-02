@@ -4,6 +4,8 @@ using TMWeb.EFModels;
 using TMWeb.Services;
 using CommonLibrary.API.Parameter;
 using CommonLibrary.API.Message;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace TMWeb.Controllers
 {
@@ -12,8 +14,10 @@ namespace TMWeb.Controllers
 	public class ShopfloorController : Controller
 	{
 		private readonly TMWebShopfloorService shopfloorService;
-		public ShopfloorController(TMWebShopfloorService tmWebShopfloorService)
+        private readonly ILogger<ShopfloorController> logger;
+        public ShopfloorController(ILogger<ShopfloorController> shopfloorControllerlogger, TMWebShopfloorService tmWebShopfloorService)
 		{
+            logger = shopfloorControllerlogger;
             shopfloorService = tmWebShopfloorService;
 		}
 

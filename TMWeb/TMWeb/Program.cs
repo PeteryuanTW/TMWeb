@@ -4,6 +4,8 @@ using TMWeb.Client.Pages;
 using Microsoft.EntityFrameworkCore;
 using TMWeb.EFModels;
 using Microsoft.OpenApi.Models;
+using Serilog;
+using Serilog.LogBranch.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,10 +14,30 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents()
     .AddInteractiveWebAssemblyComponents();
 
-builder.Services.AddDevExpressBlazor(options => {
+builder.Services.AddDevExpressBlazor(options =>
+{
     options.BootstrapVersion = DevExpress.Blazor.BootstrapVersion.v5;
     options.SizeMode = DevExpress.Blazor.SizeMode.Large;
 });
+
+//https://github.com/nethawkChen/dotnet8-Serilog
+var setting = builder.Configuration;
+builder.Host.UseSerilog(
+    (context, services, configuration) =>
+    {
+        configuration
+        .ReadFrom.Configuration(context.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Controller")).WriteTo.File(setting["Serilog:WriteTo:1:Args:Path"],
+            rollingInterval: Enum.Parse<RollingInterval>(setting["Serilog:WriteTo:1:Args:rollingInterval"]),
+            retainedFileCountLimit: int.Parse(setting["Serilog:WriteTo:1:Args:retainedFileCountLimit"])))
+         .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Service")).WriteTo.File(setting["Serilog:WriteTo:2:Args:Path"],
+            rollingInterval: Enum.Parse<RollingInterval>(setting["Serilog:WriteTo:2:Args:rollingInterval"]),
+            retainedFileCountLimit: int.Parse(setting["Serilog:WriteTo:2:Args:retainedFileCountLimit"])));
+    });
+
+
 builder.Services.AddSingleton<WeatherForecastService>();
 
 builder.Services.AddMvc();
@@ -28,7 +50,7 @@ builder.Services.AddDbContextFactory<TmwebContext>(options =>
 {
     var a = builder.Configuration.GetConnectionString("DefaultConnection");
 
-	options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 builder.Services.AddSingleton<TMWebShopfloorService>();
 builder.Services.AddSingleton<UIService>();
@@ -40,23 +62,21 @@ var localizationOptions = new RequestLocalizationOptions()
     .AddSupportedUICultures(supportedCultures);
 
 
-//builder.Services.AddControllers();
+builder.Services.AddControllers();
 var app = builder.Build();
 app.UseRequestLocalization(localizationOptions);
 // Configure the HTTP request pipeline.
-if(app.Environment.IsDevelopment()) {
+if (app.Environment.IsDevelopment())
+{
     app.UseWebAssemblyDebugging();
-} else {
+}
+else
+{
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 //app.UseHttpsRedirection();
-
-
-
-//string[] lan = ["zh-TW"];
-//app.UseRequestLocalization(x => x.SetDefaultCulture(lan[0]));
 
 app.UseStaticFiles();
 app.UseAntiforgery();
