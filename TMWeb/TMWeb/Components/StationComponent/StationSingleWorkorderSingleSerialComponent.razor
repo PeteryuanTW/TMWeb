@@ -1,28 +1,60 @@
 ﻿@inherits StationComponent
-@inject TMWebShopfloorService shopfloorService
 
 @{
     base.BuildRenderTree(__builder);
 }
 <DxPopup HeaderText="@stationSingleWorkorderSingleSerial.Name" @bind-Visible="@showOperation" CloseOnOutsideClick="false" ShowFooter="true">
     <BodyContentTemplate>
-        <DxFormLayout>
-            <DxFormLayoutItem Caption=" SerialNo" ColSpanLg="12" Context="serialcontext" CaptionPosition="CaptionPosition.Vertical" Context="stationinserialnocontext">
-                <DxTextBox @bind-Text="@serialNo" ReadOnly="@stationSingleWorkorderSingleSerial.HasTask"></DxTextBox>
-            </DxFormLayoutItem>
-        </DxFormLayout>
+        <div>
+            <DxTabs @bind-ActiveTabIndex="@operationTabIndex">
+                <DxTabPage Text="Station in">
+                    <div class="p-3">
+                        <DxFormLayout>
+                            <DxFormLayoutItem Caption="SerialNo" Context="serialnocontext">
+                                <DxTextBox @bind-Text="@serialNo" ReadOnly="@(stationSingleWorkorderSingleSerial.HasItem && stationSingleWorkorderSingleSerial.HasTask)"></DxTextBox>
+                            </DxFormLayoutItem>
+                        </DxFormLayout>
+                    </div>
+                </DxTabPage>
+                <DxTabPage Text="Station out" Visible="@stationSingleWorkorderSingleSerial.HasTask">
+                    <div class="p-3">
+                        <DxFormLayout>
+                            <DxFormLayoutItem Caption="SerialNo" Context="serialnocontext">
+                                <DxTextBox @bind-Text="@serialNo" ReadOnly="true"></DxTextBox>
+                            </DxFormLayoutItem>
+                        </DxFormLayout>
+                    </div>
+                </DxTabPage>
+                <DxTabPage Text="Item record" Visible="@(stationSingleWorkorderSingleSerial.HasItem && stationSingleWorkorderSingleSerial.HasWorkorder && stationSingleWorkorderSingleSerial.Workerder.HasItemRecord)">
+                    <div class="p-3">
+                        <DxFormLayout>
+                            @foreach (ItemRecordDetail itemRecordDetail in itemRecordDetails)
+                            {
+                                <DxFormLayoutItem Caption="@itemRecordDetail.RecordContent?.RecordName" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6" Context="itemrecordcontext">
+                                    <DxTextBox @bind-Text="@itemRecordDetail.Value" />
+                                </DxFormLayoutItem>
+                            }
+                        </DxFormLayout>
+                    </div>
+                </DxTabPage>
+            </DxTabs>
+        </div>
     </BodyContentTemplate>
     <FooterContentTemplate>
         <DxToolbar>
             <Items>
-                @if (!stationSingleWorkorderSingleSerial.HasTask)
+                @if (operationTabIndex == 0)
                 {
-                    <DxToolbarItem Text="Station in" RenderStyle="ButtonRenderStyle.Info" Click="@StationInOperation" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
+                    <DxToolbarItem Text="Station in" Click="StationInOperation" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
                 }
-                else
+                else if (operationTabIndex == 1)
                 {
-                    <DxToolbarItem Text="OK" RenderStyle="ButtonRenderStyle.Success" Click="@(()=>StationOutOperation(true))" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
-                    <DxToolbarItem Text="NG" RenderStyle="ButtonRenderStyle.Danger" Click="@(()=>StationOutOperation(false))" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
+                    <DxToolbarItem Text="OK" Click="@(()=>StationOutOperation(true))" RenderStyle="ButtonRenderStyle.Success" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
+                    <DxToolbarItem Text="NG" Click="@(()=>StationOutOperation(false))" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
+                }
+                else if (operationTabIndex == 2)
+                {
+                    <DxToolbarItem Text="Record" Click="ItemRecord" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
                 }
             </Items>
         </DxToolbar>
@@ -66,15 +98,27 @@
                                 <DxFormLayoutItem Caption="Workorder" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxTextBox Text="@stationSingleWorkorderSingleSerial.Workerder?.WorkorderNo" ReadOnly="true"></DxTextBox>
                                 </DxFormLayoutItem>
-                                @* <DxFormLayoutItem Caption="HasItem" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
-                            <DxCheckBox Checked="@stationSingleWorkorderSingleSerial.HasItem" CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
-                            </DxFormLayoutItem> *@
+                                <DxFormLayoutItem Caption="Ok" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
+                                    <DxSpinEdit Value="@(GetOkAmount())" ReadOnly="true"></DxSpinEdit>
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem Caption="Ng" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
+                                    <DxSpinEdit Value="@(GetNgAmount())" ReadOnly="true"></DxSpinEdit>
+                                </DxFormLayoutItem>
                                 <DxFormLayoutItem Caption="SerialNo" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxTextBox Text="@stationSingleWorkorderSingleSerial.TaskDetail?.SerialNo" ReadOnly="true"></DxTextBox>
                                 </DxFormLayoutItem>
                                 <DxFormLayoutItem Caption="Start Time" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxDateEdit Date="@stationSingleWorkorderSingleSerial.TaskDetail?.StartTime" TimeSectionVisible="true" ReadOnly="true"></DxDateEdit>
                                 </DxFormLayoutItem>
+                                @if (stationSingleWorkorderSingleSerial.hasCustomUIInfo)
+                                {
+                                    @foreach (var record in stationSingleWorkorderSingleSerial.StationUirecords)
+                                    {
+                                        <DxFormLayoutItem Caption="@(record.ItemRecord.RecordName)" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                            <DxTextBox Text="@(GetItemRecordDetailValue(record.ItemRecordId))" ReadOnly="true"></DxTextBox>
+                                        </DxFormLayoutItem>
+                                    }
+                                }
 
                             </DxFormLayout>
                         </div>
@@ -106,13 +150,17 @@
 @code {
     private StationSingleWorkorderSingleSerial? stationSingleWorkorderSingleSerial => StationParam as StationSingleWorkorderSingleSerial;
 
+    private int operationTabIndex;
     private string serialNo = string.Empty;
+
+    private IEnumerable<ItemRecordDetail> itemRecordDetails;
 
     protected override void OnOperationPopupShow()
     {
         if (stationSingleWorkorderSingleSerial.HasTask)
         {
             serialNo = stationSingleWorkorderSingleSerial.TaskDetail.SerialNo;
+            itemRecordDetails = shopfloorService.RetriveOrGenerateItemRecordDetail(stationSingleWorkorderSingleSerial.Workerder, stationSingleWorkorderSingleSerial.ItemDetail);
         }
         else
         {
@@ -143,5 +191,58 @@
             }
         }
         CloseOperationPopup();
+    }
+
+    private async Task ItemRecord()
+    {
+        await shopfloorService.UpsertItemRecord(itemRecordDetails.ToList());
+        CloseOperationPopup();
+    }
+
+    private int GetOkAmount()
+    {
+        if (!stationSingleWorkorderSingleSerial.HasWorkorder)
+        {
+            return 0;
+        }
+        else
+        {
+            return GetTotalOk(stationSingleWorkorderSingleSerial.Workerder.Id);
+        }
+    }
+    private int GetNgAmount()
+    {
+        if (!stationSingleWorkorderSingleSerial.HasWorkorder)
+        {
+            return 0;
+        }
+        else
+        {
+            return GetTotalNg(stationSingleWorkorderSingleSerial.Workerder.Id);
+        }
+    }
+
+    private string GetItemRecordDetailValue(Guid? recordID)
+    {
+        if (!stationSingleWorkorderSingleSerial.HasWorkorder || !stationSingleWorkorderSingleSerial.HasItem || !stationSingleWorkorderSingleSerial.HasTask)
+        {
+            return string.Empty;
+        }
+        if (recordID == null)
+        {
+            return string.Empty;
+        }
+        else
+        {
+            var res = shopfloorService.GetItemRecordDetail(stationSingleWorkorderSingleSerial.ItemDetail.Id, recordID);
+            if (res == null)
+            {
+                return string.Empty;
+            }
+            else
+            {
+                return res.Value;
+            }
+        }
     }
 }

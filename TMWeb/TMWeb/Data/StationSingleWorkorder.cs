@@ -16,7 +16,8 @@ namespace TMWeb.Data
 			ProcessIndex = station.ProcessIndex;
 			StationType = station.StationType;
 			Process = station.Process;
-
+            StationUirecords = station.StationUirecords;
+			Enable = station.Enable;
         }
 
 		public override bool SetWorkorder(Workorder wo)

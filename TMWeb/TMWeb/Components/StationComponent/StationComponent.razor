@@ -65,13 +65,22 @@
     protected override async Task OnInitializedAsync()
     {
         shopfloorService.StationChangedAct += UIUpdateFromStation;
-        await GetWorkorderCandidates();
+        StationParam.UIUpdateAct += UIUpdateFromStation;
+    }
+
+    private async void UIUpdateFromStation()
+    {
+        await InvokeAsync(StateHasChanged);
+
     }
 
     private async void UIUpdateFromStation(Station s)
     {
+        if (s.Id == StationParam.Id)
+        {
+            await InvokeAsync(StateHasChanged);
+        }
 
-        await InvokeAsync(StateHasChanged);
     }
 
     protected void ShowErrorPopup()
@@ -90,8 +99,27 @@
         showOperation = false;
     }
 
-    private async Task GetWorkorderCandidates()
+    protected int GetTotalOk(Guid workorderID)
     {
-        //workOrderCandidates = await shopfloorService.GetWorkordersByProcessAndStatus(StationParam.ProcessId , new List<int> { 0, });
+        if (!hasStation)
+        {
+            return 0;
+        }
+        else
+        {
+            return shopfloorService.GetWorkorderOkInStation(workorderID, StationParam.Id);
+        }
+    }
+
+    protected int GetTotalNg(Guid workorderID)
+    {
+        if (!hasStation)
+        {
+            return 0;
+        }
+        else
+        {
+            return shopfloorService.GetWorkorderNgInStation(workorderID, StationParam.Id);
+        }
     }
 }

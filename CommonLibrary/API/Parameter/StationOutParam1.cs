@@ -7,13 +7,11 @@ using System.Threading.Tasks;
 
 namespace CommonLibrary.API.Parameter
 {
-    public class ItemRecordParam1
+    public class StationOutParam1
     {
         [Required]
-        public string SerialNo { get; set; }
+        public string stationName { get; set; }
         [Required]
-        public string RecordName { get; set; }
-        [Required]
-        public string RecordValue { get; set; }
+        public bool pass { get; set; }
     }
 }

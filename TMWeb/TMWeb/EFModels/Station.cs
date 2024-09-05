@@ -15,9 +15,13 @@ public partial class Station
 
     public int? StationType { get; set; }
 
+    public bool Enable { get; set; }
+
     public virtual ICollection<MapComponent> MapComponents { get; set; } = new List<MapComponent>();
 
     public virtual Process? Process { get; set; }
+
+    public virtual ICollection<StationUirecord> StationUirecords { get; set; } = new List<StationUirecord>();
 
     public virtual ICollection<TaskDetail> TaskDetails { get; set; } = new List<TaskDetail>();
 }

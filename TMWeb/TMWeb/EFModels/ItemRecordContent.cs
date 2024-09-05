@@ -16,4 +16,6 @@ public partial class ItemRecordContent
     public virtual ItemRecordConfig? Config { get; set; }
 
     public virtual ICollection<ItemRecordDetail> ItemRecordDetails { get; set; } = new List<ItemRecordDetail>();
+
+    public virtual ICollection<StationUirecord> StationUirecords { get; set; } = new List<StationUirecord>();
 }

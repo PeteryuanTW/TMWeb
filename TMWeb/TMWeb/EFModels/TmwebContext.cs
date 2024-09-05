@@ -35,6 +35,8 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<Station> Stations { get; set; }
 
+    public virtual DbSet<StationUirecord> StationUirecords { get; set; }
+
     public virtual DbSet<Tag> Tags { get; set; }
 
     public virtual DbSet<TagCategory> TagCategories { get; set; }
@@ -59,9 +61,9 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<WorkorderRecordDetail> WorkorderRecordDetails { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Server=localhost;Database=TMWeb;Trusted_Connection=True; trustServerCertificate=true;");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=localhost;Database=TMWeb;Trusted_Connection=True; trustServerCertificate=true;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -243,6 +245,27 @@ public partial class TmwebContext : DbContext
                 .HasConstraintName("FK__Stations__Proces__6754599E");
         });
 
+        modelBuilder.Entity<StationUirecord>(entity =>
+        {
+            entity.ToTable("StationUIRecord");
+
+            entity.HasIndex(e => e.StationId, "IX_StationUIRecord");
+
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("ID");
+            entity.Property(e => e.ItemRecordId).HasColumnName("ItemRecordID");
+            entity.Property(e => e.StationId).HasColumnName("StationID");
+
+            entity.HasOne(d => d.ItemRecord).WithMany(p => p.StationUirecords)
+                .HasForeignKey(d => d.ItemRecordId)
+                .HasConstraintName("FK_StationUIRecord_ItemRecordContents");
+
+            entity.HasOne(d => d.Station).WithMany(p => p.StationUirecords)
+                .HasForeignKey(d => d.StationId)
+                .HasConstraintName("FK_StationUIRecord_Stations");
+        });
+
         modelBuilder.Entity<Tag>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Tag__3214EC271E77490D");
@@ -301,6 +324,7 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Item).WithMany(p => p.TaskDetails)
                 .HasForeignKey(d => d.ItemId)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__TaskDetai__ItemI__534D60F1");
 
             entity.HasOne(d => d.Station).WithMany(p => p.TaskDetails)

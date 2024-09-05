@@ -48,12 +48,15 @@ namespace TMWeb.Services
                 using (var scope = scopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                    Process? targetProcess = dbContext.Processes.Include(x => x.Stations).AsNoTracking().FirstOrDefault(x => x.Id == process.Id);
+                    Process? targetProcess = dbContext.Processes.Include(x => x.Stations).FirstOrDefault(x => x.Id == process.Id);
                     if (targetProcess != null)
                     {
                         targetProcess.Name = process.Name;
-                        targetProcess.Stations = process.Stations;
-                        //targetProcess = process;
+                        foreach (var station in process.Stations)
+                        {
+                            await UpdateStationConfig(station);
+                        }
+                        InitAllStations();
                     }
                     else
                     {
@@ -76,7 +79,7 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Processes.Include(x => x.Stations.OrderBy(x => x.ProcessIndex).ThenBy(x => x.Name)).ToList());
+                return Task.FromResult(dbContext.Processes.Include(x => x.Stations.OrderBy(x => x.ProcessIndex).ThenBy(x => x.Name)).AsNoTracking().ToList());
             }
         }
         public Task<Process?> GetProcessByName(string processName)
@@ -104,7 +107,7 @@ namespace TMWeb.Services
         private async Task<bool> CheckStationIsLastInProcess(Station station)
         {
             var stations = await GetStationsByProcessID(station.ProcessId);
-            return stations.Max(x => x.ProcessIndex) == station.ProcessIndex;
+            return stations.Where(x=>x.Enable == true).Max(x => x.ProcessIndex) == station.ProcessIndex;
         }
 
         #endregion
@@ -116,6 +119,24 @@ namespace TMWeb.Services
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
                 return Task.FromResult(dbContext.Stations.AsNoTracking().ToList());
+            }
+        }
+
+        public async Task UpdateStationConfig(Station station)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                Station? target = dbContext.Stations.FirstOrDefault(x => x.Id == station.Id);
+                if (target != null)
+                {
+                    target.ProcessId = station.ProcessId;
+                    target.Name = station.Name;
+                    target.ProcessIndex = station.ProcessIndex;
+                    target.StationType = station.StationType;
+                    target.Enable = station.Enable;
+                    await dbContext.SaveChangesAsync();
+                }
             }
         }
 
@@ -150,10 +171,12 @@ namespace TMWeb.Services
         }
         public void InitAllStations()
         {
+            stations = new();
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                var stationbases = dbContext.Stations.Include(x => x.Process).ToList();
+                var stationbases = dbContext.Stations.Include(x => x.Process)
+                    .Include(x => x.StationUirecords).ThenInclude(x => x.ItemRecord).AsNoTracking().ToList();
                 foreach (var stationbase in stationbases)
                 {
                     switch (stationbase.StationType)
@@ -274,6 +297,7 @@ namespace TMWeb.Services
                         case 0:
                             StationSingleWorkorder? StationSingleWorkorder = targetStation as StationSingleWorkorder;
                             TaskDetail? taskDetail = StationSingleWorkorder?.RemoveTaskDetail();
+                            
                             if (taskDetail != null)
                             {
                                 if (pass)
@@ -288,11 +312,23 @@ namespace TMWeb.Services
                                 await UpdateTaskDetailWhenStationOut(taskDetail);
 
                                 ItemDetail? targetItemDetail = StationSingleWorkorder?.RemoveItemDetail();
+                                Workorder? workorder = StationSingleWorkorder?.Workerder;
                                 bool isLast = await CheckStationIsLastInProcess(targetStation);
-                                if (isLast)
+                                if (!pass)
                                 {
-                                    await SummaryItemFromTaskWithSerialNo(targetItemDetail);
+                                    await SummaryItemFromTaskWithSerialNoWhenNg(targetItemDetail);
+                                    await SummaryWorkorderFromUtemWithSerialNoWhenNg(workorder);
                                 }
+                                else
+                                {
+                                    if (isLast)
+                                    {
+                                        await SummaryItemFromTaskWithSerialNoWhenOk(targetItemDetail);
+                                        await SummaryWorkorderFromUtemWithSerialNoWhenOk(workorder);
+                                    }
+                                }
+
+
                             }
                             break;
                         case 1:
@@ -312,10 +348,21 @@ namespace TMWeb.Services
                                 await UpdateTaskDetailWhenStationOut(taskDetail2);
 
                                 ItemDetail? targetItemDetail = stationSingleWorkorderMutipleSerial?.RemoveItemDetail();
+                                Workorder? workorder = stationSingleWorkorderMutipleSerial?.Workerder;
+
                                 bool isLast = await CheckStationIsLastInProcess(targetStation);
-                                if (isLast)
+                                if (!pass)
                                 {
-                                    await SummaryItemFromTaskWithSerialNo(targetItemDetail);
+                                    await SummaryItemFromTaskWithSerialNoWhenNg(targetItemDetail);
+                                    await SummaryWorkorderFromUtemWithSerialNoWhenNg(workorder);
+                                }
+                                else
+                                {
+                                    if (isLast)
+                                    {
+                                        await SummaryItemFromTaskWithSerialNoWhenOk(targetItemDetail);
+                                        await SummaryWorkorderFromUtemWithSerialNoWhenOk(workorder);
+                                    }
                                 }
                             }
                             break;
@@ -326,46 +373,73 @@ namespace TMWeb.Services
 
             }
         }
-        public async Task StationOutByFIFO(string stationName, bool pass)
+        public async Task<RequestResult> StationOutByFIFO(string stationName, bool pass)
         {
             Station? targetStation = await GetStationsByName(stationName);
             if (targetStation != null)
             {
-                if (targetStation.StationType <= 2)//single workorder
+                if (targetStation.Status == Status.Running)
                 {
                     switch (targetStation.StationType)
                     {
                         case 0:
                         case 1:
-                            StationSingleWorkorder? StationSingleWorkorder = targetStation as StationSingleWorkorder;
-                            TaskDetail? taskDetail = StationSingleWorkorder?.RemoveTaskDetail();
-                            if (taskDetail != null)
+                            try
                             {
-                                if (pass)
+                                StationSingleWorkorder? StationSingleWorkorder = targetStation as StationSingleWorkorder;
+                                TaskDetail? taskDetail = StationSingleWorkorder?.RemoveTaskDetail();
+                                if (taskDetail != null)
                                 {
-                                    taskDetail.Okamount = 1;
+                                    if (pass)
+                                    {
+                                        taskDetail.Okamount = 1;
+                                    }
+                                    else
+                                    {
+                                        taskDetail.Ngamount = 1;
+                                    }
+                                    taskDetail.FinishedTime = DateTime.Now;
+                                    await UpdateTaskDetailWhenStationOut(taskDetail);
+
+                                    ItemDetail? targetItemDetail = StationSingleWorkorder?.RemoveItemDetail();
+                                    Workorder? workorder = StationSingleWorkorder?.Workerder;
+                                    bool isLast = await CheckStationIsLastInProcess(targetStation);
+                                    if (!pass)
+                                    {
+                                        await SummaryItemFromTaskWithSerialNoWhenNg(targetItemDetail);
+                                        await SummaryWorkorderFromUtemWithSerialNoWhenNg(workorder);
+                                    }
+                                    else
+                                    {
+                                        if (isLast)
+                                        {
+                                            await SummaryItemFromTaskWithSerialNoWhenOk(targetItemDetail);
+                                            await SummaryWorkorderFromUtemWithSerialNoWhenOk(workorder);
+                                        }
+                                    }
+                                    return new(2, $"{stationName} stationout with FIFO success");
                                 }
                                 else
                                 {
-                                    taskDetail.Ngamount = 1;
-                                }
-                                taskDetail.FinishedTime = DateTime.Now;
-                                await UpdateTaskDetailWhenStationOut(taskDetail);
-
-
-                                bool isLast = await CheckStationIsLastInProcess(targetStation);
-                                if (isLast)
-                                {
-                                    ItemDetail? targetItemDetail = StationSingleWorkorder?.RemoveItemDetail();
-                                    await SummaryItemFromTaskWithSerialNo(targetItemDetail);
+                                    return new(3, $"station {stationName} stationout by FIFO but taskDetail not found");
                                 }
                             }
-                            break;
+                            catch (Exception ex)
+                            {
+                                return new(4, ex.Message);
+                            }
                         default:
-                            break;
+                            return new(3, $"station {stationName} deosn't support this command");
                     }
                 }
-
+                else
+                {
+                    return new(3, $"station {stationName} isn't running");
+                }
+            }
+            else
+            {
+                return new(3, $"station {stationName} not found");
             }
         }
         public async Task StationOutByAmount(string stationName, int ok, int ng)
@@ -406,8 +480,24 @@ namespace TMWeb.Services
 
             }
         }
-
-        public async Task SummaryItemFromTaskWithSerialNo(ItemDetail itemDetail)
+        public async Task SummaryItemFromTaskWithSerialNoWhenOk(ItemDetail itemDetail)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                ItemDetail? targetItem = dbContext.ItemDetails.Include(x => x.TaskDetails).FirstOrDefault(x => x.Id == itemDetail.Id);
+                if (targetItem != null)
+                {
+                    targetItem.FinishedTime = DateTime.Now;
+                    if (targetItem.TaskDetails.Sum(x => x.Okamount) > 0)
+                    {
+                        targetItem.Okamount = targetItem.TaskDetails.Max(x => x.Okamount);
+                    }
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+        }
+        public async Task SummaryItemFromTaskWithSerialNoWhenNg(ItemDetail itemDetail)
         {
             using (var scope = scopeFactory.CreateScope())
             {
@@ -419,18 +509,45 @@ namespace TMWeb.Services
                     if (targetItem.TaskDetails.Sum(x => x.Ngamount) > 0)
                     {
                         targetItem.Ngamount = targetItem.TaskDetails.Max(x => x.Ngamount);
-                        targetItem.Okamount = 0;
-                    }
-                    else
-                    {
-                        targetItem.Ngamount = 0;
-                        targetItem.Okamount = targetItem.TaskDetails.Min(x => x.Okamount);
                     }
                     await dbContext.SaveChangesAsync();
                 }
             }
         }
 
+        public async Task SummaryWorkorderFromUtemWithSerialNoWhenOk(Workorder workorder)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                Workorder? wo = dbContext.Workorders.Include(x => x.ItemDetails).FirstOrDefault(x => x.Id == workorder.Id);
+                if (wo != null)
+                {
+                    if (wo.ItemDetails.Sum(x => x.Okamount) > 0)
+                    {
+                        wo.Okamount = wo.ItemDetails.Sum(x => x.Okamount);
+                    }
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+        }
+
+        public async Task SummaryWorkorderFromUtemWithSerialNoWhenNg(Workorder workorder)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                Workorder? wo = dbContext.Workorders.Include(x => x.ItemDetails).FirstOrDefault(x => x.Id == workorder.Id);
+                if (wo != null)
+                {
+                    if (wo.ItemDetails.Sum(x => x.Ngamount) > 0)
+                    {
+                        wo.Ngamount = wo.ItemDetails.Sum(x => x.Ngamount);
+                    }
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+        }
         public async Task SummaryItemFromTaskWithoutSerialNo(ItemDetail itemDetail)
         {
             using (var scope = scopeFactory.CreateScope())
@@ -884,6 +1001,15 @@ namespace TMWeb.Services
             }
         }
 
+        public ItemRecordDetail? GetItemRecordDetail(Guid ItemID, Guid? recordID)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return dbContext.ItemRecordDetails.FirstOrDefault(x => x.ItemId == ItemID && x.RecordContentId == recordID);
+            }
+        }
+
         //public ItemRecordContent? GetItemDetailRecordContent(ItemRecordDetail itemRecordDetail)
         //{
         //    using (var scope = scopeFactory.CreateScope())
@@ -960,6 +1086,42 @@ namespace TMWeb.Services
                 }
             }
 
+        }
+
+        public int GetWorkorderOkInStation(Guid workorderID, Guid stationID)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var target = dbContext.Workorders.Include(x => x.ItemDetails).ThenInclude(x => x.TaskDetails.Where(x => x.StationId == stationID))
+                    .FirstOrDefault(x => x.Id == workorderID);
+                if (target == null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return target.ItemDetails.Select(x => x.TaskDetails).SelectMany(x => x).Sum(x => x.Okamount);
+                }
+            }
+        }
+
+        public int GetWorkorderNgInStation(Guid workorderID, Guid stationID)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var target = dbContext.Workorders.Include(x => x.ItemDetails).ThenInclude(x => x.TaskDetails.Where(x => x.StationId == stationID))
+                    .FirstOrDefault(x => x.Id == workorderID);
+                if (target == null)
+                {
+                    return 0;
+                }
+                else
+                {
+                    return target.ItemDetails.Select(x => x.TaskDetails).SelectMany(x => x).Sum(x => x.Ngamount);
+                }
+            }
         }
         #endregion
 
@@ -1091,7 +1253,6 @@ namespace TMWeb.Services
 
 
         #endregion
-
 
         #region developer
 

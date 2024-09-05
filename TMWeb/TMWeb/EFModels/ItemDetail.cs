@@ -11,11 +11,11 @@ public partial class ItemDetail
 
     public string? SerialNo { get; set; }
 
-    public int? TargetAmount { get; set; }
+    public int TargetAmount { get; set; }
 
-    public int? Okamount { get; set; }
+    public int Okamount { get; set; }
 
-    public int? Ngamount { get; set; }
+    public int Ngamount { get; set; }
 
     public DateTime? StartTime { get; set; }
 

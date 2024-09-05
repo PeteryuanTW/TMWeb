@@ -23,6 +23,7 @@ namespace TMWeb.Data
 			if (!itemDetails.Exists(x => x.Id == itemDetail.Id))
 			{
 				itemDetails.Add(itemDetail);
+				UIUpdate();
 			}
 		}
 
@@ -35,7 +36,8 @@ namespace TMWeb.Data
 				{
 					ItemDetail tmp = target;
                     itemDetails.Remove(target);
-					return tmp;
+                    UIUpdate();
+                    return tmp;
 				}
 			}
 			return null;
@@ -49,6 +51,7 @@ namespace TMWeb.Data
                 {
                     ItemDetail tmp = target;
                     itemDetails.Remove(target);
+                    UIUpdate();
                     return tmp;
                 }
             }
@@ -62,7 +65,8 @@ namespace TMWeb.Data
 			if (itemDetails.Exists(x => x.Id == taskDetail.ItemId))
 			{
                 taskDetailsInStation.Add(taskDetail);
-			}
+                UIUpdate();
+            }
 		}
 
 		public override TaskDetail? RemoveTaskDetail()
@@ -76,8 +80,8 @@ namespace TMWeb.Data
 					if (!taskDetailsInStation.Exists(x => x.ItemId == target.ItemId))
 					{
 						TaskDetail tmp = target;
-                        //RemoveItemDetailByTaskDetail(target);
-						return tmp;
+                        UIUpdate();
+                        return tmp;
 					}
 				}
 			}
@@ -94,7 +98,7 @@ namespace TMWeb.Data
                     if (!taskDetailsInStation.Exists(x => x.ItemId == target.ItemId))
                     {
                         TaskDetail tmp = target;
-                        //RemoveItemDetailByTaskDetail(target);
+                        UIUpdate();
                         return tmp;
                     }
                 }

@@ -35,7 +35,13 @@ namespace TMWeb.Controllers
                     return StatusCode(500, $"not support request result returnCode {requestResult.ReturnCode}");
             }
         }
-
+        [HttpGet]
+        [Route("[action]")]
+        public ActionResult APITesting()
+        {
+            return Ok();
+        }
+        
         [HttpPost]
         [Route("[action]")]
         public async Task<ActionResult> StationInWithSerialNo([FromBody]StationInParam1 stationInParam1)
@@ -43,6 +49,7 @@ namespace TMWeb.Controllers
             var res = await shopfloorService.StationInByNameAndSerialNo(stationInParam1.StationName, stationInParam1.SerialNo);
             return RequestResultToActionResult(res);
         }
+        
         [HttpPost]
         [Route("[action]")]
         public async Task<ActionResult> WriteItemRecord([FromBody] ItemRecordParam1 itemRecordParam1)
@@ -50,12 +57,13 @@ namespace TMWeb.Controllers
             var res = await shopfloorService.WriteItemRecord(itemRecordParam1.SerialNo, itemRecordParam1.RecordName, itemRecordParam1.RecordValue);
             return RequestResultToActionResult(res);
         }
-        [HttpGet]
+        
+        [HttpPost]
         [Route("[action]")]
-        public async Task<ActionResult> GetMapConfig()
+        public async Task<ActionResult> StationOutWithFiFO([FromBody] StationOutParam1 StationOutParam1)
         {
-            
-            return Ok(await shopfloorService.GetAllMapConfigs());
+            var res = await shopfloorService.StationOutByFIFO(StationOutParam1.stationName, StationOutParam1.pass);
+            return RequestResultToActionResult(res);
         }
 
     }

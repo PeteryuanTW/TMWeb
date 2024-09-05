@@ -41,6 +41,8 @@ namespace TMWeb.EFModels
 
         private string errorMsg = String.Empty;
         public string ErrorMsg => errorMsg;
+
+        public bool hasCustomUIInfo => StationUirecords.Any();
         public void InitStation()
         {
             stationStatus = Status.Init;
