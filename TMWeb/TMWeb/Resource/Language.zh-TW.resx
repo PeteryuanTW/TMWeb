@@ -204,4 +204,46 @@
   <data name="Start time" xml:space="preserve">
     <value>開始時間</value>
   </data>
+  <data name="Uninit" xml:space="preserve">
+    <value>未初始化</value>
+  </data>
+  <data name="Init" xml:space="preserve">
+    <value>初始化</value>
+  </data>
+  <data name="Idel" xml:space="preserve">
+    <value>閒置</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>執行中</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>錯誤</value>
+  </data>
+  <data name="Deploy" xml:space="preserve">
+    <value>部署</value>
+  </data>
+  <data name="Part No" xml:space="preserve">
+    <value>料號</value>
+  </data>
+  <data name="Workorder Recipe" xml:space="preserve">
+    <value>工單參數</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>啟用</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>類型</value>
+  </data>
+  <data name="Index" xml:space="preserve">
+    <value>索引</value>
+  </data>
+  <data name="Sequence" xml:space="preserve">
+    <value>順序</value>
+  </data>
 </root>

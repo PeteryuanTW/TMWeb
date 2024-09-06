@@ -70,6 +70,15 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Delpoy 的當地語系化字串。
+        /// </summary>
+        public static string Deploy {
+            get {
+                return ResourceManager.GetString("Deploy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Detail 的當地語系化字串。
         /// </summary>
         public static string Detail {
@@ -88,11 +97,56 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Enable 的當地語系化字串。
+        /// </summary>
+        public static string Enable {
+            get {
+                return ResourceManager.GetString("Enable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Error 的當地語系化字串。
+        /// </summary>
+        public static string Error {
+            get {
+                return ResourceManager.GetString("Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Idel 的當地語系化字串。
+        /// </summary>
+        public static string Idel {
+            get {
+                return ResourceManager.GetString("Idel", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Image 的當地語系化字串。
         /// </summary>
         public static string Image {
             get {
                 return ResourceManager.GetString("Image", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Index 的當地語系化字串。
+        /// </summary>
+        public static string Index {
+            get {
+                return ResourceManager.GetString("Index", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Init 的當地語系化字串。
+        /// </summary>
+        public static string Init {
+            get {
+                return ResourceManager.GetString("Init", resourceCulture);
             }
         }
         
@@ -142,6 +196,15 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Name 的當地語系化字串。
+        /// </summary>
+        public static string Name {
+            get {
+                return ResourceManager.GetString("Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 NG 的當地語系化字串。
         /// </summary>
         public static string NG {
@@ -156,6 +219,15 @@ namespace TMWeb.Resource {
         public static string OK {
             get {
                 return ResourceManager.GetString("OK", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Part No 的當地語系化字串。
+        /// </summary>
+        public static string Part_No {
+            get {
+                return ResourceManager.GetString("Part No", resourceCulture);
             }
         }
         
@@ -183,6 +255,24 @@ namespace TMWeb.Resource {
         public static string Record {
             get {
                 return ResourceManager.GetString("Record", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Running 的當地語系化字串。
+        /// </summary>
+        public static string Running {
+            get {
+                return ResourceManager.GetString("Running", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Sequence 的當地語系化字串。
+        /// </summary>
+        public static string Sequence {
+            get {
+                return ResourceManager.GetString("Sequence", resourceCulture);
             }
         }
         
@@ -277,6 +367,15 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Stop 的當地語系化字串。
+        /// </summary>
+        public static string Stop {
+            get {
+                return ResourceManager.GetString("Stop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Tag 的當地語系化字串。
         /// </summary>
         public static string Tag {
@@ -304,11 +403,38 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Type 的當地語系化字串。
+        /// </summary>
+        public static string Type {
+            get {
+                return ResourceManager.GetString("Type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Uninit 的當地語系化字串。
+        /// </summary>
+        public static string Uninit {
+            get {
+                return ResourceManager.GetString("Uninit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Workorder 的當地語系化字串。
         /// </summary>
         public static string Workorder {
             get {
                 return ResourceManager.GetString("Workorder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Workorder Recipe 的當地語系化字串。
+        /// </summary>
+        public static string Workorder_Recipe {
+            get {
+                return ResourceManager.GetString("Workorder Recipe", resourceCulture);
             }
         }
         

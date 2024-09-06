@@ -184,4 +184,46 @@
   <data name="Start time" xml:space="preserve">
     <value>Start time</value>
   </data>
+  <data name="Uninit" xml:space="preserve">
+    <value>Uninit</value>
+  </data>
+  <data name="Init" xml:space="preserve">
+    <value>Init</value>
+  </data>
+  <data name="Idel" xml:space="preserve">
+    <value>Idel</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Deploy" xml:space="preserve">
+    <value>Delpoy</value>
+  </data>
+  <data name="Part No" xml:space="preserve">
+    <value>Part No</value>
+  </data>
+  <data name="Workorder Recipe" xml:space="preserve">
+    <value>Workorder Recipe</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="Type" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="Index" xml:space="preserve">
+    <value>Index</value>
+  </data>
+  <data name="Sequence" xml:space="preserve">
+    <value>Sequence</value>
+  </data>
 </root>

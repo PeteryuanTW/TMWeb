@@ -4,7 +4,7 @@
 <div class="h-100">
     <DxDrawer @bind-IsOpen="@drawerVisible" PanelWidth="20rem" Mode="DrawerMode.Overlap" Position="DrawerPosition.Right" CloseOnEscape="false">
         <HeaderTemplate>
-            <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="Deploy Workorder">
+            <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="@($"{localizer["Deploy"]}")">
                 <Items>
                     <DxToolbarItem RenderStyle="ButtonRenderStyle.Danger" IconCssClass="oi oi-x" Click="CloseDrawer" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" />
                 </Items>
@@ -12,19 +12,19 @@
         </HeaderTemplate>
         <BodyTemplate>
             <DxFormLayout CssClass="w-100">
-                <DxFormLayoutItem Caption="Workorder" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                <DxFormLayoutItem Caption="@($"{localizer["Workorder"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                     <DxComboBox Data="@workorders_start" @bind-Value="@selectedWorkorder_start" EditFormat="{0}-{1}">
                         <Columns>
-                            <DxListEditorColumn FieldName="@nameof(Workorder.WorkorderNo)" />
-                            <DxListEditorColumn FieldName="@nameof(Workorder.Lot)" />
-                            <DxListEditorColumn FieldName="@nameof(Workorder.Status)" />
+                            <DxListEditorColumn Caption="@($"{localizer["Workorder"]}")" FieldName="@nameof(Workorder.WorkorderNo)" />
+                            <DxListEditorColumn Caption="@($"{localizer["Lot"]}")" FieldName="@nameof(Workorder.Lot)" />
+                            <DxListEditorColumn Caption="@($"{localizer["Status"]}")" FieldName="@nameof(Workorder.Status)" />
                         </Columns>
                     </DxComboBox>
                 </DxFormLayoutItem>
             </DxFormLayout>
         </BodyTemplate>
         <FooterTemplate>
-            <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="Deploy Workorder">
+            <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large">
                 <Items>
                     <DxToolbarItem RenderStyle="ButtonRenderStyle.Info" Enabled="@hasWO_start" IconCssClass="oi oi-data-transfer-download" Click="@(async () => await SetAllStationsWorkorder(selectedWorkorder_start))" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" />
                 </Items>

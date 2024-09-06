@@ -66,16 +66,16 @@
         <DxFormLayout>
             @foreach (Station? station in targetProcess?.Stations)
             {
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="Name" ColSpanLg="3" BeginRow="true">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="3" BeginRow="true">
                     <DxTextBox @bind-Text="@station.Name"></DxTextBox>
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="Index" ColSpanLg="3">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Index"]}")" ColSpanLg="3">
                     <DxSpinEdit @bind-Value="@station.ProcessIndex" MinValue="0" MaxValue="@(targetProcess?.Stations.Max(x=>x.ProcessIndex)+1)"></DxSpinEdit>
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="Type" ColSpanLg="3">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Type"]}")" ColSpanLg="3">
                     <DxSpinEdit @bind-Value="@station.StationType" MinValue="0" MaxValue="2"></DxSpinEdit>
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="Enable" ColSpanLg="3">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Enable"]}")" ColSpanLg="3">
                     <DxCheckBox @bind-Checked="@station.Enable" CheckType="CheckType.Switch"></DxCheckBox>
                 </DxFormLayoutItem>
             }

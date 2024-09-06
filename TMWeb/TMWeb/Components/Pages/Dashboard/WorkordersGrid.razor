@@ -25,13 +25,13 @@
                             </DxToolbar>
                         </ToolbarTemplate>
                         <Columns>
-                            <DxGridDataColumn FieldName="@nameof(Workorder.Status)" Caption="@($"{localizer["Status"]}")" />
-                            <DxGridDataColumn FieldName="@nameof(Workorder.WorkorderNo)" />
-                            <DxGridDataColumn FieldName="@nameof(Workorder.Lot)" />
-                            <DxGridDataColumn FieldName="@nameof(Workorder.PartNo)" />
-                            <DxGridDataColumn FieldName="@nameof(Workorder.TargetAmount)" />
-                            <DxGridDataColumn FieldName="@nameof(Workorder.Ngamount)" />
-                            <DxGridDataColumn FieldName="@nameof(Workorder.Okamount)" />
+                            <DxGridDataColumn Caption="@($"{localizer["Status"]}")" FieldName="@nameof(Workorder.Status)"/>
+                            <DxGridDataColumn Caption="@($"{localizer["Workorder"]}")" FieldName="@nameof(Workorder.WorkorderNo)" />
+                            <DxGridDataColumn Caption="@($"{localizer["Lot"]}")" FieldName="@nameof(Workorder.Lot)" />
+                            <DxGridDataColumn Caption="@($"{localizer["Part No"]}")" FieldName="@nameof(Workorder.PartNo)" />
+                            <DxGridDataColumn Caption="@($"{localizer["Target"]}")" FieldName="@nameof(Workorder.TargetAmount)" />
+                            <DxGridDataColumn Caption="@($"{localizer["OK"]}")" FieldName="@nameof(Workorder.Ngamount)" />
+                            <DxGridDataColumn Caption="@($"{localizer["NG"]}")" FieldName="@nameof(Workorder.Okamount)" />
                         </Columns>
                     </DxGrid>
                 </div>
@@ -51,31 +51,31 @@
     </HeaderTemplate>
     <BodyContentTemplate Context="bodycontext">
         <DxFormLayout>
-            <DxFormLayoutItem Caption="Process" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
+            <DxFormLayoutItem Caption="@($"{localizer["Process"]}")" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
                 <DxComboBox Data="@processes" @bind-Value="@selectedWorkorder.ProcessId" ValueFieldName="@nameof(Process.Id)" TextFieldName="@nameof(Process.Name)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
             </DxFormLayoutItem>
-            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="WorkorderNo" ColSpanLg="6">
+            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Workorder"]}")" ColSpanLg="6">
                 <DxTextBox @bind-Text="@selectedWorkorder.WorkorderNo" />
             </DxFormLayoutItem>
-            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="Lot" ColSpanLg="6">
+            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Lot"]}")" ColSpanLg="6">
                 <DxTextBox @bind-Text="@selectedWorkorder.Lot" />
             </DxFormLayoutItem>
-            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="PartNo" ColSpanLg="6">
+            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Part No"]}")" ColSpanLg="6">
                 <DxTextBox @bind-Text="@selectedWorkorder.PartNo" />
             </DxFormLayoutItem>
-            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="TargetAmount" ColSpanLg="6">
+            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Target"]}")" ColSpanLg="6">
                 <DxSpinEdit @bind-Value="@selectedWorkorder.TargetAmount" MinValue="0" />
             </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="Workorder Recipe" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
+            <DxFormLayoutItem Caption="@($"{localizer["Workorder Recipe"]}")" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
                 <DxComboBox Data="@workorderRecipeConfigs" @bind-Value="@selectedWorkorder.RecipeCategoryId" ValueFieldName="@nameof(WorkorderRecipeConfig.Id)" TextFieldName="@nameof(WorkorderRecipeConfig.RecipeCategory)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
             </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="Workorder Record" CaptionPosition="CaptionPosition.Vertical">
+            <DxFormLayoutItem Caption="@($"{localizer["Workorder Record"]}")" CaptionPosition="CaptionPosition.Vertical">
                 <DxComboBox Data="@workorderRecordConfigs" @bind-Value="@selectedWorkorder.WorkorderRecordCategoryId" ValueFieldName="@nameof(WorkorderRecordConfig.Id)" TextFieldName="@nameof(WorkorderRecordConfig.WorkorderRecordCategory)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
             </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="Item Record" CaptionPosition="CaptionPosition.Vertical">
+            <DxFormLayoutItem Caption="@($"{localizer["Item Record"]}")" CaptionPosition="CaptionPosition.Vertical">
                 <DxComboBox Data="@itemRecordConfigs" @bind-Value="@selectedWorkorder.ItemRecordsCategoryId" ValueFieldName="@nameof(ItemRecordConfig.Id)" TextFieldName="@nameof(ItemRecordConfig.ItemRecordCategory)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
             </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="Task Record" CaptionPosition="CaptionPosition.Vertical">
+            <DxFormLayoutItem Caption="@($"{localizer["Task Record"]}")" CaptionPosition="CaptionPosition.Vertical">
                 <DxComboBox Data="@taskRecordConfigs" @bind-Value="@selectedWorkorder.TaskRecordCategoryId" ValueFieldName="@nameof(ItemRecordConfig.Id)" TextFieldName="@nameof(ItemRecordConfig.ItemRecordCategory)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
             </DxFormLayoutItem>
         </DxFormLayout>
