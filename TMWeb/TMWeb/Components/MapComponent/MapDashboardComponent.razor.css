@@ -1,0 +1,20 @@
+﻿.uninit {
+    background-color: rgb(255, 255, 255, 0.9);
+    border-color: black;
+}
+
+.running {
+    background-color: rgb(44, 170, 54, 0.7);
+}
+
+.pause {
+    background-color: rgb(253, 126, 23, 0.7);
+}
+
+.error {
+    background-color: rgb(220, 56, 72, 0.7);
+}
+
+.stop {
+    background-color: rgb(220, 56, 72, 0.7);
+}

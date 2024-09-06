@@ -1,6 +1,4 @@
 ﻿@rendermode InteractiveServer
-@inject IStringLocalizer<Language> localizer
-@inject TMWebShopfloorService shopfloorService
 
 @if (componentAssigned)
 {
@@ -68,8 +66,6 @@
                     if (station != null)
                     {
                         name = station.Name;
-                        //StatusAct = station.UIUpdateAct;
-                        //status = station.Status;
                     }
                     break;
                 case 1:
@@ -77,8 +73,6 @@
                     if (machine != null)
                     {
                         name = machine.Name;
-                        //StatusAct = machine.MachineStatechangedAct;
-                        //status = machine.Status;
                     }
                     break;
                 default:

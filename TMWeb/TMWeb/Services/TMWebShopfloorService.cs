@@ -107,7 +107,7 @@ namespace TMWeb.Services
         private async Task<bool> CheckStationIsLastInProcess(Station station)
         {
             var stations = await GetStationsByProcessID(station.ProcessId);
-            return stations.Where(x=>x.Enable == true).Max(x => x.ProcessIndex) == station.ProcessIndex;
+            return stations.Where(x => x.Enable == true).Max(x => x.ProcessIndex) == station.ProcessIndex;
         }
 
         #endregion
@@ -297,7 +297,7 @@ namespace TMWeb.Services
                         case 0:
                             StationSingleWorkorder? StationSingleWorkorder = targetStation as StationSingleWorkorder;
                             TaskDetail? taskDetail = StationSingleWorkorder?.RemoveTaskDetail();
-                            
+
                             if (taskDetail != null)
                             {
                                 if (pass)
@@ -562,6 +562,16 @@ namespace TMWeb.Services
 
                     await dbContext.SaveChangesAsync();
                 }
+            }
+        }
+
+        public async Task StopStationByName(string stationName)//station name, workorder no and lot
+        {
+            Station? targetStation = await GetStationsByName(stationName);
+            if (targetStation != null)
+            {
+                targetStation.Stop();
+                StationChanged(targetStation);
             }
         }
 
@@ -1206,39 +1216,30 @@ namespace TMWeb.Services
             }
         }
 
-        public async Task<RequestResult> UpsertAndRemoveMapComponents(Guid mapId, IEnumerable<MapComponent> mapComponents)
+        public async Task<RequestResult> UpsertMapComponents(MapComponent mapComponent)
         {
             try
             {
                 using (var scope = scopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                    var componentsInDbs = dbContext.MapComponents.Where(x => x.MapId == mapId);
-                    if (!componentsInDbs.Any())
+
+                    var target = dbContext.MapComponents.FirstOrDefault(x => x.Id == mapComponent.Id);
+                    //update
+                    if (target != null)
                     {
-                        await dbContext.MapComponents.AddRangeAsync(mapComponents);
+                        target.Type = mapComponent.Type;
+                        target.MachineId = mapComponent.MachineId;
+                        target.StationId = mapComponent.StationId;
+                        target.PositionX = mapComponent.PositionX;
+                        target.PositionY = mapComponent.PositionY;
+                        target.Height = mapComponent.Height;
+                        target.Width = mapComponent.Width;
                     }
+                    //insert
                     else
                     {
-                        foreach (var componentsInDb in componentsInDbs)
-                        {
-                            if (!mapComponents.Any(x => x.MapId == componentsInDb.MapId))
-                            {
-                                dbContext.MapComponents.Remove(componentsInDb);
-                            }
-                            else
-                            {
-                                var target = mapComponents.FirstOrDefault(x => x.Id == componentsInDb.Id);
-                                componentsInDb.Type = target.Type;
-                                componentsInDb.MapId = target.MapId;
-                                componentsInDb.MachineId = target.MachineId;
-                                componentsInDb.StationId = target.StationId;
-                                componentsInDb.PositionX = target.PositionX;
-                                componentsInDb.PositionY = target.PositionY;
-                                componentsInDb.Height = target.Height;
-                                componentsInDb.Width = target.Width;
-                            }
-                        }
+                        await dbContext.MapComponents.AddAsync(mapComponent);
                     }
                     await dbContext.SaveChangesAsync();
                 }
@@ -1248,9 +1249,66 @@ namespace TMWeb.Services
             {
                 return new(4, $"save map fail({ex.Message})");
             }
-
         }
 
+        public async Task<RequestResult> UpsertMapComponentsAttribute(IEnumerable<MapComponent> mapComponents)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    foreach (var mapComponent in mapComponents)
+                    {
+                        var target = dbContext.MapComponents.FirstOrDefault(x => x.Id == mapComponent.Id);
+                        if (target != null)
+                        {
+                            target.Type = mapComponent.Type;
+                            target.MachineId = mapComponent.MachineId;
+                            target.StationId = mapComponent.StationId;
+                            target.PositionX = mapComponent.PositionX;
+                            target.PositionY = mapComponent.PositionY;
+                            target.Height = mapComponent.Height;
+                            target.Width = mapComponent.Width;
+                        }
+
+                    }
+                    await dbContext.SaveChangesAsync();
+                }
+                return new(2, "save map success");
+            }
+            catch (Exception ex)
+            {
+                return new(4, $"save map fail({ex.Message})");
+            }
+        }
+
+        public async Task<RequestResult> DeleteMapComponents(MapComponent mapComponent)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+
+                    var target = dbContext.MapComponents.FirstOrDefault(x => x.Id == mapComponent.Id);
+                    if (target != null)
+                    {
+                        dbContext.Remove(target);
+                    }
+                    else
+                    {
+                        return new(4, "component not found");
+                    }
+                    await dbContext.SaveChangesAsync();
+                }
+                return new(2, "save map success");
+            }
+            catch (Exception ex)
+            {
+                return new(4, $"save map fail({ex.Message})");
+            }
+        }
 
         #endregion
 

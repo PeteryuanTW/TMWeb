@@ -124,6 +124,15 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Machine Dashboard 的當地語系化字串。
+        /// </summary>
+        public static string Machine_Dashboard {
+            get {
+                return ResourceManager.GetString("Machine Dashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Map 的當地語系化字串。
         /// </summary>
         public static string Map {
@@ -169,6 +178,24 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Record 的當地語系化字串。
+        /// </summary>
+        public static string Record {
+            get {
+                return ResourceManager.GetString("Record", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Serial No 的當地語系化字串。
+        /// </summary>
+        public static string Serial_No {
+            get {
+                return ResourceManager.GetString("Serial No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Service 的當地語系化字串。
         /// </summary>
         public static string Service {
@@ -196,11 +223,47 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Start time 的當地語系化字串。
+        /// </summary>
+        public static string Start_time {
+            get {
+                return ResourceManager.GetString("Start time", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Station 的當地語系化字串。
         /// </summary>
         public static string Station {
             get {
                 return ResourceManager.GetString("Station", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Station Dashboard 的當地語系化字串。
+        /// </summary>
+        public static string Station_Dashboard {
+            get {
+                return ResourceManager.GetString("Station Dashboard", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Station in 的當地語系化字串。
+        /// </summary>
+        public static string Station_in {
+            get {
+                return ResourceManager.GetString("Station in", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Station out 的當地語系化字串。
+        /// </summary>
+        public static string Station_out {
+            get {
+                return ResourceManager.GetString("Station out", resourceCulture);
             }
         }
         

@@ -1,6 +1,35 @@
 ﻿@page "/MapDashboard/{Id}"
 
+@rendermode InteractiveServer
+
+<div class="card h-100 position-relative p-3">
+     <img class=" h-100 w-100" src="@($"data:{mapConfig.Image.DataType};base64,{Convert.ToBase64String(mapConfig.Image.DataByte ?? Array.Empty<byte>())}") " />
+    @foreach (MapComponent mapComponent in mapConfig.MapComponents)
+    {
+        <MapDashboardComponent MapComponentConfig="@mapComponent"/>
+    }
+</div>
+
 @code {
     [Parameter]
     public string Id { get; set; }
+
+    private MapConfig? mapConfig;
+    private bool hasMapConfig => mapConfig != null;
+    private bool hasImage => hasMapConfig && mapConfig.Image != null;
+
+    private IEnumerable<MapComponent> mapComponents;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitParameter();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task InitParameter()
+    {
+        mapConfig = await shopfloorService.GetMapConfigAndComponentById(new Guid(Id));
+        mapComponents = mapConfig?.MapComponents;
+
+    }
 }

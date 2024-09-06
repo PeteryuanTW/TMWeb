@@ -23,7 +23,8 @@ namespace TMWeb.Data
 			if (!HasItem)
 			{
 				this.itemDetail = itemDetail;
-			}
+                UIUpdate();
+            }
 		}
 		public override ItemDetail? RemoveItemDetail()
 		{
@@ -31,7 +32,8 @@ namespace TMWeb.Data
 			{
                 ItemDetail tmp = itemDetail;
                 itemDetail = null;
-				return tmp;
+                UIUpdate();
+                return tmp;
 			}
 			return null;
 		}
@@ -40,7 +42,8 @@ namespace TMWeb.Data
 			if (!HasTask)
 			{
 				this.taskDetail = taskDetail;
-			}
+                UIUpdate();
+            }
 		}
 
 		public override TaskDetail? RemoveTaskDetail()
@@ -49,7 +52,8 @@ namespace TMWeb.Data
 			{
                 TaskDetail tmp = taskDetail;
                 taskDetail = null;
-				return tmp;
+                UIUpdate();
+                return tmp;
 			}
 			return null;
 		}

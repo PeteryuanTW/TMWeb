@@ -39,6 +39,13 @@ namespace TMWeb.EFModels
 
         public Action? UIUpdateAct;
 
+        protected void StatusUpdate()
+        {
+            StatusUpdateAct?.Invoke(Status);
+        }
+
+        public Action<Status>? StatusUpdateAct;
+
         private string errorMsg = String.Empty;
         public string ErrorMsg => errorMsg;
 
@@ -46,6 +53,7 @@ namespace TMWeb.EFModels
         public void InitStation()
         {
             stationStatus = Status.Init;
+            StatusUpdate();
             errorMsg = String.Empty;
         }
         public virtual bool SetWorkorder(Workorder wo)
@@ -60,13 +68,22 @@ namespace TMWeb.EFModels
         public virtual void Run()
         {
             stationStatus = Status.Running;
+            StatusUpdate();
         }
-        public virtual void Pause() { }
-        public virtual void Stop() { }
+        public virtual void Pause()
+        {
+            StatusUpdate();
+        }
+        public virtual void Stop()
+        {
+            stationStatus = Status.Stop;
+            StatusUpdate();
+        }
         public virtual void Error(string msg)
         {
             errorMsg = msg;
             stationStatus = Status.Error;
+            StatusUpdate();
         }
 
     }

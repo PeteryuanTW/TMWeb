@@ -33,8 +33,8 @@
                         <DxToolbar>
                             <Items>
                                 <DxToolbarItem Click="NewComponentClick" IconCssClass="oi oi-plus"></DxToolbarItem>
-                                <DxToolbarItem Enabled="@componentSelected" IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true"></DxToolbarItem>
-                                <DxToolbarItem Click="UpsertComponents" IconCssClass="oi oi-data-transfer-download" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true"></DxToolbarItem>
+                                <DxToolbarItem Click="DeleteComponent" Enabled="@componentSelected" IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true"></DxToolbarItem>
+                                <DxToolbarItem Click="UpdateComponentAttribute" IconCssClass="oi oi-data-transfer-download" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true"></DxToolbarItem>
                                 @* <DxToolbarItem>
                             <Template>
                             <DxComboBox Data="mapComponents" @bind-Value="@targetMapComponent" TextFieldName="@(nameof(MapComponent.MachineId))" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
@@ -163,7 +163,7 @@
     private bool hasMapConfig => mapConfig != null;
     private bool hasImage => hasMapConfig && mapConfig.Image != null;
 
-    private IEnumerable<MapComponent> mapComponents;
+    private List<MapComponent> mapComponents = new();
     private MapComponent? targetMapComponent;
     private bool componentSelected => targetMapComponent != null;
     private bool IsMain(Guid id) => componentSelected ? id == targetMapComponent.Id : false;
@@ -190,7 +190,7 @@
     private async Task InitParameter()
     {
         mapConfig = await shopfloorService.GetMapConfigAndComponentById(new Guid(Id));
-        mapComponents = mapConfig?.MapComponents;
+        mapComponents = mapConfig?.MapComponents.ToList();
         stations = await shopfloorService.GetAllStationsConfig();
         machines = await shopfloorService.GetAllMachinesConfig();
 
@@ -222,15 +222,25 @@
         ShowPopup();
     }
 
-    private void AddComponent()
+    private async Task AddComponent()
     {
-        mapConfig?.MapComponents.Add(targetMapComponent);
+        var res = await shopfloorService.UpsertMapComponents(targetMapComponent);
+        await InitParameter();
         ClosePopup();
+        uiService.ShowToast(res);
     }
 
-    private async Task UpsertComponents()
+    private async Task UpdateComponentAttribute()
     {
-        var res = await shopfloorService.UpsertAndRemoveMapComponents(mapConfig.Id, mapConfig.MapComponents);
+        var res = await shopfloorService.UpsertMapComponentsAttribute(mapComponents);
+        await InitParameter();
+        uiService.ShowToast(res);
+    }
+
+    private async Task DeleteComponent()
+    {
+        var res = await shopfloorService.DeleteMapComponents(targetMapComponent);
+        await InitParameter();
         uiService.ShowToast(res);
     }
 

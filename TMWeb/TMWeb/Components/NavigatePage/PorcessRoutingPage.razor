@@ -1,7 +1,6 @@
 ﻿@page "/ProcessRoute/{Process}"
 @rendermode InteractiveServer
 @inject NavigationManager navigationManager
-@inject TMWebShopfloorService shopfloorService
 <div class="h-100">
     <DxStackLayout Orientation="Orientation.Vertical" ItemSpacing="2rem" CssClass="h-100">
         <Items>
@@ -17,8 +16,8 @@
             <DxStackLayoutItem>
                 <Template>
                     <div class="h-100 d-flex align-items-center justify-content-around">
-                        <ProcessRoutingComponent NavLink="@($"{Process}/StationAction")" IconName="station" Text="Station Dashboard"></ProcessRoutingComponent>
-                        <ProcessRoutingComponent NavLink="@($"{Process}/MachineDashboard")" IconName="machine" Text="Machine Dashboard"></ProcessRoutingComponent>
+                        <ProcessRoutingComponent NavLink="@($"{Process}/StationAction")" IconName="station" Text=@($"{localizer[$"Station Dashboard"]}")></ProcessRoutingComponent>
+                        <ProcessRoutingComponent NavLink="@($"{Process}/MachineDashboard")" IconName="machine" Text=@($"{localizer[$"Machine Dashboard"]}")></ProcessRoutingComponent>
                         @* <ProcessRoutingComponent IconName="map" Text="Map Dashboard"></ProcessRoutingComponent> *@
                     </div>
                 </Template>

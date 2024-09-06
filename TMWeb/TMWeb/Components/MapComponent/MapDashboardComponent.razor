@@ -1,0 +1,102 @@
+﻿@rendermode InteractiveServer
+
+@if (componentAssigned)
+{
+    <div class="@($"icon rounded d-flex position-absolute {GetPanelStatusStyle()}")" data-toggle="tooltip" data-placement="top" title="@($"{name}")" style="@shapeCss">
+    </div>
+}
+
+
+
+
+@code {
+    [Parameter]
+    public MapComponent? MapComponentConfig { get; set; }
+
+    private bool componentAssigned => MapComponentConfig != null;
+
+    private string shapeCss => componentAssigned ? $"left:{MapComponentConfig.PositionX}%; top:{MapComponentConfig.PositionY}%; width:{MapComponentConfig.Width}%; height:{MapComponentConfig.Height}%;" : string.Empty;
+    private string name = string.Empty;
+    private Status status = Status.Uninit;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RetriveName();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task RetriveName()
+    {
+        if (componentAssigned)
+        {
+            switch (MapComponentConfig.Type)
+            {
+                case 0:
+                    Station? station = await shopfloorService.GetStationsById(MapComponentConfig.StationId);
+                    if (station != null)
+                    {
+                        name = station.Name;
+                        station.StatusUpdateAct += StatusUpdate;
+                        status = station.Status;
+                    }
+                    break;
+                case 1:
+                    Machine? machine = await shopfloorService.GetMachineByID(MapComponentConfig.MachineId);
+                    if (machine != null)
+                    {
+                        name = machine.Name;
+                        machine.MachineStatechangedAct += StatusUpdate;
+                        status = machine.Status;
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+
+    protected string GetPanelStatusStyle()
+    {
+        switch (status)
+        {
+            case Status.Uninit:
+                return "uninit";
+            case Status.Running:
+                return "running";
+            // case Status.Pause:
+            //     return "pause";
+            case Status.Stop:
+            case Status.Error:
+                return "stop";
+            default:
+                return "uninit";
+        }
+    }
+
+    private void StatusUpdate(Status status)
+    {
+        this.status = status;
+        InvokeAsync(StateHasChanged);
+    }
+
+    private string IconCss()
+    {
+        if (componentAssigned)
+        {
+            switch (MapComponentConfig?.Type)
+            {
+                case 0:
+                    return "station";
+                case 1:
+                    return "machine";
+                default:
+                    return "";
+            }
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+}

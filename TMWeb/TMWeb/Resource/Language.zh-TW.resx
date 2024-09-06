@@ -183,4 +183,25 @@
   <data name="Command" xml:space="preserve">
     <value>指令</value>
   </data>
+  <data name="Station Dashboard" xml:space="preserve">
+    <value>工站儀錶板</value>
+  </data>
+  <data name="Machine Dashboard" xml:space="preserve">
+    <value>機台儀錶板</value>
+  </data>
+  <data name="Station in" xml:space="preserve">
+    <value>進站</value>
+  </data>
+  <data name="Station out" xml:space="preserve">
+    <value>出站</value>
+  </data>
+  <data name="Serial No" xml:space="preserve">
+    <value>序號</value>
+  </data>
+  <data name="Record" xml:space="preserve">
+    <value>紀錄</value>
+  </data>
+  <data name="Start time" xml:space="preserve">
+    <value>開始時間</value>
+  </data>
 </root>

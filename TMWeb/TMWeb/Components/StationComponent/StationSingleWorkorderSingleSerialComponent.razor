@@ -7,25 +7,25 @@
     <BodyContentTemplate>
         <div>
             <DxTabs @bind-ActiveTabIndex="@operationTabIndex">
-                <DxTabPage Text="Station in">
+                <DxTabPage Text="@($"{localizer["Station in"]}")">
                     <div class="p-3">
                         <DxFormLayout>
-                            <DxFormLayoutItem Caption="SerialNo" Context="serialnocontext">
+                            <DxFormLayoutItem Caption="@($"{localizer["Serial No"]}")" Context="serialnocontext">
                                 <DxTextBox @bind-Text="@serialNo" ReadOnly="@(stationSingleWorkorderSingleSerial.HasItem && stationSingleWorkorderSingleSerial.HasTask)"></DxTextBox>
                             </DxFormLayoutItem>
                         </DxFormLayout>
                     </div>
                 </DxTabPage>
-                <DxTabPage Text="Station out" Visible="@stationSingleWorkorderSingleSerial.HasTask">
+                <DxTabPage Text="@($"{localizer["Station out"]}")" Visible="@stationSingleWorkorderSingleSerial.HasTask">
                     <div class="p-3">
                         <DxFormLayout>
-                            <DxFormLayoutItem Caption="SerialNo" Context="serialnocontext">
+                            <DxFormLayoutItem Caption="@($"{localizer["Serial No"]}")" Context="serialnocontext">
                                 <DxTextBox @bind-Text="@serialNo" ReadOnly="true"></DxTextBox>
                             </DxFormLayoutItem>
                         </DxFormLayout>
                     </div>
                 </DxTabPage>
-                <DxTabPage Text="Item record" Visible="@(stationSingleWorkorderSingleSerial.HasItem && stationSingleWorkorderSingleSerial.HasWorkorder && stationSingleWorkorderSingleSerial.Workerder.HasItemRecord)">
+                <DxTabPage Text="@($"{localizer["Item record"]}")" Visible="@(stationSingleWorkorderSingleSerial.HasItem && stationSingleWorkorderSingleSerial.HasWorkorder && stationSingleWorkorderSingleSerial.Workerder.HasItemRecord)">
                     <div class="p-3">
                         <DxFormLayout>
                             @foreach (ItemRecordDetail itemRecordDetail in itemRecordDetails)
@@ -45,16 +45,16 @@
             <Items>
                 @if (operationTabIndex == 0)
                 {
-                    <DxToolbarItem Text="Station in" Click="StationInOperation" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
+                    <DxToolbarItem Text="@($"{localizer["Station in"]}")" Click="StationInOperation" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
                 }
                 else if (operationTabIndex == 1)
                 {
-                    <DxToolbarItem Text="OK" Click="@(()=>StationOutOperation(true))" RenderStyle="ButtonRenderStyle.Success" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
-                    <DxToolbarItem Text="NG" Click="@(()=>StationOutOperation(false))" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
+                    <DxToolbarItem Text="@($"{localizer["OK"]}")" Click="@(()=>StationOutOperation(true))" RenderStyle="ButtonRenderStyle.Success" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
+                    <DxToolbarItem Text="@($"{localizer["NG"]}")" Click="@(()=>StationOutOperation(false))" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
                 }
                 else if (operationTabIndex == 2)
                 {
-                    <DxToolbarItem Text="Record" Click="ItemRecord" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
+                    <DxToolbarItem Text="@($"{localizer["Record"]}")" Click="ItemRecord" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"></DxToolbarItem>
                 }
             </Items>
         </DxToolbar>
@@ -92,22 +92,22 @@
                     <Template>
                         <div class="p-3">
                             <DxFormLayout>
-                                <DxFormLayoutItem Caption="Process" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                <DxFormLayoutItem Caption="@($"{localizer["Process"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxTextBox Text="@stationSingleWorkorderSingleSerial.Process?.Name" ReadOnly="true"></DxTextBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Workorder" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                <DxFormLayoutItem Caption="@($"{localizer["Workorder"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxTextBox Text="@stationSingleWorkorderSingleSerial.Workerder?.WorkorderNo" ReadOnly="true"></DxTextBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Ok" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
+                                <DxFormLayoutItem Caption="@($"{localizer["OK"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
                                     <DxSpinEdit Value="@(GetOkAmount())" ReadOnly="true"></DxSpinEdit>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Ng" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
+                                <DxFormLayoutItem Caption="@($"{localizer["NG"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
                                     <DxSpinEdit Value="@(GetNgAmount())" ReadOnly="true"></DxSpinEdit>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="SerialNo" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                <DxFormLayoutItem Caption="@($"{localizer["Serial No"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxTextBox Text="@stationSingleWorkorderSingleSerial.TaskDetail?.SerialNo" ReadOnly="true"></DxTextBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Start Time" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                <DxFormLayoutItem Caption="@($"{localizer["Start time"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxDateEdit Date="@stationSingleWorkorderSingleSerial.TaskDetail?.StartTime" TimeSectionVisible="true" ReadOnly="true"></DxDateEdit>
                                 </DxFormLayoutItem>
                                 @if (stationSingleWorkorderSingleSerial.hasCustomUIInfo)

@@ -33,8 +33,8 @@ namespace TMWeb.EFModels
         private string errorMsg = string.Empty;
         public string ErrorMsg => errorMsg;
 
-        public Action? MachineStatechangedAct;
-        private void MachineStatechanged() => MachineStatechangedAct?.Invoke();
+        public Action<Status>? MachineStatechangedAct;
+        private void MachineStatechanged() => MachineStatechangedAct?.Invoke(status);
 
         public Action? TagsStatechangedAct;
         protected void TagsStatechange() => TagsStatechangedAct?.Invoke();

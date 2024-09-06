@@ -163,4 +163,25 @@
   <data name="Command" xml:space="preserve">
     <value>Command</value>
   </data>
+  <data name="Station Dashboard" xml:space="preserve">
+    <value>Station Dashboard</value>
+  </data>
+  <data name="Machine Dashboard" xml:space="preserve">
+    <value>Machine Dashboard</value>
+  </data>
+  <data name="Station in" xml:space="preserve">
+    <value>Station in</value>
+  </data>
+  <data name="Station out" xml:space="preserve">
+    <value>Station out</value>
+  </data>
+  <data name="Serial No" xml:space="preserve">
+    <value>Serial No</value>
+  </data>
+  <data name="Record" xml:space="preserve">
+    <value>Record</value>
+  </data>
+  <data name="Start time" xml:space="preserve">
+    <value>Start time</value>
+  </data>
 </root>
