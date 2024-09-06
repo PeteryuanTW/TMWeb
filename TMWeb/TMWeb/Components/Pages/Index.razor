@@ -1,4 +1,9 @@
 ﻿@page "/"
 
 @code {
+    protected override async Task OnInitializedAsync()
+    {
+        var a = await userDataService.GetAllUsers();
+        await base.OnInitializedAsync();
+    }
 }

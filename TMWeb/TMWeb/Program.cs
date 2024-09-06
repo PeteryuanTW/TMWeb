@@ -6,6 +6,7 @@ using TMWeb.EFModels;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.LogBranch.Extensions;
+using CommonLibrary.Auth.EFModels;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -48,11 +49,15 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddDbContextFactory<TmwebContext>(options =>
 {
-    var a = builder.Configuration.GetConnectionString("DefaultConnection");
-
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection"));
 });
+builder.Services.AddDbContextFactory<UserDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection"));
+});
+
 builder.Services.AddSingleton<TMWebShopfloorService>();
+builder.Services.AddSingleton<UserDataService>();
 builder.Services.AddSingleton<UIService>();
 builder.Services.AddLocalization();
 var supportedCultures = new[] { "zh-TW", "en-US" };
