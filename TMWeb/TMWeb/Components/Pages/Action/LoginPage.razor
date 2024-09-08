@@ -1,0 +1,50 @@
+﻿@page "/Login"
+@rendermode InteractiveServer
+@inherits AuthComponentBase
+@inject NavigationManager nav
+
+<DxFormLayout>
+    <DxFormLayoutGroup>
+        @if (!authService.isAuth)
+        {
+            <DxFormLayoutItem>
+                <DxTextBox @bind-Text="@name"></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem>
+                <DxTextBox @bind-Text="@pwd"></DxTextBox>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem>
+                <DxButton Text="login" Click="Login"></DxButton>
+            </DxFormLayoutItem>
+        }
+        else
+        {
+            <DxFormLayoutItem>
+                <DxButton Text="logout" Click="Logout"></DxButton>
+            </DxFormLayoutItem>
+        }
+    </DxFormLayoutGroup>
+</DxFormLayout>
+
+@code {
+    string name = string.Empty;
+    string pwd = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await authService.RetriveUserInfo();
+        name = authService.UserName;
+        await base.OnInitializedAsync();
+    }
+
+    private async Task Login()
+    {
+        await authService.Login(name, pwd);
+        nav.NavigateTo(nav.Uri);
+    }
+    private async Task Logout()
+    {
+        await authService.Logout();
+        nav.NavigateTo("/");
+    }
+}

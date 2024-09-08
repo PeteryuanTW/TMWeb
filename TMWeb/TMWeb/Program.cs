@@ -7,6 +7,8 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.LogBranch.Extensions;
 using CommonLibrary.Auth.EFModels;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using BitzArt.Blazor.Cookies;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,9 @@ builder.Services.AddDevExpressBlazor(options =>
     options.BootstrapVersion = DevExpress.Blazor.BootstrapVersion.v5;
     options.SizeMode = DevExpress.Blazor.SizeMode.Large;
 });
+
+builder.AddBlazorCookies();
+
 
 //https://github.com/nethawkChen/dotnet8-Serilog
 var setting = builder.Configuration;
@@ -59,6 +64,11 @@ builder.Services.AddDbContextFactory<UserDbContext>(options =>
 builder.Services.AddSingleton<TMWebShopfloorService>();
 builder.Services.AddSingleton<UserDataService>();
 builder.Services.AddSingleton<UIService>();
+builder.Services.AddScoped<AuthService>(p =>
+{
+    return new AuthService("TMWeb", p.GetRequiredService<IServiceScopeFactory>(), p.GetRequiredService<ICookieService>());
+});
+
 builder.Services.AddLocalization();
 var supportedCultures = new[] { "zh-TW", "en-US" };
 var localizationOptions = new RequestLocalizationOptions()
@@ -82,6 +92,9 @@ else
     app.UseHsts();
 }
 //app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.UseStaticFiles();
 app.UseAntiforgery();

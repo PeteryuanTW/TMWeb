@@ -1,8 +1,12 @@
 ﻿@using Microsoft.AspNetCore.Mvc.ViewFeatures
 @using System.Globalization
 @using Microsoft.AspNetCore.Localization
+@using Microsoft.AspNetCore.Authentication
+@using Microsoft.AspNetCore.Authentication.Cookies
+@using System.Security.Claims
 
 @inject IFileVersionProvider FileVersionProvider
+@inject AuthService authService
 
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
@@ -34,15 +38,14 @@
     [CascadingParameter]
     public HttpContext? HttpContext { get; set; }
 
-    protected override void OnInitialized()
+    protected override Task OnInitializedAsync()
     {
-        var a = CultureInfo.CurrentCulture.DisplayName;
-        var b = CultureInfo.CurrentUICulture.DisplayName;
         HttpContext?.Response.Cookies.Append(
             CookieRequestCultureProvider.DefaultCookieName,
             CookieRequestCultureProvider.MakeCookieValue(
                 new RequestCulture(
                     CultureInfo.CurrentCulture,
                     CultureInfo.CurrentUICulture)));
+        return base.OnInitializedAsync();
     }
 }
