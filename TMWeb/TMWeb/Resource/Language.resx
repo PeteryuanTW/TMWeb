@@ -226,4 +226,7 @@
   <data name="Sequence" xml:space="preserve">
     <value>Sequence</value>
   </data>
+  <data name="List" xml:space="preserve">
+    <value>List</value>
+  </data>
 </root>

@@ -2,7 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using BitzArt.Blazor.Cookies;
-namespace TMWeb.Services
+using CommonLibrary.API.Message;
+using CommonLibrary.Auth.Data;
+
+namespace CommonLibrary.Auth
 {
     public class AuthService
     {
@@ -11,16 +14,15 @@ namespace TMWeb.Services
         private readonly IServiceScopeFactory scopeFactory;
         private readonly ICookieService cookieService;
 
-        private string userName = string.Empty;
-        public string UserName => userName;
+        private UserInfoDTO userInfoDTO = new();
+        public UserInfoDTO UserInfoDTO => userInfoDTO;
 
-        public string role = string.Empty;
-
-        public ICollection<string> actions = new List<string>();
-
-        public bool isAuth => !string.IsNullOrEmpty(userName);
+        public bool isAuth => !string.IsNullOrEmpty(userInfoDTO.UserName);
 
         private bool retivedUserInfo = false;
+
+        public bool IsProcessing => isProcessing;
+        private bool isProcessing = false;
 
         public System.Action? AuthStatusChangedAct;
         private void AuthStatusChanged() => AuthStatusChangedAct?.Invoke();
@@ -35,6 +37,7 @@ namespace TMWeb.Services
 
         public async Task RetriveUserInfo()
         {
+            isProcessing = true;
             if (!retivedUserInfo)
             {
                 var cookie = await cookieService.GetAsync(cookieName);
@@ -54,63 +57,101 @@ namespace TMWeb.Services
             {
 
             }
-
+            isProcessing = false;
         }
 
         public void Login(string token)
         {
+            isProcessing = true;
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-                var user = dbContext.UserInfos.Include(x => x.Role).ThenInclude(x => x.ActionCodes).FirstOrDefault(x => x.Token == new Guid(token));
+                var user = dbContext.UserInfos.Include(x => x.RoleCodeNavigation).ThenInclude(x => x.ActionCodes).FirstOrDefault(x => x.Token == new Guid(token));
                 if (user != null)
                 {
                     SetUserInfo(user);
                     AuthStatusChanged();
                 }
             }
+            isProcessing = false;
         }
 
-        public async Task Login(string userName, string password)
+        public async Task<RequestResult> Login(LoginDataDTO loginDataDTO)
         {
-            using (var scope = scopeFactory.CreateScope())
+            isProcessing = true;
+            try
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-                var user = dbContext.UserInfos.Include(x => x.Role).ThenInclude(x => x.ActionCodes).FirstOrDefault(x => x.UserName == userName && x.HashPassword == password);
-                if (user != null)
+                using (var scope = scopeFactory.CreateScope())
                 {
-                    SetUserInfo(user);
-                    Guid newToken = Guid.NewGuid();
-                    user.Token = newToken;
-                    await dbContext.SaveChangesAsync();
-                    await cookieService.SetAsync(cookieName, newToken.ToString(), DateTime.Now.AddHours(1), CancellationToken.None);
-                    AuthStatusChanged();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+                    var user = dbContext.UserInfos.Include(x => x.RoleCodeNavigation).ThenInclude(x => x.ActionCodes).FirstOrDefault(x => x.UserName == loginDataDTO.UserName);
+                    if (user != null)
+                    {
+                        if (user.HashPassword == loginDataDTO.Password)
+                        {
+                            SetUserInfo(user);
+                            Guid newToken = Guid.NewGuid();
+                            user.Token = newToken;
+                            await dbContext.SaveChangesAsync();
+                            await cookieService.SetAsync(cookieName, newToken.ToString(), DateTime.Now.AddHours(1), CancellationToken.None);
+                            AuthStatusChanged();
+                            return new(2, $"login success");
+
+                        }
+                        else
+                        {
+                            return new(4, $"user {loginDataDTO.UserName} password not match");
+                        }
+
+                    }
+                    else
+                    {
+                        return new(4, $"user {loginDataDTO.UserName} is not exist");
+                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                return new(4, ex.Message);
+            }
+            finally
+            {
+                isProcessing = false;
             }
         }
 
         private void SetUserInfo(UserInfo userInfo)
         {
-            userName = userInfo.UserName;
-            role = userInfo.Role.RoleName;
-            actions = userInfo.Role.ActionCodes.Select(x => x.Name).ToList();
+            userInfoDTO = new(userInfo);
         }
 
-        public async Task Logout()
+        public async Task<RequestResult> Logout()
         {
-            using (var scope = scopeFactory.CreateScope())
+            isProcessing = true;
+            if (isAuth)
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-                var user = dbContext.UserInfos.FirstOrDefault(x => x.UserName == userName);
-                if (user != null)
+                using (var scope = scopeFactory.CreateScope())
                 {
-                    user.Token = null;
-                    await dbContext.SaveChangesAsync();
-                    AuthStatusChanged();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+                    var user = dbContext.UserInfos.FirstOrDefault(x => x.UserName == userInfoDTO.UserName);
+                    if (user != null)
+                    {
+                        user.Token = null;
+                        await dbContext.SaveChangesAsync();
+                    }
                 }
+                await cookieService.RemoveAsync(cookieName);
+                userInfoDTO = new();
+                isProcessing = false;
+                AuthStatusChanged();
+                return new(2, $"logout success");
             }
-            await cookieService.RemoveAsync(cookieName);
-            AuthStatusChanged();
+            else
+            {
+                isProcessing = false;
+                return new(3, $"no auth yet");
+            }
+            
         }
     }
 }

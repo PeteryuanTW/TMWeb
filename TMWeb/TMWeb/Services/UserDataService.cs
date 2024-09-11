@@ -18,7 +18,7 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-                return Task.FromResult(dbContext.UserInfos.Include(x=>x.Role).ThenInclude(x=>x.ActionCodes).ToList());
+                return Task.FromResult(dbContext.UserInfos.Include(x=>x.RoleCodeNavigation).ThenInclude(x=>x.ActionCodes).ToList());
             }
         }
     }

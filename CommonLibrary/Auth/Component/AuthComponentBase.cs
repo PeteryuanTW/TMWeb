@@ -4,9 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using TMWeb.Services;
 
-namespace CommonLibrary.Auth.Component
+namespace CommonLibrary.Auth
 {
     public class AuthComponentBase :ComponentBase
     {

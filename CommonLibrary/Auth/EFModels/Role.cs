@@ -11,5 +11,5 @@ public partial class Role
 
     public virtual ICollection<UserInfo> UserInfos { get; set; } = new List<UserInfo>();
 
-    public virtual ICollection<Action> ActionCodes { get; set; } = new List<Action>();
+    public virtual ICollection<ActionDetail> ActionCodes { get; set; } = new List<ActionDetail>();
 }

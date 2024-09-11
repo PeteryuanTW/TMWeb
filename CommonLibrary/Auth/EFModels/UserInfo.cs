@@ -17,5 +17,5 @@ public partial class UserInfo
 
     public Guid? Token { get; set; }
 
-    public virtual Role? Role { get; set; }
+    public virtual Role? RoleCodeNavigation { get; set; }
 }

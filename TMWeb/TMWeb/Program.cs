@@ -6,6 +6,7 @@ using TMWeb.EFModels;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.LogBranch.Extensions;
+using CommonLibrary.Auth;
 using CommonLibrary.Auth.EFModels;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using BitzArt.Blazor.Cookies;
@@ -63,7 +64,7 @@ builder.Services.AddDbContextFactory<UserDbContext>(options =>
 
 builder.Services.AddSingleton<TMWebShopfloorService>();
 builder.Services.AddSingleton<UserDataService>();
-builder.Services.AddSingleton<UIService>();
+builder.Services.AddScoped<UIService>();
 builder.Services.AddScoped<AuthService>(p =>
 {
     return new AuthService("TMWeb", p.GetRequiredService<IServiceScopeFactory>(), p.GetRequiredService<ICookieService>());

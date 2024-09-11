@@ -33,6 +33,7 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<Process> Processes { get; set; }
 
+
     public virtual DbSet<Station> Stations { get; set; }
 
     public virtual DbSet<StationUirecord> StationUirecords { get; set; }
@@ -49,6 +50,7 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<TaskRecordDetail> TaskRecordDetails { get; set; }
 
+
     public virtual DbSet<Workorder> Workorders { get; set; }
 
     public virtual DbSet<WorkorderRecipeConfig> WorkorderRecipeConfigs { get; set; }
@@ -61,12 +63,11 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<WorkorderRecordDetail> WorkorderRecordDetails { get; set; }
 
-//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Server=localhost;Database=TMWeb;Trusted_Connection=True; trustServerCertificate=true;");
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+
         modelBuilder.Entity<ItemDetail>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__ItemDeta__3214EC27CD8B5278");
@@ -443,11 +444,21 @@ public partial class TmwebContext : DbContext
                 .HasColumnName("ID");
             entity.Property(e => e.ConfigId).HasColumnName("ConfigID");
             entity.Property(e => e.RecipeName).HasMaxLength(50);
+            entity.Property(e => e.TagCategoryId).HasColumnName("TagCategoryID");
+            entity.Property(e => e.TagId).HasColumnName("TagID");
             entity.Property(e => e.Value).HasMaxLength(50);
 
             entity.HasOne(d => d.Config).WithMany(p => p.WorkorderRecipeContents)
                 .HasForeignKey(d => d.ConfigId)
                 .HasConstraintName("FK__Workorder__Confi__72C60C4A");
+
+            entity.HasOne(d => d.TagCategoryTdNavigation).WithMany(p => p.WorkorderRecipeContents)
+                .HasForeignKey(d => d.TagCategoryId)
+                .HasConstraintName("FK_WorkorderRecipeContents_TagCategory");
+
+            entity.HasOne(d => d.Tag).WithMany(p => p.WorkorderRecipeContents)
+                .HasForeignKey(d => d.TagId)
+                .HasConstraintName("FK_WorkorderRecipeContents_Tag");
         });
 
         modelBuilder.Entity<WorkorderRecordConfig>(entity =>

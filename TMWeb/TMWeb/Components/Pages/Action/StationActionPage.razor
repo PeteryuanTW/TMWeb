@@ -1,4 +1,4 @@
-﻿@page "/{Process}/StationAction"
+﻿@page "/{ProcessID}/StationAction"
 @rendermode InteractiveServer
 
 <div class="h-100">
@@ -36,7 +36,7 @@
                     <DxStackLayoutItem Length="1fr">
                         <Template>
                             <div>
-                                <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="@Process">
+                                <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="@process.Name">
                                     <Items>
                                         <DxToolbarItem RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="oi oi-plus" Click="ShowDrawer" BeginGroup="true" />
                                         <DxToolbarItem RenderStyle="ButtonRenderStyle.Success" IconCssClass="oi oi-media-play" Click="RunAllStations" BeginGroup="true" />
@@ -77,7 +77,9 @@
 
 @code {
     [Parameter]
-    public string Process { get; set; }
+    public string ProcessID { get; set; }
+    Process? process;
+
     private List<Station> stations = new();
     private List<Station> currentPageStations => stations.Skip(amountPerPage * (currentPage)).Take(amountPerPage).ToList();
 
@@ -95,7 +97,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        stations = await shopfloorService.GetStationsByProcessName(Process);
+        process = await shopfloorService.GetProcessByID(new Guid(ProcessID));
+        stations = await shopfloorService.GetStationsByProcessID(new Guid(ProcessID));
         amountPerPage = totalStationAmount;
     }
 
@@ -126,7 +129,7 @@
 
     private async Task GetDrawerData()
     {
-        Process? process = await shopfloorService.GetProcessByName(Process);
+        //Process? process = await shopfloorService.GetProcessByID(new Guid(ProcessID));
         if (process != null)
         {
             workorders_start = await shopfloorService.GetWorkordersByProcessAndStatus(process.Id, new List<int> { 0, 1 });

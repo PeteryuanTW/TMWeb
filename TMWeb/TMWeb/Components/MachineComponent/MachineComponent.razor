@@ -1,4 +1,6 @@
-﻿<div class="card shadow text-center background-card p-3 panel @(GetStatusCssClass())">
+﻿@rendermode InteractiveServer
+
+<div class="card shadow text-center background-card p-3 panel @(GetStatusCssClass())" @onclick="@Nav">
     <DxGridLayout >
         <Rows>
             <DxGridLayoutRow Height="2fr" />
@@ -81,6 +83,14 @@
                 return "error";
             default:
                 return string.Empty;
+        }
+    }
+
+    private void Nav()
+    {
+        if (!string.IsNullOrEmpty(MachineParam.Id.ToString()))
+        {
+            nav.NavigateTo($"/Machine/{MachineParam.Id}");
         }
     }
 }

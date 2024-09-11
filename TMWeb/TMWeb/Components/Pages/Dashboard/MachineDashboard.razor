@@ -1,4 +1,4 @@
-﻿@page "/{Process}/MachineDashboard"
+﻿@page "/{ProcessID}/MachineDashboard"
 @rendermode InteractiveServer
 @inject TMWebShopfloorService shopfloorService
 
@@ -11,12 +11,12 @@
 
 @code {
     [Parameter]
-    public string Process{ get; set; }
+    public string ProcessID{ get; set; }
 
     private List<Machine> machines = new();
 
     protected override async Task OnInitializedAsync()
     {
-        machines = await shopfloorService.GetMachineByProcessName(Process);
+        machines = await shopfloorService.GetMachineByProcessID(new Guid(ProcessID));
     }
 }

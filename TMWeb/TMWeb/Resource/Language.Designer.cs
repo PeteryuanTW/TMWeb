@@ -160,6 +160,15 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 List 的當地語系化字串。
+        /// </summary>
+        public static string List {
+            get {
+                return ResourceManager.GetString("List", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Lot 的當地語系化字串。
         /// </summary>
         public static string Lot {

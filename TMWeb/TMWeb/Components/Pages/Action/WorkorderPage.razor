@@ -1,7 +1,5 @@
 ﻿@page "/Workorder/{Workorderid}"
 @rendermode InteractiveServer
-@inject NavigationManager nav
-@inject TMWebShopfloorService shopfloorService
 
 @if (hasWorkorder)
 {
@@ -63,11 +61,13 @@
 
                                     @foreach (var recipe in workorder.RecipeCategory?.WorkorderRecipeContents)
                                     {
-                                        <DxFormLayoutItem>
-                                            <DxTextBox Text="@recipe.RecipeName"></DxTextBox>
+                                        <DxFormLayoutItem Caption="@recipe.RecipeName" CaptionPosition="CaptionPosition.Vertical">
+                                            <DxTextBox Text="@recipe.Value" ReadOnly="true"></DxTextBox>
                                         </DxFormLayoutItem>
                                     }
-
+                                    <DxFormLayoutItem>
+                                        <DxButton Text="Deploy Recipes" Click="DeployRecipes" />
+                                    </DxFormLayoutItem>
                                 </DxFormLayoutTabPage>
                             }
                             @if (workorder.HasWorkorderRecord && workorder.WorkorderRecordIncluded)
@@ -113,9 +113,36 @@
                     </DxFormLayout>
                 </Template>
             </DxGridLayoutItem>
-            <DxGridLayoutItem Row="1" Column="0" RowSpan="2">
+            <DxGridLayoutItem Row="0" Column="1" RowSpan="2">
                 <Template>
+                    <div class="w-100 h-100 p-3">
+                        <DxFormLayout>
+                            @foreach (var recipeCheckTable in recipeCheckTables)
+                            {
+                                <DxFormLayoutGroup>
+                                    <HeaderContentTemplate>
+                                        <div>
+                                            @recipeCheckTable.recipeContent.RecipeName
+                                        </div>
+                                        <DxCheckBox Checked="@(recipeCheckTable.RecipeReady)" ReadOnly="true"></DxCheckBox>
+                                    </HeaderContentTemplate>
+                                    <Items>
+                                        <DxFormLayoutItem>
+                                            <DxGrid Data="@recipeCheckTable.recipeCheckItems">
+                                                <Columns>
+                                                    <DxGridDataColumn FieldName="@nameof(RecipeCheckItem.MachineName)" />
+                                                    <DxGridDataColumn FieldName="@nameof(RecipeCheckItem.Val)" />
+                                                </Columns>
+                                            </DxGrid>
+                                        </DxFormLayoutItem>
+                                    </Items>
 
+                                </DxFormLayoutGroup>
+
+                            }
+                        </DxFormLayout>
+
+                    </div>
                 </Template>
             </DxGridLayoutItem>
             <DxGridLayoutItem Row="1" Column="0">
@@ -155,10 +182,13 @@
     private IEnumerable<ItemRecordConfig> itemRecordConfigs;
     private IEnumerable<TaskRecordConfig> taskRecordConfigs;
 
+    private List<RecipeCheckTable> recipeCheckTables = new();
+
     protected override async Task OnInitializedAsync()
     {
         await GetParameter();
         await GetWorkorderDetail();
+        await GenerateRecipeCheckTables();
     }
     private async Task GetWorkorderDetail()
     {
@@ -171,6 +201,30 @@
         workorderRecordConfigs = await shopfloorService.GetWorkorderRecordConfigs();
         itemRecordConfigs = await shopfloorService.GetItemRecordConfigs();
         taskRecordConfigs = await shopfloorService.GetTaskRecordConfigs();
+
+    }
+
+    private async Task GenerateRecipeCheckTables()
+    {
+        if (workorder.HasRecipe && workorder.RecipeIncluded)
+        {
+            recipeCheckTables = new();
+            foreach (var a in workorder.RecipeCategory?.WorkorderRecipeContents)
+            {
+                recipeCheckTables.Add(await shopfloorService.GetRecipeCheckTableInProcess(workorder.Process.Name, a));
+            }
+        }
+    }
+
+    private async Task DeployRecipes()
+    {
+        foreach (var recipe in recipeCheckTables)
+        {
+            foreach (var machineTag in recipe.recipeCheckItems)
+            {
+                await shopfloorService.SetMachineTag(machineTag.MachineName, machineTag.Tag.Name, recipe.recipeContent.RetriveValue());
+            }
+        }
     }
 
     private void SwitchEditMode()
@@ -192,7 +246,7 @@
     {
         await UpdateWorkorder();
         dataMode = DataMode.View;
-        nav.Refresh(forceReload:true);
+        nav.Refresh(forceReload: true);
     }
     private async Task UpdateWorkorder()
     {

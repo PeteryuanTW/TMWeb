@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CommonLibrary", "CommonLibrary\CommonLibrary.csproj", "{365B4FA1-B08D-4AA9-9973-BE0092F59759}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RazorCommonLibrary", "RazorCommonLibrary\RazorCommonLibrary.csproj", "{8280487D-4B53-4433-B5E5-BBEA76B5B57A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -32,12 +34,16 @@ Global
 		{365B4FA1-B08D-4AA9-9973-BE0092F59759}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{365B4FA1-B08D-4AA9-9973-BE0092F59759}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{365B4FA1-B08D-4AA9-9973-BE0092F59759}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8280487D-4B53-4433-B5E5-BBEA76B5B57A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8280487D-4B53-4433-B5E5-BBEA76B5B57A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8280487D-4B53-4433-B5E5-BBEA76B5B57A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8280487D-4B53-4433-B5E5-BBEA76B5B57A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {1CEEAD6E-0441-4FC0-9D24-CE23262D8505}
 		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {1CEEAD6E-0441-4FC0-9D24-CE23262D8505}
 	EndGlobalSection
 EndGlobal

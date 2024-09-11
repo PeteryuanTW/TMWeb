@@ -1,6 +1,7 @@
-﻿@page "/ProcessRoute/{Process}"
+﻿@page "/ProcessRoute/{ProcessID}"
 @rendermode InteractiveServer
 @inject NavigationManager navigationManager
+
 <div class="h-100">
     <DxStackLayout Orientation="Orientation.Vertical" ItemSpacing="2rem" CssClass="h-100">
         <Items>
@@ -8,7 +9,7 @@
                 <Template>
                     <div>
                         <div class="alert alert-secondary" role="alert">
-                            <h2>@Process</h2>
+                            <h2>@process.Name</h2>
                         </div>
                     </div>
                 </Template>
@@ -16,9 +17,8 @@
             <DxStackLayoutItem>
                 <Template>
                     <div class="h-100 d-flex align-items-center justify-content-around">
-                        <ProcessRoutingComponent NavLink="@($"{Process}/StationAction")" IconName="station" Text=@($"{localizer[$"Station Dashboard"]}")></ProcessRoutingComponent>
-                        <ProcessRoutingComponent NavLink="@($"{Process}/MachineDashboard")" IconName="machine" Text=@($"{localizer[$"Machine Dashboard"]}")></ProcessRoutingComponent>
-                        @* <ProcessRoutingComponent IconName="map" Text="Map Dashboard"></ProcessRoutingComponent> *@
+                        <ProcessRoutingComponent NavLink="@($"{ProcessID}/StationAction")" IconName="station" Text=@($"{localizer[$"Station Dashboard"]}")></ProcessRoutingComponent>
+                        <ProcessRoutingComponent NavLink="@($"{ProcessID}/MachineDashboard")" IconName="machine" Text=@($"{localizer[$"Machine Dashboard"]}")></ProcessRoutingComponent>
                     </div>
                 </Template>
             </DxStackLayoutItem>
@@ -28,20 +28,12 @@
 
 @code {
     [Parameter]
-    public string Process { get; set; }
-    private string process = string.Empty;
+    public string ProcessID { get; set; }
 
-    private List<string> processes = new();
-
+    private Process? process;
 
     protected override async Task OnInitializedAsync()
     {
-        processes = await shopfloorService.GetAllProcessName();
-        process = Process;
-    }
-
-    private void SelectedNewProcess(string s)
-    {
-        //navigationManager.NavigateTo($"/ProcessRoute/{s}", true);
+        process = await shopfloorService.GetProcessByID(new Guid(ProcessID));
     }
 }

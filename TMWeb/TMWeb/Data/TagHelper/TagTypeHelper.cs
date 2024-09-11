@@ -1,4 +1,6 @@
-﻿namespace TMWeb.Data.TagHelper
+﻿using TMWeb.EFModels;
+
+namespace TMWeb.Data.TagHelper
 {
     public static class TagTypeHelper
     {
@@ -30,6 +32,18 @@
             else
             {
                 return false;
+            }
+        }
+
+        public static bool TagIsEqual(Tag? tag1, Tag? tag2)
+        {
+            if (tag1 == null || tag2 == null)
+            {
+                return false;
+            }
+            else
+            {
+                return tag1.DataType == tag2.DataType && tag1.ValueString == tag2.ValueString;
             }
         }
     }

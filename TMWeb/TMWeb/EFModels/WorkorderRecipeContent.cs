@@ -15,5 +15,13 @@ public partial class WorkorderRecipeContent
 
     public string? Value { get; set; }
 
+    public Guid? TagCategoryId { get; set; }
+
+    public Guid? TagId { get; set; }
+
     public virtual WorkorderRecipeConfig? Config { get; set; }
+
+    public virtual Tag? Tag { get; set; }
+
+    public virtual TagCategory? TagCategoryTdNavigation { get; set; }
 }

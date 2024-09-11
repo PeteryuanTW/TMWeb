@@ -1,0 +1,36 @@
+﻿@page "/Setting"
+@rendermode InteractiveServer
+
+<DxComboBox Data="supportedCultures" Value="selectedCulture" TextFieldName="@(nameof(CultureInfo.Name))" ValueChanged="((CultureInfo cultureInfo)=>ApplySelectedCultureAsync(cultureInfo))"></DxComboBox>
+
+@code {
+    private CultureInfo[] supportedCultures = new[]
+    {
+        new CultureInfo("zh-TW"),
+        new CultureInfo("en-US"),
+    };
+
+    private CultureInfo? selectedCulture;
+
+    protected override Task OnInitializedAsync()
+    {
+        selectedCulture = CultureInfo.CurrentCulture;
+        return base.OnInitializedAsync();
+    }
+
+    private async Task ApplySelectedCultureAsync(CultureInfo cultureInfo)
+    {
+        if (CultureInfo.CurrentCulture != cultureInfo)
+        {
+            selectedCulture = cultureInfo;
+            var uri = new Uri(nav.Uri)
+                .GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
+            var cultureEscaped = Uri.EscapeDataString(selectedCulture.Name);
+            var uriEscaped = Uri.EscapeDataString(uri);
+
+            nav.NavigateTo(
+                $"Culture/Set?culture={cultureEscaped}&redirectUri={uriEscaped}",
+                forceLoad: true);
+        }
+    }
+}

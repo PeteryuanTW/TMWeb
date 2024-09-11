@@ -1,0 +1,13 @@
+﻿@page "/Loginout"
+@rendermode InteractiveServer
+@inject UIService uiService
+
+<div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
+    <LoginoutComponent BtnEventCallback="UserCallback"></LoginoutComponent>
+</div>
+@code {
+    private void UserCallback(RequestResult res)
+    {
+        uiService.ShowToast(res);
+    }
+}

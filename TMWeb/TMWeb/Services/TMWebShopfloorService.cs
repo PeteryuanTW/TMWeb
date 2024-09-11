@@ -19,7 +19,7 @@ namespace TMWeb.Services
             this.scopeFactory = scopeFactory;
             logger = tmWebShopfloorServicelogger;
             InitAllStations();
-            InitAllMachinesFromDB();
+            _ = InitAllMachinesFromDB();
 
         }
         #region process
@@ -604,7 +604,7 @@ namespace TMWeb.Services
 
         private List<Machine> machines = new();
         public List<Machine> Machines => machines;
-        private void InitAllMachinesFromDB()
+        private async Task InitAllMachinesFromDB()
         {
             using (var scope = scopeFactory.CreateScope())
             {
@@ -616,7 +616,7 @@ namespace TMWeb.Services
                     machine.InitMachine();
                     if (machine.Enabled)
                     {
-                        machine.ConnectAsync();
+                        await machine.ConnectAsync();
                         machine.Running();
                     }
                 }
@@ -633,7 +633,7 @@ namespace TMWeb.Services
                 if (tmp.Enabled)
                 {
                     tmp.ConnectAsync();
-                    tmp.Running();
+                    //tmp.Running();
                 }
                 return tmp;
             }
@@ -686,12 +686,33 @@ namespace TMWeb.Services
             machines.Add(InitMachineFromDBById(machine.Id));
         }
 
-
         public async Task<List<Machine>> GetMachineByProcessName(string processName)
         {
             Process? target = await GetProcessByName(processName);
             return machines.Where(x => x.ProcessId == target.Id).ToList();
         }
+        public Task<List<Machine>> GetMachineByProcessID(Guid id)
+        {
+            return Task.FromResult(machines.Where(x => x.ProcessId == id).ToList());
+        }
+
+        public async Task<RecipeCheckTable> GetRecipeCheckTableInProcess(string processName, WorkorderRecipeContent workorderRecipeContent)
+        {
+            RecipeCheckTable res = new(workorderRecipeContent);
+            var machineInProcess = await GetMachineByProcessName(processName);
+            var targetMachine = machineInProcess.Where(x => x.TagCategoryId == workorderRecipeContent.TagCategoryId).ToList();
+            foreach (var machine in targetMachine)
+            {
+                var targetTag = machine.TagCategory.Tags.FirstOrDefault(x => x.Id == workorderRecipeContent.TagId);
+                if (targetTag != null)
+                {
+                    await machine.UpdateTag(targetTag);
+                    res.AddCheckItem(new(machine, targetTag));
+                }
+            }
+            return res;
+        }
+
         public Task<Machine?> GetMachineByID(Guid? id)
         {
             return Task.FromResult(machines.FirstOrDefault(x => x.Id == id));
@@ -710,6 +731,43 @@ namespace TMWeb.Services
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
                 return Task.FromResult(dbContext.TagCategories.Where(x => x.ConnectionType == connectionType).ToList());
+            }
+        }
+
+        public async Task<Tag?> GetMachineTag(string machineName, string tagName)
+        {
+            Machine? targetMachine = await GetMachineByName(machineName);
+            if (targetMachine != null)
+            {
+                if (targetMachine.hasCategory)
+                {
+                    Tag? targetTag = targetMachine.TagCategory.Tags.FirstOrDefault(x => x.Name == tagName);
+                    if (targetTag!=null)
+                    {
+                        if (!targetTag.UpdateByTime)
+                        {
+                            await targetMachine.UpdateTag(targetTag);
+                        }
+                        return targetTag;
+                    }
+                }
+            }
+            return null;
+        }
+
+        public async Task SetMachineTag(string machineName, string tagName, Object val)
+        {
+            Machine? targetMachine = await GetMachineByName(machineName);
+            if (targetMachine != null)
+            {
+                if (targetMachine.hasCategory)
+                {
+                    Tag? targetTag = targetMachine.TagCategory.Tags.FirstOrDefault(x => x.Name == tagName);
+                    if (targetTag != null)
+                    {
+                        await targetMachine.SetTag(targetTag.Name, val);
+                    }
+                }
             }
         }
 

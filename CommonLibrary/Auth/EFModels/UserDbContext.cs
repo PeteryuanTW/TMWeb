@@ -6,32 +6,22 @@ namespace CommonLibrary.Auth.EFModels;
 
 public partial class UserDbContext : DbContext
 {
-    public UserDbContext()
-    {
-    }
-
     public UserDbContext(DbContextOptions<UserDbContext> options)
         : base(options)
     {
     }
 
-    public virtual DbSet<Action> Actions { get; set; }
+    public virtual DbSet<ActionDetail> ActionDetails { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
 
     public virtual DbSet<UserInfo> UserInfos { get; set; }
 
-//    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-//#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-//        => optionsBuilder.UseSqlServer("Server=localhost;Database=TMWeb;Trusted_Connection=True; trustServerCertificate=true;");
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Action>(entity =>
+        modelBuilder.Entity<ActionDetail>(entity =>
         {
-            entity.HasKey(e => e.Code);
-
-            entity.ToTable("Action");
+            entity.HasKey(e => e.Code).HasName("PK_Action");
 
             entity.Property(e => e.Code).ValueGeneratedNever();
             entity.Property(e => e.Name).HasMaxLength(50);
@@ -49,7 +39,7 @@ public partial class UserDbContext : DbContext
             entity.HasMany(d => d.ActionCodes).WithMany(p => p.RoleCodes)
                 .UsingEntity<Dictionary<string, object>>(
                     "RoleAction",
-                    r => r.HasOne<Action>().WithMany()
+                    r => r.HasOne<ActionDetail>().WithMany()
                         .HasForeignKey("ActionCode")
                         .OnDelete(DeleteBehavior.ClientSetNull)
                         .HasConstraintName("FK_RoleActions_Action"),
@@ -76,7 +66,7 @@ public partial class UserDbContext : DbContext
                 .HasColumnName("EMail");
             entity.Property(e => e.UserName).HasMaxLength(50);
 
-            entity.HasOne(d => d.Role).WithMany(p => p.UserInfos)
+            entity.HasOne(d => d.RoleCodeNavigation).WithMany(p => p.UserInfos)
                 .HasForeignKey(d => d.RoleCode)
                 .HasConstraintName("FK_UserInfo_Roles");
         });

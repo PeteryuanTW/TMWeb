@@ -14,7 +14,7 @@
                         <Items>
                             <DxToolbarItem IconCssClass="oi oi-plus" Click="NewProcess"  BeginGroup="true" />
                             <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowPopup" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
-                            <DxToolbarItem IconCssClass="oi oi-share" Click="@(()=>NavToProcessRouting(targetProcess?.Name))" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                            <DxToolbarItem IconCssClass="oi oi-share" Click="@(()=>NavToProcessRouting(targetProcess?.Id.ToString()))" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
                         </Items>
                     </DxToolbar>
                 </div>
@@ -140,8 +140,8 @@
         ClosePopup();
     }
 
-    private void NavToProcessRouting(string processName)
+    private void NavToProcessRouting(string processID)
     {
-        nav.NavigateTo($"/ProcessRoute/{processName}");
+        nav.NavigateTo($"/ProcessRoute/{processID}");
     }
 }

@@ -28,4 +28,6 @@ public partial class Tag
     public string? Param5 { get; set; }
 
     public virtual TagCategory Category { get; set; } = null!;
+
+    public virtual ICollection<WorkorderRecipeContent> WorkorderRecipeContents { get; set; } = new List<WorkorderRecipeContent>();
 }

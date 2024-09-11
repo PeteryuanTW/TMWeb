@@ -27,6 +27,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CommonLibrary\CommonLibrary.csproj" />
+    <ProjectReference Include="..\..\RazorCommonLibrary\RazorCommonLibrary.csproj" />
     <ProjectReference Include="..\TMWeb.Client\TMWeb.Client.csproj" />
   </ItemGroup>
   <ItemGroup>

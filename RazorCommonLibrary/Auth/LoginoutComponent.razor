@@ -1,0 +1,69 @@
+﻿@using DevExpress.Blazor
+@rendermode RenderMode.InteractiveServer
+@inherits AuthComponentBase
+@inject NavigationManager nav
+
+<div class="w-25 card p-5 ">
+    <DxFormLayout>
+        @if (authService.RetivedUserInfo || !authService.IsProcessing)
+        {
+            @if (authService.isAuth)
+            {
+                <DxFormLayoutItem Caption="User" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
+                    <DxTextBox Text="@authService.UserInfoDTO.UserName" ReadOnly="true"></DxTextBox>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Role" BeginRow="true" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
+                    <DxTextBox Text="@authService.UserInfoDTO.Role?.RoleName" ReadOnly="true"></DxTextBox>
+                </DxFormLayoutItem>
+            }
+            else
+            {
+                <DxFormLayoutItem Caption="User" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
+                    <DxTextBox @bind-Text="@loginDataDTO.UserName"></DxTextBox>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Password" ColSpanLg="12" BeginRow="true" CaptionPosition="CaptionPosition.Vertical">
+                    <DxTextBox @bind-Text="@loginDataDTO.Password"></DxTextBox>
+                </DxFormLayoutItem>
+            }
+            <DxFormLayoutItem BeginRow="true" ColSpanLg="12">
+                <Template>
+                    <div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
+                        <DxButton Text="@btnString" Click="BtnClick" RenderStyle="@buttonRenderStyle"></DxButton>
+                    </div>
+                </Template>
+
+            </DxFormLayoutItem>
+        }
+        else
+        {
+            <div>...</div>
+        }
+
+    </DxFormLayout>
+</div>
+@code {
+    [Parameter]
+    public EventCallback<RequestResult> BtnEventCallback { get; set; }
+
+    private LoginDataDTO loginDataDTO = new();
+
+    private string btnString => authService.isAuth ? "Logout" : "Login";
+
+    private ButtonRenderStyle buttonRenderStyle => authService.isAuth ? ButtonRenderStyle.Danger : ButtonRenderStyle.Info;
+
+    private async Task BtnClick()
+    {
+        RequestResult res;
+        if (authService.isAuth)
+        {
+            res = await authService.Logout();
+            await InvokeAsync(StateHasChanged);
+        }
+        else
+        {
+            res = await authService.Login(loginDataDTO);
+        }
+        await BtnEventCallback.InvokeAsync(res);
+        nav.NavigateTo("/");
+    }
+}

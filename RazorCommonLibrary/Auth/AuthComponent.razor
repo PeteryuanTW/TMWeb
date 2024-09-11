@@ -1,0 +1,24 @@
+﻿@using DevExpress.Blazor
+@rendermode RenderMode.InteractiveServer
+@inherits AuthComponentBase
+
+@if (authService.RetivedUserInfo)
+{
+    if (authService.isAuth)
+    {
+        <DxMenuItem Position="ItemPosition.End" Text="@($"{authService.UserInfoDTO.UserName}")" IconCssClass="oi oi-person" BeginGroup="true">
+            <Items>
+                <DxMenuItem Text="@($"Logout")" IconCssClass="oi oi-account-logout" NavigateUrl="/Loginout" />
+            </Items>
+        </DxMenuItem>
+    }
+    else
+    {
+        <DxMenuItem Position="ItemPosition.End" Text="@($"Login")" NavigateUrl="/Loginout" IconCssClass="oi oi-account-login" BeginGroup="true">
+        </DxMenuItem>
+    }
+}
+
+@code {
+
+}

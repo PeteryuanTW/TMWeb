@@ -62,6 +62,10 @@ namespace TMWeb.EFModels
         {
             return Task.CompletedTask;
         }
+        public virtual Task SetTag(string tagName, object val)
+        {
+            return Task.CompletedTask;
+        }
         public virtual Task SetTag(Tag tag, object val)
         {
             return Task.CompletedTask;

@@ -246,4 +246,7 @@
   <data name="Sequence" xml:space="preserve">
     <value>順序</value>
   </data>
+  <data name="List" xml:space="preserve">
+    <value>清單</value>
+  </data>
 </root>
