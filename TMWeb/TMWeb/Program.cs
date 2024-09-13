@@ -63,8 +63,9 @@ builder.Services.AddDbContextFactory<UserDbContext>(options =>
 });
 
 builder.Services.AddSingleton<TMWebShopfloorService>();
-builder.Services.AddSingleton<UserDataService>();
+builder.Services.AddSingleton<ScriptService>();
 builder.Services.AddScoped<UIService>();
+builder.Services.AddScoped<ScriptLoaderService>();
 builder.Services.AddScoped<AuthService>(p =>
 {
     return new AuthService("TMWeb", p.GetRequiredService<IServiceScopeFactory>(), p.GetRequiredService<ICookieService>());
@@ -77,8 +78,9 @@ var localizationOptions = new RequestLocalizationOptions()
     .AddSupportedCultures(supportedCultures)
     .AddSupportedUICultures(supportedCultures);
 
-
 builder.Services.AddControllers();
+
+builder.Services.AddCascadingAuthenticationState();
 var app = builder.Build();
 app.UseRequestLocalization(localizationOptions);
 // Configure the HTTP request pipeline.

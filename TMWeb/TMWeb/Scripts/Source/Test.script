@@ -1,0 +1,24 @@
+using System;
+using System.Threading.Tasks;
+using TMWeb.Scripts.Template;
+
+namespace TMWeb.Scripts.Source
+{
+    public class Test : ScriptBaseClass
+    {               
+        public override void OnStart()
+        {
+            
+        }
+        
+        public override async Task RunAction()
+        {
+            
+        }
+        
+        public override void OnStop()
+        {
+            
+        }
+    }
+};

@@ -15,6 +15,7 @@ public partial class TmwebContext : DbContext
     {
     }
 
+
     public virtual DbSet<ItemDetail> ItemDetails { get; set; }
 
     public virtual DbSet<ItemRecordConfig> ItemRecordConfigs { get; set; }
@@ -33,6 +34,7 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<Process> Processes { get; set; }
 
+    public virtual DbSet<ScriptConfig> ScriptConfigs { get; set; }
 
     public virtual DbSet<Station> Stations { get; set; }
 
@@ -50,7 +52,6 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<TaskRecordDetail> TaskRecordDetails { get; set; }
 
-
     public virtual DbSet<Workorder> Workorders { get; set; }
 
     public virtual DbSet<WorkorderRecipeConfig> WorkorderRecipeConfigs { get; set; }
@@ -63,11 +64,12 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<WorkorderRecordDetail> WorkorderRecordDetails { get; set; }
 
-
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=localhost;Database=TMWeb;Trusted_Connection=True; trustServerCertificate=true;");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-
         modelBuilder.Entity<ItemDetail>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__ItemDeta__3214EC27CD8B5278");
@@ -227,6 +229,17 @@ public partial class TmwebContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("ID");
             entity.Property(e => e.Name).HasMaxLength(50);
+        });
+
+        modelBuilder.Entity<ScriptConfig>(entity =>
+        {
+            entity.Property(e => e.Id)
+                .ValueGeneratedNever()
+                .HasColumnName("ID");
+            entity.Property(e => e.ClassName)
+                .HasMaxLength(10)
+                .IsFixedLength();
+            entity.Property(e => e.ScriptName).HasMaxLength(50);
         });
 
         modelBuilder.Entity<Station>(entity =>
@@ -452,7 +465,7 @@ public partial class TmwebContext : DbContext
                 .HasForeignKey(d => d.ConfigId)
                 .HasConstraintName("FK__Workorder__Confi__72C60C4A");
 
-            entity.HasOne(d => d.TagCategoryTdNavigation).WithMany(p => p.WorkorderRecipeContents)
+            entity.HasOne(d => d.TagCategory).WithMany(p => p.WorkorderRecipeContents)
                 .HasForeignKey(d => d.TagCategoryId)
                 .HasConstraintName("FK_WorkorderRecipeContents_TagCategory");
 

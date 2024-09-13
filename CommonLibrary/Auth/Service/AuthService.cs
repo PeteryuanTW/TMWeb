@@ -35,6 +35,26 @@ namespace CommonLibrary.Auth
             this.cookieService = cookieService;
         }
 
+        public bool IsRole(string role)
+        {
+            if (RetivedUserInfo)
+            {
+                if (userInfoDTO.Role != null)
+                {
+                    return userInfoDTO.Role.RoleName == role;
+
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                return false;
+            }
+        }
+
         public async Task RetriveUserInfo()
         {
             isProcessing = true;
@@ -75,7 +95,6 @@ namespace CommonLibrary.Auth
             }
             isProcessing = false;
         }
-
         public async Task<RequestResult> Login(LoginDataDTO loginDataDTO)
         {
             isProcessing = true;

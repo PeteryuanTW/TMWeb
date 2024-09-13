@@ -21,8 +21,8 @@
                     <DxMenuItem Text="@($"{localizer["Workorder"]}")" IconCssClass="oi oi-clipboard" NavigateUrl="/WorkordersGrid" />
                 </Items>
             </DxMenuItem>
-            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Machine"]}")" IconCssClass="oi oi-laptop" BeginGroup="true" />
-            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Tag"]}")" IconCssClass="oi oi-tags" />
+            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Script"]}")" IconCssClass="oi oi-script" NavigateUrl="/Scripts" />
+            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Tag"]}")" IconCssClass="oi oi-tags"  />
             <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Map"]}")" IconCssClass="oi oi-map">
                 <Items>
                     <DxMenuItem Text="@($"{localizer["Image"]}")" IconCssClass="oi oi-image" NavigateUrl="/ImageUpload" />
@@ -30,14 +30,17 @@
                 </Items>
             </DxMenuItem>
             <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Setting"]}")" IconCssClass="oi oi-cog" NavigateUrl="/Setting" BeginGroup="true"></DxMenuItem>
+            @if (authService.IsRole("SuperUser"))
+            {
+                <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Developer"]}")" IconCssClass="oi oi-peosple" BeginGroup="true">
+                    <Items>
+                        <DxMenuItem Text="@($"{localizer["Command"]}")" IconCssClass="oi oi-terminal" NavigateUrl="/Developer" />
+                        <DxMenuItem Text="@($"{localizer["Swagger"]}")" IconCssClass="oi oi-wrench" NavigateUrl="/Swagger" />
+                        <DxMenuItem Text="@($"{localizer["Modbus TCP"]}")" IconCssClass="oi oi-tablet" NavigateUrl="/ModbusTCPTesting" />
+                    </Items>
+                </DxMenuItem>
+            }
 
-            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Developer"]}")" IconCssClass="oi oi-peosple" BeginGroup="true">
-                <Items>
-                    <DxMenuItem Text="@($"{localizer["Command"]}")" IconCssClass="oi oi-terminal" NavigateUrl="/Developer" />
-                    <DxMenuItem Text="@($"{localizer["Swagger"]}")" IconCssClass="oi oi-wrench" NavigateUrl="/Swagger" />
-                    <DxMenuItem Text="@($"{localizer["Modbus TCP"]}")" IconCssClass="oi oi-tablet" NavigateUrl="/ModbusTCPTesting" />
-                </Items>
-            </DxMenuItem>
 
 
             <AuthComponent></AuthComponent>

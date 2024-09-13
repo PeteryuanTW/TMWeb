@@ -1,0 +1,45 @@
+﻿@page "/Scripts"
+@rendermode InteractiveServer
+
+<DxGrid Data="@scripts" FocusedRowEnabled="true" FocusedRowChanged="OnFocusedRowChanged">
+    <ToolbarTemplate>
+        <DxToolbar SizeMode="SizeMode.Large" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+            <DxToolbarItem IconCssClass="oi oi-plus" BeginGroup="true" />
+            <DxToolbarItem IconCssClass="oi oi-trash" Enabled="@scriptSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+            <DxToolbarItem IconCssClass="oi oi-pencil" Enabled="@scriptSelected" Click="NavToEditor" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+            <DxToolbarItem IconCssClass="oi oi-terminal" Enabled="@scriptSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+        </DxToolbar>
+    </ToolbarTemplate>
+    <Columns>
+        <DxGridDataColumn Caption="@($"{localizer["ID"]}")" FieldName="@nameof(ScriptConfig.Id)" />
+        <DxGridDataColumn Caption="@($"{localizer["Name"]}")" FieldName="@nameof(ScriptConfig.ScriptName)" />
+        <DxGridDataColumn Caption="@($"{localizer["Class"]}")" FieldName="@nameof(ScriptConfig.ClassName)" />
+        <DxGridDataColumn Caption="@($"{localizer["Enable"]}")" FieldName="@nameof(ScriptConfig.Enable)" />
+    </Columns>
+</DxGrid>
+
+@code {
+    private List<ScriptConfig> scripts = new();
+    private ScriptConfig? script;
+    private bool scriptSelected => script != null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        scripts = scriptService.GetAllScripts();
+        await base.OnInitializedAsync();
+    }
+
+    private void OnFocusedRowChanged(GridFocusedRowChangedEventArgs e)
+    {
+        var selectedScript = e.DataItem as ScriptConfig;
+        script = selectedScript != null ? selectedScript : null;
+    }
+
+    private void NavToEditor()
+    {
+        if (scriptSelected)
+        {
+            nav.NavigateTo($"/ScriptEditor/{script?.Id}");
+        }
+    }
+}

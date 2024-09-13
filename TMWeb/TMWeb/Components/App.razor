@@ -15,7 +15,7 @@
     <base href="/" />
     <link href=@AppendVersion("css/bootstrap/bootstrap.min.css") rel="stylesheet" />
 
-     <link href=@AppendVersion("_content/DevExpress.Blazor.Themes/bootstrap-external.bs5.min.css") rel="stylesheet" />
+    <link href=@AppendVersion("_content/DevExpress.Blazor.Themes/bootstrap-external.bs5.min.css") rel="stylesheet" />
 
 
     @DxResourceManager.RegisterScripts()
@@ -27,6 +27,10 @@
 <body>
     <Routes></Routes>
     <script src="_framework/blazor.web.js"></script>
+
+    <script src="_content/BlazorMonaco/jsInterop.js"></script>
+    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/loader.js"></script>
+    <script src="_content/BlazorMonaco/lib/monaco-editor/min/vs/editor/editor.main.js"></script>
 </body>
 
 </html>

@@ -617,7 +617,7 @@ namespace TMWeb.Services
                     if (machine.Enabled)
                     {
                         await machine.ConnectAsync();
-                        machine.Running();
+                        //machine.Running();
                     }
                 }
             }

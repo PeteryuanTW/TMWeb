@@ -277,6 +277,15 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Script 的當地語系化字串。
+        /// </summary>
+        public static string Script {
+            get {
+                return ResourceManager.GetString("Script", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Sequence 的當地語系化字串。
         /// </summary>
         public static string Sequence {

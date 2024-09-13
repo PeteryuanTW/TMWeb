@@ -249,4 +249,7 @@
   <data name="List" xml:space="preserve">
     <value>清單</value>
   </data>
+  <data name="Script" xml:space="preserve">
+    <value>腳本</value>
+  </data>
 </root>

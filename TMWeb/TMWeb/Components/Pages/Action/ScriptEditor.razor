@@ -1,0 +1,136 @@
+﻿@page "/ScriptEditor/{ScriptID}"
+@rendermode InteractiveServer
+@using BlazorMonaco.Editor
+@using System.Reflection
+@inject ScriptLoaderService scriptLoaderService
+
+<style>
+    .codeeditor {
+        height: 95%;
+    }
+</style>
+
+<div class="w-100 h-100">
+    <DxGridLayout ColumnSpacing="1rem" RowSpacing="1rem">
+        <Rows>
+            <DxGridLayoutRow Height="1fr"></DxGridLayoutRow>
+            <DxGridLayoutRow Height="8fr"></DxGridLayoutRow>
+        </Rows>
+        <Columns>
+            <DxGridLayoutColumn Width="6fr"></DxGridLayoutColumn>
+            <DxGridLayoutColumn Width="3fr"></DxGridLayoutColumn>
+        </Columns>
+        <Items>
+            <DxGridLayoutItem Row="0" Column="0" ColumnSpan="2">
+                <Template>
+                    <div class="h-100" style="display: flex; justify-content: center; align-items: center;">
+                        <DxToolbar SizeMode="SizeMode.Large">
+                            <DxToolbarItem Tooltip="Save"
+                                           Alignment="ToolbarItemAlignment.Left"
+                                           RenderStyle="ButtonRenderStyle.Info"
+                                           IconCssClass="oi oi-cloud-download"
+                                           BeginGroup="true" />
+                            <DxToolbarItem Tooltip="Compile"
+                                           Alignment="ToolbarItemAlignment.Left"
+                                           RenderStyle="ButtonRenderStyle.Warning"
+                                           IconCssClass="oi oi-bug"
+                                           Click="Compile"
+                                           BeginGroup="true" />
+                            <DxToolbarItem Tooltip="Deploy"
+                                           Alignment="ToolbarItemAlignment.Left"
+                                           RenderStyle="ButtonRenderStyle.Success"
+                                           IconCssClass="oi oi-code"
+                                           BeginGroup="true" />
+                        </DxToolbar>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="0">
+                <Template>
+                    <div class="h-100">
+                        <StandaloneCodeEditor @ref="@standaloneCodeEditor" CssClass="codeeditor" ConstructionOptions="EditorConstructionOptions" />
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="1">
+                <Template>
+                    <div style="height:95%">
+                        <DxMemo @bind-Text="@compileResult" CssClass="h-100" ResizeMode="MemoResizeMode.Disabled" ReadOnly="true"></DxMemo>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+        </Items>
+    </DxGridLayout>
+</div>
+@code {
+    [Parameter]
+    public string? ScriptID { get; set; }
+
+    public ScriptConfig? scriptConfig;
+    private bool hasScriptConfig => scriptConfig != null;
+
+    private string root = ".\\Scripts\\Source";
+
+    private string code = string.Empty;
+
+    private string compileResult = string.Empty;
+
+    private Assembly? assembly;
+
+    private StandaloneCodeEditor? standaloneCodeEditor { get; set; }
+
+    private StandaloneEditorConstructionOptions EditorConstructionOptions(StandaloneCodeEditor editor)
+    {
+        return new StandaloneEditorConstructionOptions
+            {
+                AutomaticLayout = true,
+                Language = "csharp",
+                Theme = "vs-dark"
+            };
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        scriptConfig = scriptService.GetScriptByID(new Guid(ScriptID));
+        await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ReadFile();
+        }
+        await base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task ReadFile()
+    {
+        if (hasScriptConfig)
+        {
+            await standaloneCodeEditor?.SetValue(await File.ReadAllTextAsync($"{root}\\{scriptConfig.ScriptName}.script"));
+        }
+    }
+
+    private async Task GetCodeFromEditor()
+    {
+        code = await standaloneCodeEditor?.GetValue();
+    }
+
+    private async Task Compile()
+    {
+        //loadingPanel.ShowPanle("start compiling...");
+        await GetCodeFromEditor();
+        try
+        {
+            assembly = await scriptLoaderService.CompileToDLLAssembly(code, release: true);
+            compileResult = $"[{DateTime.Now}]:Compile success";
+        }
+        catch (Exception e)
+        {
+            compileResult = $"[{DateTime.Now}]:{e.Message}";
+        }
+        //loadingPanel.ClosePanle();
+
+    }
+}

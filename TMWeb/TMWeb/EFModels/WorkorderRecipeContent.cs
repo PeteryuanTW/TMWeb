@@ -23,5 +23,5 @@ public partial class WorkorderRecipeContent
 
     public virtual Tag? Tag { get; set; }
 
-    public virtual TagCategory? TagCategoryTdNavigation { get; set; }
+    public virtual TagCategory? TagCategory { get; set; }
 }
