@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TMWeb.Data;
 using TMWeb.EFModels;
+using TMWeb.Scripts.Template;
 
 namespace TMWeb.Services
 {
@@ -21,7 +22,7 @@ namespace TMWeb.Services
             return scriptConfigs;
         }
 
-        public ScriptConfig GetScriptByID(Guid id)
+        public ScriptConfig? GetScriptByID(Guid id)
         {
             return scriptConfigs.FirstOrDefault(x => x.Id == id);
         }
@@ -35,6 +36,15 @@ namespace TMWeb.Services
                 scriptConfigs = dbContext.ScriptConfigs.AsNoTracking().ToList();
             }
             return Task.CompletedTask;
+        }
+
+        public void DeployScriptByID(Guid id, ScriptBaseClass targetScript)
+        {
+            var target = GetScriptByID(id);
+            if (target != null)
+            {
+                target.SetScript(targetScript);
+            }
         }
     }
 }

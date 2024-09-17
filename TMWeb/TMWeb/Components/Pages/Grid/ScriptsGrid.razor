@@ -7,13 +7,12 @@
             <DxToolbarItem IconCssClass="oi oi-plus" BeginGroup="true" />
             <DxToolbarItem IconCssClass="oi oi-trash" Enabled="@scriptSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
             <DxToolbarItem IconCssClass="oi oi-pencil" Enabled="@scriptSelected" Click="NavToEditor" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
-            <DxToolbarItem IconCssClass="oi oi-terminal" Enabled="@scriptSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+            <DxToolbarItem IconCssClass="oi oi-terminal" Enabled="@scriptSelected" Click="NavToDashboard" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
         </DxToolbar>
     </ToolbarTemplate>
     <Columns>
         <DxGridDataColumn Caption="@($"{localizer["ID"]}")" FieldName="@nameof(ScriptConfig.Id)" />
         <DxGridDataColumn Caption="@($"{localizer["Name"]}")" FieldName="@nameof(ScriptConfig.ScriptName)" />
-        <DxGridDataColumn Caption="@($"{localizer["Class"]}")" FieldName="@nameof(ScriptConfig.ClassName)" />
         <DxGridDataColumn Caption="@($"{localizer["Enable"]}")" FieldName="@nameof(ScriptConfig.Enable)" />
     </Columns>
 </DxGrid>
@@ -40,6 +39,14 @@
         if (scriptSelected)
         {
             nav.NavigateTo($"/ScriptEditor/{script?.Id}");
+        }
+    }
+
+    private void NavToDashboard()
+    {
+        if (scriptSelected)
+        {
+            nav.NavigateTo($"/ScriptDashboard/{script?.Id}");
         }
     }
 }

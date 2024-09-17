@@ -20,4 +20,19 @@
     <ProjectReference Include="..\CommonLibrary\CommonLibrary.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="Resource\RCLLanguage.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>RCLLanguage.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resource\RCLLanguage.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>RCLLanguage.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

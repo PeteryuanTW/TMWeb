@@ -6,15 +6,15 @@
 {
     if (authService.isAuth)
     {
-        <DxMenuItem Position="ItemPosition.End" Text="@($"{authService.UserInfoDTO.UserName}")" IconCssClass="oi oi-person" BeginGroup="true">
+        <DxMenuItem Position="ItemPosition.End" Text="@($"{localizer["Hi"]}, {authService.UserInfoDTO.UserName}")" IconCssClass="oi oi-person" BeginGroup="true">
             <Items>
-                <DxMenuItem Text="@($"Logout")" IconCssClass="oi oi-account-logout" NavigateUrl="/Loginout" />
+                <DxMenuItem Text="@($"{localizer["Logout"]}")" IconCssClass="oi oi-account-logout" NavigateUrl="/Loginout" />
             </Items>
         </DxMenuItem>
     }
     else
     {
-        <DxMenuItem Position="ItemPosition.End" Text="@($"Login")" NavigateUrl="/Loginout" IconCssClass="oi oi-account-login" BeginGroup="true">
+        <DxMenuItem Position="ItemPosition.End" Text="@($"{localizer["Login"]}")" NavigateUrl="/Loginout" IconCssClass="oi oi-account-login" BeginGroup="true">
         </DxMenuItem>
     }
 }

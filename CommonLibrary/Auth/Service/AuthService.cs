@@ -10,6 +10,8 @@ namespace CommonLibrary.Auth
     public class AuthService
     {
         private string cookieName = "TMMAuthCookie";
+        private readonly int delay = 500;
+
 
         private readonly IServiceScopeFactory scopeFactory;
         private readonly ICookieService cookieService;
@@ -34,7 +36,17 @@ namespace CommonLibrary.Auth
             this.scopeFactory = scopeFactory;
             this.cookieService = cookieService;
         }
+        public void StartProcessing()
+        {
+            isProcessing = true;
+            AuthStatusChanged();
+        }
 
+        public void StopProcessing()
+        {
+            isProcessing = false;
+            AuthStatusChanged();
+        }
         public bool IsRole(string role)
         {
             if (RetivedUserInfo)
@@ -57,14 +69,14 @@ namespace CommonLibrary.Auth
 
         public async Task RetriveUserInfo()
         {
-            isProcessing = true;
+            StartProcessing();
             if (!retivedUserInfo)
             {
                 var cookie = await cookieService.GetAsync(cookieName);
                 if (cookie != null)
                 {
                     var token = cookie.Value.ToString();
-                    Login(token);
+                    await Login(token);
                 }
                 else
                 {
@@ -77,36 +89,40 @@ namespace CommonLibrary.Auth
             {
 
             }
-            isProcessing = false;
+            StopProcessing();
         }
 
-        public void Login(string token)
+        public async Task Login(string token)
         {
-            isProcessing = true;
+            StartProcessing();
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-                var user = dbContext.UserInfos.Include(x => x.RoleCodeNavigation).ThenInclude(x => x.ActionCodes).FirstOrDefault(x => x.Token == new Guid(token));
+                var user = dbContext.UserInfos.Include(x => x.RoleCodeNavigation).ThenInclude(x => x.ActionCodes)
+                    .AsSplitQuery().AsNoTracking()
+                    .FirstOrDefault(x => x.Token == new Guid(token));
                 if (user != null)
                 {
                     SetUserInfo(user);
                     AuthStatusChanged();
                 }
             }
-            isProcessing = false;
+            StopProcessing();
         }
         public async Task<RequestResult> Login(LoginDataDTO loginDataDTO)
         {
-            isProcessing = true;
+            StartProcessing();
             try
             {
                 using (var scope = scopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<UserDbContext>();
-                    var user = dbContext.UserInfos.Include(x => x.RoleCodeNavigation).ThenInclude(x => x.ActionCodes).FirstOrDefault(x => x.UserName == loginDataDTO.UserName);
+                    var user = dbContext.UserInfos.Include(x => x.RoleCodeNavigation).ThenInclude(x => x.ActionCodes)
+                        .AsSplitQuery().AsNoTracking()
+                        .FirstOrDefault(x => x.UserName == loginDataDTO.UserName);
                     if (user != null)
                     {
-                        if (user.HashPassword == loginDataDTO.Password)
+                        if (BCryptHelper.CheckPassword(loginDataDTO.Password, user.HashPassword))
                         {
                             SetUserInfo(user);
                             Guid newToken = Guid.NewGuid();
@@ -135,7 +151,7 @@ namespace CommonLibrary.Auth
             }
             finally
             {
-                isProcessing = false;
+                StopProcessing();
             }
         }
 
@@ -143,10 +159,9 @@ namespace CommonLibrary.Auth
         {
             userInfoDTO = new(userInfo);
         }
-
         public async Task<RequestResult> Logout()
         {
-            isProcessing = true;
+            StartProcessing();
             if (isAuth)
             {
                 using (var scope = scopeFactory.CreateScope())
@@ -161,13 +176,13 @@ namespace CommonLibrary.Auth
                 }
                 await cookieService.RemoveAsync(cookieName);
                 userInfoDTO = new();
-                isProcessing = false;
+                StopProcessing();
                 AuthStatusChanged();
                 return new(2, $"logout success");
             }
             else
             {
-                isProcessing = false;
+                StopProcessing();
                 return new(3, $"no auth yet");
             }
             

@@ -1,6 +1,6 @@
 ﻿using TMWeb.Services;
 
-namespace TMWeb
+namespace TMWeb.Scripts.Template
 {
     public enum ScriptStatus
     {
@@ -12,7 +12,7 @@ namespace TMWeb
     }
     public class ScriptBaseClass
     {
-        private readonly TMWebShopfloorService tmWebShopfloorService;
+        protected readonly TMWebShopfloorService tmWebShopfloorService;
         private ScriptStatus status;
         public ScriptStatus Status => status;
 
@@ -82,11 +82,25 @@ namespace TMWeb
             StatusChanged();
             WriteLog($"Script pause");
         }
-        public void Error(string s)
+        private void Error(string s)
         {
             status = ScriptStatus.Error;
             StatusChanged();
             WriteLog($"Script error({s})");
+        }
+
+        public void Resume()
+        {
+            status = ScriptStatus.Running;
+            StatusChanged();
+            WriteLog($"Script resume");
+        }
+
+        public void Stop()
+        {
+            status = ScriptStatus.Stop;
+            StatusChanged();
+            WriteLog($"Script stop");
         }
         public void WriteLog(string log)
         {

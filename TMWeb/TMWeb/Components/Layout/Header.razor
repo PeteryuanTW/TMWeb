@@ -22,7 +22,6 @@
                 </Items>
             </DxMenuItem>
             <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Script"]}")" IconCssClass="oi oi-script" NavigateUrl="/Scripts" />
-            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Tag"]}")" IconCssClass="oi oi-tags"  />
             <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Map"]}")" IconCssClass="oi oi-map">
                 <Items>
                     <DxMenuItem Text="@($"{localizer["Image"]}")" IconCssClass="oi oi-image" NavigateUrl="/ImageUpload" />
@@ -44,15 +43,6 @@
 
 
             <AuthComponent></AuthComponent>
-            @* <DxMenuItem Position="ItemPosition.End">
-            <Template>
-            <div class="h-100 d-flex flex-wrap justify-content-center align-content-center">
-            <div>
-            <AuthComponent></AuthComponent>
-            </div>
-            </div>
-            </Template>
-            </DxMenuItem> *@
         </Items>
     </DxMenu>
 </div>

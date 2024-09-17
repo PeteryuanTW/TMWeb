@@ -46,9 +46,13 @@ namespace TMWeb.Data
                 master = modbusFactory.CreateMaster(tcpClient);
                 Running();
             }
-            catch (Exception e)
+            catch (SocketException e)
             {
                 Disconnect(e.Message);
+            }
+            catch (Exception e)
+            {
+                Error(e.Message);
             }
         }
         public override async Task UpdateTag(Tag tag)

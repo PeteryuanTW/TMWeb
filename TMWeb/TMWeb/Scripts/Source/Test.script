@@ -1,11 +1,19 @@
 using System;
 using System.Threading.Tasks;
+
+using TMWeb.EFModels;
+
+using TMWeb.Services;
 using TMWeb.Scripts.Template;
 
 namespace TMWeb.Scripts.Source
 {
     public class Test : ScriptBaseClass
-    {               
+    {
+        public Test(TMWebShopfloorService tmWebShopfloorService):base(tmWebShopfloorService)
+        {
+            
+        }             
         public override void OnStart()
         {
             
@@ -13,7 +21,15 @@ namespace TMWeb.Scripts.Source
         
         public override async Task RunAction()
         {
-            
+            var a = await tmWebShopfloorService.GetMachineTag("本機測試", "動作判定");
+            if(a == null)
+            {
+                WriteLog("null");
+            }
+            else
+            {
+                WriteLog(a.ValueString);
+            }
         }
         
         public override void OnStop()

@@ -13,7 +13,7 @@
 <div class="w-100 h-100">
     <DxGridLayout ColumnSpacing="1rem" RowSpacing="1rem">
         <Rows>
-            <DxGridLayoutRow Height="1fr"></DxGridLayoutRow>
+            <DxGridLayoutRow Height="auto"></DxGridLayoutRow>
             <DxGridLayoutRow Height="8fr"></DxGridLayoutRow>
         </Rows>
         <Columns>
@@ -29,6 +29,7 @@
                                            Alignment="ToolbarItemAlignment.Left"
                                            RenderStyle="ButtonRenderStyle.Info"
                                            IconCssClass="oi oi-cloud-download"
+                                           Click="SaveFile"
                                            BeginGroup="true" />
                             <DxToolbarItem Tooltip="Compile"
                                            Alignment="ToolbarItemAlignment.Left"
@@ -40,7 +41,8 @@
                                            Alignment="ToolbarItemAlignment.Left"
                                            RenderStyle="ButtonRenderStyle.Success"
                                            IconCssClass="oi oi-code"
-                                           BeginGroup="true" />
+                                           BeginGroup="true"
+                                           Click="Deploy" />
                         </DxToolbar>
                     </div>
                 </Template>
@@ -48,13 +50,13 @@
             <DxGridLayoutItem Row="1" Column="0">
                 <Template>
                     <div class="h-100">
-                        <StandaloneCodeEditor @ref="@standaloneCodeEditor" CssClass="codeeditor" ConstructionOptions="EditorConstructionOptions" />
+                        <StandaloneCodeEditor  @ref="@standaloneCodeEditor" CssClass="codeeditor" ConstructionOptions="EditorConstructionOptions" />
                     </div>
                 </Template>
             </DxGridLayoutItem>
             <DxGridLayoutItem Row="1" Column="1">
                 <Template>
-                    <div style="height:95%">
+                    <div class="h-100">
                         <DxMemo @bind-Text="@compileResult" CssClass="h-100" ResizeMode="MemoResizeMode.Disabled" ReadOnly="true"></DxMemo>
                     </div>
                 </Template>
@@ -65,6 +67,7 @@
 @code {
     [Parameter]
     public string? ScriptID { get; set; }
+
 
     public ScriptConfig? scriptConfig;
     private bool hasScriptConfig => scriptConfig != null;
@@ -108,8 +111,36 @@
     {
         if (hasScriptConfig)
         {
-            await standaloneCodeEditor?.SetValue(await File.ReadAllTextAsync($"{root}\\{scriptConfig.ScriptName}.script"));
+            try
+            {
+                await standaloneCodeEditor?.SetValue(await File.ReadAllTextAsync($"{root}\\{scriptConfig.ScriptName}.script"));
+                uiService.ShowToast(new(1, $"Read script {scriptConfig.ScriptName} success"));
+            }
+            catch (Exception ex)
+            {
+                uiService.ShowToast(new(4, $"Read script {scriptConfig.ScriptName} fail({ex.Message})"));
+
+            }
         }
+        else
+        {
+            uiService.ShowToast(new(4, $"Script miss"));
+        }
+    }
+
+    private async Task SaveFile()
+    {
+        try
+        {
+            await GetCodeFromEditor();
+            await File.WriteAllTextAsync($"{root}\\{scriptConfig.ScriptName}.script", code);
+            uiService.ShowToast(new(1, $"Save script {scriptConfig.ScriptName} success"));
+        }
+        catch (Exception ex)
+        {
+            uiService.ShowToast(new(4, $"Save script {scriptConfig.ScriptName} fail({ex.Message})"));
+        }
+
     }
 
     private async Task GetCodeFromEditor()
@@ -131,6 +162,13 @@
             compileResult = $"[{DateTime.Now}]:{e.Message}";
         }
         //loadingPanel.ClosePanle();
+    }
 
+    private async Task Deploy()
+    {
+        await SaveFile();
+        var mytype = assembly.GetType($"TMWeb.Scripts.Source.{scriptConfig.ClassName}");
+        var instance = (ScriptBaseClass)Activator.CreateInstance(mytype, shopfloorService);
+        scriptService.DeployScriptByID(scriptConfig.Id, instance);
     }
 }

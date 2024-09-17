@@ -1,0 +1,137 @@
+﻿@page "/ScriptDashboard/{ScriptID}"
+@rendermode InteractiveServer
+
+<div class="w-100 h-100">
+    <DxGridLayout ColumnSpacing="1rem" RowSpacing="1rem">
+        <Rows>
+            <DxGridLayoutRow Height="auto"></DxGridLayoutRow>
+            <DxGridLayoutRow Height="8fr"></DxGridLayoutRow>
+        </Rows>
+        <Columns>
+            <DxGridLayoutColumn Width="4fr"></DxGridLayoutColumn>
+            <DxGridLayoutColumn Width="8fr"></DxGridLayoutColumn>
+        </Columns>
+        <Items>
+            <DxGridLayoutItem Row="0" Column="0" ColumnSpan="2">
+                <Template>
+                    <div class="h-100" style="display: flex; justify-content: center; align-items: center;">
+                        <DxToolbar SizeMode="SizeMode.Large">
+                            <DxToolbarItem Tooltip="Run"
+                                           Alignment="ToolbarItemAlignment.Left"
+                                           RenderStyle="ButtonRenderStyle.Success"
+                                           IconCssClass="oi oi-media-play"
+                                           Enabled="canrun"
+                                           Click="Run"
+                                           BeginGroup="true" />
+                            <DxToolbarItem Tooltip="Pause"
+                                           Alignment="ToolbarItemAlignment.Left"
+                                           RenderStyle="ButtonRenderStyle.Warning"
+                                           IconCssClass="oi oi-media-pause"
+                                           Enabled="canpause"
+                                           Click="Pause"
+                                           BeginGroup="true" />
+                            <DxToolbarItem Tooltip="Resume"
+                                           Alignment="ToolbarItemAlignment.Left"
+                                           RenderStyle="ButtonRenderStyle.Info"
+                                           IconCssClass="oi oi-loop-circular"
+                                           Enabled="canresume"
+                                           Click="Resume"
+                                           BeginGroup="true" />
+                            <DxToolbarItem Tooltip="Stop"
+                                           Alignment="ToolbarItemAlignment.Left"
+                                           RenderStyle="ButtonRenderStyle.Danger"
+                                           IconCssClass="oi oi-media-stop"
+                                           Click="Stop"
+                                           Enabled="canstop"
+                                           BeginGroup="true" />
+                        </DxToolbar>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="0">
+                <Template>
+                    <div class="h-100">
+                        <DxFormLayout>
+                            @if (hasScriptConfig)
+                            {
+                                <DxFormLayoutGroup Caption="@scriptConfig?.Id.ToString()">
+                                    <DxFormLayoutItem Caption="@($"{localizer["Name"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                        <DxTextBox Text="@scriptConfig?.ScriptName" ReadOnly="true"/>
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="@($"{localizer["Enable"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                        <DxCheckBox Checked="@scriptConfig?.Enable" CheckType="CheckType.Switch" ReadOnly="true"/>
+                                    </DxFormLayoutItem>
+                                </DxFormLayoutGroup>
+
+                                @if (scriptConfig.HasScript)
+                                {
+                                    <DxFormLayoutGroup>
+                                        <DxFormLayoutItem Caption="@($"{localizer["Status"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                            <DxTextBox Text="@(scriptConfig.script.Status.ToString())" ReadOnly="true"/>
+                                        </DxFormLayoutItem>
+                                    </DxFormLayoutGroup>
+                                }
+                            }
+                        </DxFormLayout>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+            <DxGridLayoutItem Row="1" Column="1">
+                <Template>
+                    <div class="h-100 p-1">
+                        <DxMemo Text="@logString" CssClass="h-100" ResizeMode="MemoResizeMode.Disabled" ReadOnly="true"></DxMemo>
+                    </div>
+                </Template>
+            </DxGridLayoutItem>
+        </Items>
+    </DxGridLayout>
+</div>
+
+@code {
+    [Parameter]
+    public string? ScriptID { get; set; }
+
+    public ScriptConfig? scriptConfig;
+    private bool hasScriptConfig => scriptConfig != null;
+    private bool canoperate => !hasScriptConfig ? false : scriptConfig.HasScript;
+
+    private bool canrun => canoperate && (scriptConfig.script.Status == ScriptStatus.Init || scriptConfig.script.Status == ScriptStatus.Stop);
+    private bool canpause => canoperate && scriptConfig.script.Status == ScriptStatus.Running;
+    private bool canresume => canoperate && (scriptConfig.script.Status == ScriptStatus.Pause || scriptConfig.script.Status == ScriptStatus.Error);
+    private bool canstop => canoperate && scriptConfig.script.Status == ScriptStatus.Running;
+
+    private string logString => canoperate ? scriptConfig.script.Log : string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        scriptConfig = scriptService.GetScriptByID(new Guid(ScriptID));
+        BindScriptConfigEvent();
+        await base.OnInitializedAsync();
+    }
+
+    private void BindScriptConfigEvent()
+    {
+        if (hasScriptConfig)
+        {
+            scriptConfig.ScriptChangedAct += RefreshUI;
+            if (scriptConfig.HasScript)
+            {
+                scriptConfig.script.StatusChangedAct += RefreshUI;
+            }
+        }
+    }
+
+    private async void RefreshUI()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Run()
+    {
+        await scriptConfig.script.StartScript();
+    }
+    private void Pause() => scriptConfig.script.Pause();
+    private void Resume() => scriptConfig.script.Resume();
+
+    private void Stop() => scriptConfig.script.Stop();
+}

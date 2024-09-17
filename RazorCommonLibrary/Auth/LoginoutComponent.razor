@@ -5,39 +5,67 @@
 
 <div class="w-25 card p-5 ">
     <DxFormLayout>
-        @if (authService.RetivedUserInfo || !authService.IsProcessing)
+        @if (!UIProcessing)
         {
-            @if (authService.isAuth)
+            @if (authService.RetivedUserInfo && !authService.IsProcessing)
             {
-                <DxFormLayoutItem Caption="User" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
-                    <DxTextBox Text="@authService.UserInfoDTO.UserName" ReadOnly="true"></DxTextBox>
-                </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Role" BeginRow="true" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
-                    <DxTextBox Text="@authService.UserInfoDTO.Role?.RoleName" ReadOnly="true"></DxTextBox>
+                @if (authService.isAuth)
+                {
+                    <DxFormLayoutItem Caption="@($"{localizer["User"]}")" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
+                        <DxTextBox Text="@authService.UserInfoDTO.UserName" ReadOnly="true"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="@($"{localizer["Role"]}")" BeginRow="true" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
+                        <DxTextBox Text="@authService.UserInfoDTO.Role?.RoleName" ReadOnly="true"></DxTextBox>
+                    </DxFormLayoutItem>
+                }
+                else
+                {
+                    <DxFormLayoutItem Caption="@($"{localizer["User"]}")" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
+                        <DxTextBox @bind-Text="@loginDataDTO.UserName"></DxTextBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="@($"{localizer["Password"]}")" ColSpanLg="12" BeginRow="true" CaptionPosition="CaptionPosition.Vertical">
+                        <DxTextBox @bind-Text="@loginDataDTO.Password"></DxTextBox>
+                    </DxFormLayoutItem>
+                }
+                <DxFormLayoutItem BeginRow="true" ColSpanLg="12">
+                    <Template>
+                        <div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
+                            <DxButton Text="@btnString" Click="BtnClick" RenderStyle="@buttonRenderStyle"></DxButton>
+                        </div>
+                    </Template>
+
                 </DxFormLayoutItem>
             }
             else
             {
-                <DxFormLayoutItem Caption="User" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
-                    <DxTextBox @bind-Text="@loginDataDTO.UserName"></DxTextBox>
-                </DxFormLayoutItem>
-                <DxFormLayoutItem Caption="Password" ColSpanLg="12" BeginRow="true" CaptionPosition="CaptionPosition.Vertical">
-                    <DxTextBox @bind-Text="@loginDataDTO.Password"></DxTextBox>
+                <DxFormLayoutItem BeginRow="true" ColSpanLg="12">
+                    <Template>
+                        <div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
+                            <DxProgressBar Type="ProgressBarType.Circular"
+                                           SizeMode="SizeMode.Large"
+                                           ShowLabel="false"
+                                           Indeterminate="true" />
+                        </div>
+                    </Template>
+
                 </DxFormLayoutItem>
             }
+        }
+        else
+        {
             <DxFormLayoutItem BeginRow="true" ColSpanLg="12">
                 <Template>
                     <div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
-                        <DxButton Text="@btnString" Click="BtnClick" RenderStyle="@buttonRenderStyle"></DxButton>
+                        <DxProgressBar Type="ProgressBarType.Circular"
+                                       SizeMode="SizeMode.Large"
+                                       ShowLabel="false"
+                                       Indeterminate="true" />
                     </div>
                 </Template>
 
             </DxFormLayoutItem>
         }
-        else
-        {
-            <div>...</div>
-        }
+
 
     </DxFormLayout>
 </div>
@@ -47,12 +75,14 @@
 
     private LoginDataDTO loginDataDTO = new();
 
-    private string btnString => authService.isAuth ? "Logout" : "Login";
+    private string btnString => authService.isAuth ? $"{localizer["Logout"]}" : $"{localizer["Login"]}";
 
     private ButtonRenderStyle buttonRenderStyle => authService.isAuth ? ButtonRenderStyle.Danger : ButtonRenderStyle.Info;
 
     private async Task BtnClick()
     {
+        UIBlock();
+        await Task.Delay(500);
         RequestResult res;
         if (authService.isAuth)
         {
@@ -64,6 +94,11 @@
             res = await authService.Login(loginDataDTO);
         }
         await BtnEventCallback.InvokeAsync(res);
-        nav.NavigateTo("/");
+        if (res.IsSuccess)
+        {
+            nav.NavigateTo("/");
+        }
+        UIRelease();
+
     }
 }

@@ -1,5 +1,6 @@
 ﻿@page "/Developer"
 @rendermode InteractiveServer
+@using CommonLibrary.Auth
 @inject TMWebShopfloorService shopfloorService
 
 <DxGridLayout RowSpacing="0.5rem" ColumnSpacing="0.5rem">
@@ -77,7 +78,7 @@
     private void GenerateParamList(List<string> paramNameList, List<string> paramTypeList)
     {
         paramList = new();
-        if (paramNameList.Count != paramTypeList.Count)
+        if (paramNameList.Count != selectedCommand.ParameterAmount || paramTypeList.Count != selectedCommand.ParameterAmount)
         {
             return;
         }
@@ -151,8 +152,13 @@
                         break;
                     case 1:
                         string wo = paramList[0].param;
-                        RequestResult res = await shopfloorService.ResetWorkorderById(new Guid(wo));
-                        AddLog($"{res.Msg}");
+                        RequestResult res1 = await shopfloorService.ResetWorkorderById(new Guid(wo));
+                        AddLog($"{res1.Msg}");
+                        break;
+                    case 2:
+                        string pwd = paramList[0].param;
+                        RequestResult res2 = new(2, BCryptHelper.HashPassword(pwd));
+                        AddLog($"{res2.Msg}");
                         break;
                     default:
                         AddLog($"Undefined cmd:{cmd}");

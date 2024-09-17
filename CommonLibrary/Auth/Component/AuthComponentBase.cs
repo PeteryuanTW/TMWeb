@@ -11,6 +11,19 @@ namespace CommonLibrary.Auth
     {
         [Inject]
         public AuthService authService { get; set; }
+        private bool uiProcessing = false;
+        public bool UIProcessing => uiProcessing;
+
+        public void UIBlock()
+        {
+            uiProcessing = true;
+        }
+
+        public void UIRelease()
+        {
+            uiProcessing = false;
+        }
+
         protected override async Task OnInitializedAsync()
         {
             authService.AuthStatusChangedAct += UIUpdate;

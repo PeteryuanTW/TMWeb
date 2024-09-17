@@ -1,4 +1,4 @@
-﻿using TMWeb.Scripts;
+﻿using TMWeb.Scripts.Template;
 
 namespace TMWeb.EFModels
 {
@@ -8,10 +8,20 @@ namespace TMWeb.EFModels
 
         public bool HasScript => script != null;
 
+        public Action? ScriptChangedAct;
+
+        private void ScriptChanged() => ScriptChangedAct?.Invoke();
 
         public void SetScript(ScriptBaseClass scriptBaseClass)
         {
             script = scriptBaseClass;
+            ScriptChanged();
+        }
+
+        public void DropScript()
+        {
+            script = null;
+            ScriptChanged();
         }
     }
 }

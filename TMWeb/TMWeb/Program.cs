@@ -81,6 +81,11 @@ var localizationOptions = new RequestLocalizationOptions()
 builder.Services.AddControllers();
 
 builder.Services.AddCascadingAuthenticationState();
+
+
+
+
+
 var app = builder.Build();
 app.UseRequestLocalization(localizationOptions);
 // Configure the HTTP request pipeline.
@@ -115,3 +120,7 @@ app.UseSwaggerUI(c =>
 });
 
 app.Run();
+
+//var tmWebShopfloorService = app.Services.GetRequiredService<TMWebShopfloorService>();
+//await tmWebShopfloorService.InitAll();
+

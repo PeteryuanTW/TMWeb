@@ -6,32 +6,16 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis;
 using System.Reflection;
 using System.Text;
-using TMWeb.Scripts;
+using TMWeb.Scripts.Template;
 
 namespace TMWeb.Services
 {
     public class ScriptLoaderService
     {
-        HttpClient _httpClient = new HttpClient();
-        private List<string> dllList = new List<string>()
-        {
-            "System.Runtime",
-            "System.Linq.Expressions",
-            "CommonLibrary",
-            "System.Linq",
-            "System.Linq.Queryable",
-            "System.Collections",
-            "System.Net.Http",
-            "System.Collections.Immutable",
-            "System.Threading",
-            "System.Console",
-            "System.Threading.Thread",
-            "System.Private.CoreLib",
-        };
 
         public ScriptLoaderService(NavigationManager navigationManager)
         {
-            _httpClient.BaseAddress = new Uri(navigationManager.BaseUri);
+            //_httpClient.BaseAddress = new Uri(navigationManager.BaseUri);
         }
 
         Dictionary<string, MetadataReference> MetadataReferenceCache = new Dictionary<string, MetadataReference>();
@@ -45,13 +29,13 @@ namespace TMWeb.Services
                 return ret;
             }
 
-            var assemblyPath = $"./bin/Debug/net8.0/{assemblyName}.dll";
+            //var assemblyPath = $"./bin/Debug/net8.0/{assemblyName}.dll";
             //var a = AppDomain.CurrentDomain.GetAssemblies();
             //var assemblyUrl = $"./_framework/{assemblyName}.dll";
 
             try
             {
-                ret = MetadataReference.CreateFromFile(assemblyPath);
+                ret = MetadataReference.CreateFromFile(assembly.Location);
                 //var tmp = await _httpClient.GetAsync(assemblyUrl);
                 //if (tmp.IsSuccessStatusCode)
                 //{
@@ -80,10 +64,10 @@ namespace TMWeb.Services
             var codeString = SourceText.From(sourceCode);
             var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp11).WithKind(sourceCodeKind);
             var parsedSyntaxTree = SyntaxFactory.ParseSyntaxTree(codeString, options);
-            
+
             //List<Assembly> appAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies().Select(o => Assembly.Load(o)).ToList();
-            var a = AppDomain.CurrentDomain.GetAssemblies().ToList();
-            List<Assembly> appAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(x => Assembly.Load($"{x.GetName()}.dll")).ToList();
+            List<Assembly> appAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            //List<Assembly> appAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(x => Assembly.Load($"{x.GetName()}.dll")).ToList();
             appAssemblies.Add(typeof(object).Assembly);
             var assemblyPath = Path.GetDirectoryName(typeof(ScriptBaseClass).Assembly.Location);
             //Console.WriteLine(assemblyPath);

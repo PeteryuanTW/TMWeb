@@ -18,10 +18,16 @@ namespace TMWeb.Services
         {
             this.scopeFactory = scopeFactory;
             logger = tmWebShopfloorServicelogger;
-            InitAllStations();
-            _ = InitAllMachinesFromDB();
-
+            _ = InitAll();
         }
+
+        public async Task InitAll()
+        {
+            InitAllStations();
+            await InitAllMachinesFromDB();
+        }
+
+
         #region process
         public Task<List<Process>> GetAllProcess()
         {
@@ -821,6 +827,7 @@ namespace TMWeb.Services
                     .Include(x => x.WorkorderRecordCategory).ThenInclude(x => x.WorkorderRecordContents).ThenInclude(x => x.WorkorderRecordDetails)
                     .Include(x => x.ItemRecordsCategory).ThenInclude(x => x.ItemRecordContents).ThenInclude(x => x.ItemRecordDetails)
                     .Include(x => x.TaskRecordCategory).ThenInclude(x => x.TaskRecordContents).ThenInclude(x => x.TaskRecordDetails)
+                    .AsSplitQuery()
                     .AsNoTracking()
                     .FirstOrDefault(x => x.Id == id));
             }
