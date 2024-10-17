@@ -10,8 +10,8 @@
 
     protected IEnumerable<Workorder> workOrderCandidates;
 
-    protected bool canedit => hasStation ? StationParam.Status == Status.Uninit : false;
-    protected bool canrun => hasStation ? StationParam.Status == Status.Uninit : false;
+    protected bool canedit => hasStation ? StationParam.Status == Status.Init : false;
+    protected bool canrun => hasStation ? StationParam.Status == Status.Init : false;
     protected bool canoperate => hasStation ? StationParam.Status == Status.Running : false;
     protected bool canpause => hasStation ? StationParam.Status == Status.Running : false;
     protected bool canstop => hasStation ? StationParam.Status == Status.Running : false;
@@ -25,7 +25,6 @@
     {
         switch (StationParam?.Status)
         {
-            case Status.Uninit:
             case Status.Init:
                 return ButtonRenderStyle.Secondary;
             case Status.Running:
@@ -43,8 +42,6 @@
     {
         switch (StationParam?.Status)
         {
-            case Status.Uninit:
-                return "uninit";
             case Status.Running:
                 return "running";
             // case Status.Pause:

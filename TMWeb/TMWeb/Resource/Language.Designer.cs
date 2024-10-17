@@ -70,6 +70,15 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Connection 的當地語系化字串。
+        /// </summary>
+        public static string Connection {
+            get {
+                return ResourceManager.GetString("Connection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Delpoy 的當地語系化字串。
         /// </summary>
         public static string Deploy {
@@ -147,6 +156,24 @@ namespace TMWeb.Resource {
         public static string Init {
             get {
                 return ResourceManager.GetString("Init", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 IP 的當地語系化字串。
+        /// </summary>
+        public static string IP {
+            get {
+                return ResourceManager.GetString("IP", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Item 的當地語系化字串。
+        /// </summary>
+        public static string Item {
+            get {
+                return ResourceManager.GetString("Item", resourceCulture);
             }
         }
         
@@ -237,6 +264,15 @@ namespace TMWeb.Resource {
         public static string Part_No {
             get {
                 return ResourceManager.GetString("Part No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Port 的當地語系化字串。
+        /// </summary>
+        public static string Port {
+            get {
+                return ResourceManager.GetString("Port", resourceCulture);
             }
         }
         

@@ -1,0 +1,81 @@
+﻿@rendermode InteractiveServer
+@implements IDisposable
+
+<DxPieChart @ref="@machinesDonut"
+            T="@Machine"
+            Data="@Machines"
+            CustomizeSeriesPoint="SetPointColor"
+            Diameter="1"
+            InnerDiameter="0.6">
+    <DxPieChartSeries T="@Machine"
+                      TArgument="Status"
+                      TValue="int"
+                      ArgumentField="x => x.Status"
+                      ValueField="x => (int)(x.Status)"
+                      SummaryMethod="Enumerable.Count">
+        <DxChartSeriesLabel Visible="true"
+                            Position="RelativePosition.Outside">
+            <DxChartSeriesLabelConnector Visible="true" />
+        </DxChartSeriesLabel>
+    </DxPieChartSeries>
+    <DxChartTooltip Enabled="true"
+                    Position="RelativePosition.Outside">
+        <div style="margin: 0.75rem">
+            <div class="fw-bold">@context.Point.Argument</div>
+        </div>
+    </DxChartTooltip>
+    <DxChartLegend HorizontalAlignment="HorizontalAlignment.Center"
+                   VerticalAlignment="VerticalEdge.Bottom"
+                   Position="RelativePosition.Outside"
+                   Orientation="Orientation.Horizontal" />
+</DxPieChart>
+
+@code {
+    DxPieChart<Machine>? machinesDonut;
+    [Parameter]
+    public IEnumerable<Machine> Machines { get; set; }
+    private bool hasMachines => Machines is not null;
+
+    protected override Task OnInitializedAsync()
+    {
+        if (hasMachines)
+        {
+            foreach (var machine in Machines)
+            {
+                machine.MachineStatechangedAct += Update;
+            }
+        }
+        return base.OnInitializedAsync();
+    }
+
+    private void Update(Status s)
+    {
+        machinesDonut?.RefreshData();
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        if (hasMachines)
+        {
+            foreach (var machine in Machines)
+            {
+                machine.MachineStatechangedAct -= Update;
+            }
+        }
+    }
+
+    protected void SetPointColor(ChartSeriesPointCustomizationSettings pointSettings)
+    {
+        int statusCode = (int)pointSettings.Point.Argument;
+        var targetStyle = TypeEnumHelper.GetStatusStyle(statusCode);
+        if (targetStyle is not null)
+        {
+            pointSettings.PointAppearance.Color = targetStyle.StyleColor;
+        }
+        else
+        {
+            pointSettings.PointAppearance.Color = Color.Black;
+        }
+    }
+}

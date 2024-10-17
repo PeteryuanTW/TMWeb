@@ -4,10 +4,9 @@
     {
         public Process() { }
 
-        public Process(string name)
+        public Process(Guid id)
         {
-            Id = Guid.NewGuid();
-            Name = name;
+            Id = id;
         }
     }
 }

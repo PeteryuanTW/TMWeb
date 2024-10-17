@@ -74,6 +74,7 @@ namespace TMWeb.Data
             {
                 taskDetail.Okamount += ok;
                 taskDetail.Ngamount += ng;
+                taskDetail.FinishedTime = DateTime.Now;
                 wip -= (ok + ng);
                 UIUpdate();
             }

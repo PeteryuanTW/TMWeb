@@ -252,4 +252,16 @@
   <data name="Script" xml:space="preserve">
     <value>腳本</value>
   </data>
+  <data name="Connection" xml:space="preserve">
+    <value>連線</value>
+  </data>
+  <data name="IP" xml:space="preserve">
+    <value>網際網路協定位置</value>
+  </data>
+  <data name="Port" xml:space="preserve">
+    <value>埠號</value>
+  </data>
+  <data name="Item" xml:space="preserve">
+    <value>工件</value>
+  </data>
 </root>

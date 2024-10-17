@@ -1,12 +1,10 @@
-﻿using DevExpress.Pdf;
-using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Identity.Client;
-using TMWeb.Components.Pages.Setting;
+﻿using Microsoft.EntityFrameworkCore;
 using CommonLibrary.API.Message;
 using TMWeb.Data;
 using TMWeb.EFModels;
-using static System.Collections.Specialized.BitVector32;
+using DevExpress.Pdf.Native.BouncyCastle.Asn1.X509;
+using DevExpress.XtraPrinting.Native.LayoutAdjustment;
+using TMWeb.Data.DTO;
 
 namespace TMWeb.Services
 {
@@ -18,7 +16,7 @@ namespace TMWeb.Services
         {
             this.scopeFactory = scopeFactory;
             logger = tmWebShopfloorServicelogger;
-            _ = InitAll();
+            //_ = InitAll();
         }
 
         public async Task InitAll()
@@ -34,20 +32,11 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Processes.ToList());
+                return Task.FromResult(dbContext.Processes.AsNoTracking().ToList());
             }
         }
 
-        public Task<List<string>> GetAllProcessName()
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Processes.Select(x => x.Name).ToList());
-            }
-        }
-
-        public async Task<RequestResult> UpsertProcessAndStations(Process process)
+        public async Task<RequestResult> UpsertProcess(Process process)
         {
             try
             {
@@ -58,26 +47,48 @@ namespace TMWeb.Services
                     if (targetProcess != null)
                     {
                         targetProcess.Name = process.Name;
-                        foreach (var station in process.Stations)
-                        {
-                            await UpdateStationConfig(station);
-                        }
-                        InitAllStations();
                     }
                     else
                     {
                         var a = await dbContext.Processes.AddAsync(process);
                     }
                     await dbContext.SaveChangesAsync();
-                    return new RequestResult(2, "Upsert success");
+                    return new RequestResult(2, $"Upsert process {process.Name} success");
                 }
             }
             catch (Exception ex)
             {
-                return new RequestResult(4, ex.Message);
+                return new RequestResult(4, $"Upsert process {process.Name} fail({ex.Message})");
             }
 
 
+        }
+
+        public async Task<RequestResult> DeleteProcess(Process process)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    Process? targetProcess = dbContext.Processes.Include(x => x.Stations).FirstOrDefault(x => x.Id == process.Id);
+                    if (targetProcess != null)
+                    {
+                        dbContext.Remove(targetProcess);
+                        await dbContext.SaveChangesAsync();
+                        return new RequestResult(2, $"Delete process {targetProcess.Name} success");
+                    }
+                    else
+                    {
+                        return new RequestResult(4, $"Process {process.Name} not found");
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return new RequestResult(4, $"Delete process {process.Name} fail({ex.Message})");
+            }
         }
 
         public Task<List<Process>> GetAllProcessAndStations()
@@ -119,6 +130,8 @@ namespace TMWeb.Services
         #endregion
 
         #region station
+        private List<Station> stations = new List<Station>();
+        public List<Station> Stations => stations;
         public Task<List<Station>> GetAllStationsConfig()
         {
             using (var scope = scopeFactory.CreateScope())
@@ -128,26 +141,64 @@ namespace TMWeb.Services
             }
         }
 
-        public async Task UpdateStationConfig(Station station)
+        public async Task<RequestResult> UpsertStation(Station station)
         {
             using (var scope = scopeFactory.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                Station? target = dbContext.Stations.FirstOrDefault(x => x.Id == station.Id);
-                if (target != null)
+                try
                 {
-                    target.ProcessId = station.ProcessId;
-                    target.Name = station.Name;
-                    target.ProcessIndex = station.ProcessIndex;
-                    target.StationType = station.StationType;
-                    target.Enable = station.Enable;
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    Station? target = dbContext.Stations.FirstOrDefault(x => x.Id == station.Id);
+                    if (target != null)
+                    {
+                        target.ProcessId = station.ProcessId;
+                        target.Name = station.Name;
+                        target.ProcessIndex = station.ProcessIndex;
+                        target.StationType = station.StationType;
+                        target.Enable = station.Enable;
+
+                    }
+                    else
+                    {
+                        await dbContext.Stations.AddAsync(station);
+                    }
                     await dbContext.SaveChangesAsync();
+                    return new(2, $"Upsert station {station.Name} success");
                 }
+                catch (Exception ex)
+                {
+                    return new RequestResult(4, $"Upsert station {station.Name} fail({ex.Message})");
+                }
+
             }
         }
 
-        private List<Station> stations = new List<Station>();
-        public List<Station> Stations => stations;
+        public async Task<RequestResult> DeleteStation(Station station)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    Station? targetStation = dbContext.Stations.FirstOrDefault(x => x.Id == station.Id);
+                    if (targetStation != null)
+                    {
+                        dbContext.Remove(targetStation);
+                        await dbContext.SaveChangesAsync();
+                        return new RequestResult(2, $"Delete station {targetStation.Name} success");
+                    }
+                    else
+                    {
+                        return new RequestResult(4, $"Process {station.Name} not found");
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return new RequestResult(4, $"Delete station {station.Name} fail({ex.Message})");
+            }
+        }
 
         public async Task<List<Station>> GetStationsByProcessName(string processName)
         {
@@ -203,7 +254,6 @@ namespace TMWeb.Services
                 stations.ForEach(x => x.InitStation());
             }
         }
-
         public async Task<bool> StationSetWorkorder(string stationName, string wo, string lot)//station name, workorder no and lot
         {
             Workorder? targetWorkorder = await GetWorkorderByNoAndLot(wo, lot);
@@ -466,9 +516,9 @@ namespace TMWeb.Services
                             if (taskDetail != null)
                             {
                                 stationSingleWorkorderNoSerial.StationOutWithAmount(ok, ng);
-                                taskDetail.Okamount += ok;
-                                taskDetail.Ngamount += ng;
-                                taskDetail.FinishedTime = DateTime.Now;
+                                //taskDetail.Okamount += ok;
+                                //taskDetail.Ngamount += ng;
+                                //taskDetail.FinishedTime = DateTime.Now;
                                 await UpdateTaskDetailWhenStationOut(taskDetail);
 
                                 bool isLast = await CheckStationIsLastInProcess(targetStation);
@@ -607,7 +657,6 @@ namespace TMWeb.Services
                 return Task.FromResult(dbContext.Machines.AsNoTracking().ToList());
             }
         }
-
         private List<Machine> machines = new();
         public List<Machine> Machines => machines;
         private async Task InitAllMachinesFromDB()
@@ -617,15 +666,20 @@ namespace TMWeb.Services
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
                 var tmp = dbContext.Machines.Include(x => x.TagCategory).ThenInclude(x => x.Tags).AsNoTracking().ToList();
                 machines = tmp.Select(x => InitMachineToDerivesClass(x)).ToList();
+                List<Task> tasks = new();
                 foreach (Machine machine in machines)
                 {
-                    machine.InitMachine();
-                    if (machine.Enabled)
+                    tasks.Add(Task.Run(async () =>
                     {
-                        await machine.ConnectAsync();
-                        //machine.Running();
-                    }
+                        machine.InitMachine();
+                        if (machine.Enabled)
+                        {
+                            machine.StartUpdating();
+                        }
+                    }));
+
                 }
+                await Task.WhenAll(tasks);
             }
         }
         private Machine? InitMachineFromDBById(Guid id)
@@ -638,7 +692,7 @@ namespace TMWeb.Services
                 tmp.InitMachine();
                 if (tmp.Enabled)
                 {
-                    tmp.ConnectAsync();
+                    tmp.StartUpdating();
                     //tmp.Running();
                 }
                 return tmp;
@@ -651,6 +705,8 @@ namespace TMWeb.Services
                 case 0:
                     return new ModbusTCPMachine(machine);
                 case 1:
+                    var a = new TMRobotModbusTCP(machine);
+
                     return new TMRobotModbusTCP(machine);
                 case 2:
                 case 10:
@@ -658,66 +714,107 @@ namespace TMWeb.Services
                     return machine;
             }
         }
-        public async Task UpsertMachineConfig(Machine machine)
+        public async Task<RequestResult> UpsertMachineConfig(Machine machine)
         {
             using (var scope = scopeFactory.CreateScope())
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                var target = dbContext.Machines.FirstOrDefault(x => x.Id == machine.Id);
-                if (target != null)
+                try
                 {
-                    target.Name = machine.Name;
-                    target.ProcessId = machine.ProcessId;
-                    target.Ip = machine.Ip;
-                    target.Port = machine.Port;
-                    target.ConnectionType = machine.ConnectionType;
-                    target.TagCategoryId = machine.TagCategoryId;
-                    target.Enabled = machine.Enabled;
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.Machines.FirstOrDefault(x => x.Id == machine.Id);
+                    if (target != null)
+                    {
+                        target.Name = machine.Name;
+                        target.ProcessId = machine.ProcessId;
+                        target.Ip = machine.Ip;
+                        target.Port = machine.Port;
+                        target.ConnectionType = machine.ConnectionType;
+                        target.TagCategoryId = machine.TagCategoryId;
+                        target.Enabled = machine.Enabled;
+                    }
+                    else
+                    {
+                        await dbContext.Machines.AddAsync(machine);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    await RefreshMachine(machine, true);
+                    return new(2, $"upsert machine {machine.Name} success");
                 }
-                else
+                catch (Exception e)
                 {
+                    return new(4, $"upsert machine {machine.Name} fail({e.Message})");
+                }
 
-                }
-                await dbContext.SaveChangesAsync();
-                await RefreshMachine(target);
             }
         }
-        private async Task RefreshMachine(Machine machine)
+        public async Task<RequestResult> DeleteMachine(Machine machine)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.Machines.FirstOrDefault(x => x.Id == machine.Id);
+                    if (target != null)
+                    {
+                        dbContext.Remove(target);
+                        await dbContext.SaveChangesAsync();
+                        await RefreshMachine(target, false);
+                        return new(2, $"Delete machine {machine.Name} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Machine {machine.Name} not found");
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    return new(4, $"Delete machine {machine.Name} fail({e.Message})");
+                }
+
+            }
+        }
+        private async Task RefreshMachine(Machine machine, bool reInit)
         {
             Machine target = await GetMachineByID(machine.Id);
             if (target != null)
             {
                 machines.Remove(target);
+                target.Dispose();
             }
-            machines.Add(InitMachineFromDBById(machine.Id));
-        }
 
+            if (reInit)
+            {
+                machines.Add(InitMachineFromDBById(machine.Id));
+            }
+        }
         public async Task<List<Machine>> GetMachineByProcessName(string processName)
         {
             Process? target = await GetProcessByName(processName);
             return machines.Where(x => x.ProcessId == target.Id).ToList();
         }
-        public Task<List<Machine>> GetMachineByProcessID(Guid id)
+        public Task<List<Machine>> GetMachineByProcessID(Guid? id)
         {
             return Task.FromResult(machines.Where(x => x.ProcessId == id).ToList());
         }
 
-        public async Task<RecipeCheckTable> GetRecipeCheckTableInProcess(string processName, WorkorderRecipeContent workorderRecipeContent)
-        {
-            RecipeCheckTable res = new(workorderRecipeContent);
-            var machineInProcess = await GetMachineByProcessName(processName);
-            var targetMachine = machineInProcess.Where(x => x.TagCategoryId == workorderRecipeContent.TagCategoryId).ToList();
-            foreach (var machine in targetMachine)
-            {
-                var targetTag = machine.TagCategory.Tags.FirstOrDefault(x => x.Id == workorderRecipeContent.TagId);
-                if (targetTag != null)
-                {
-                    await machine.UpdateTag(targetTag);
-                    res.AddCheckItem(new(machine, targetTag));
-                }
-            }
-            return res;
-        }
+        //public async Task<RecipeCheckTable> GetRecipeCheckTableInProcess(string processName, WorkorderRecipeContent workorderRecipeContent)
+        //{
+        //    RecipeCheckTable res = new(workorderRecipeContent);
+        //    var machineInProcess = await GetMachineByProcessName(processName);
+        //    var targetMachine = machineInProcess.Where(x => x.TagCategoryId == workorderRecipeContent.TagCategoryId).ToList();
+        //    foreach (var machine in targetMachine)
+        //    {
+        //        var targetTag = machine.TagCategory.Tags.FirstOrDefault(x => x.Id == workorderRecipeContent.TagId);
+        //        if (targetTag != null)
+        //        {
+        //            await machine.UpdateTag(targetTag);
+        //            res.AddCheckItem(new(machine, targetTag));
+        //        }
+        //    }
+        //    return res;
+        //}
 
         public Task<Machine?> GetMachineByID(Guid? id)
         {
@@ -731,6 +828,55 @@ namespace TMWeb.Services
 
         #region tag
 
+        public Task<List<TagCategory>> GetAllTagCategories()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.TagCategories.AsNoTracking().ToList());
+            }
+        }
+
+        public Task<List<TagCategory>> GetAllTagCategoriesWithTags()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.TagCategories.Include(x => x.Tags).AsNoTracking().ToList());
+            }
+        }
+
+        public List<Tag> GetTagsByCatId(Guid? catID)
+        {
+            if (catID is null)
+            {
+                return new List<Tag>();
+            }
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var targetCat = dbContext.TagCategories.Include(x => x.Tags).AsNoTracking().FirstOrDefault(x=>x.Id == catID);
+                if (targetCat is not null)
+                {
+                    return targetCat.Tags.ToList();
+                }
+                else
+                {
+                    return new List<Tag>();
+                }
+            }
+        }
+
+        public int GetTagTypeCodeByIds(Guid? catID, Guid? tagID)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var targetTag = dbContext.Tags.FirstOrDefault(x => x.CategoryId == catID && x.Id == tagID);
+                return targetTag is null ? 0 : targetTag.DataType;
+            }
+        }
+
         public Task<List<TagCategory>> GetCategoryByConnectionType(int connectionType)
         {
             using (var scope = scopeFactory.CreateScope())
@@ -738,6 +884,136 @@ namespace TMWeb.Services
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
                 return Task.FromResult(dbContext.TagCategories.Where(x => x.ConnectionType == connectionType).ToList());
             }
+        }
+
+        public async Task<RequestResult> UpsertTagCategory(TagCategory tagCategory)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var targetTagCat = dbContext.TagCategories.FirstOrDefault(x => x.Id == tagCategory.Id);
+                    if (targetTagCat != null)
+                    {
+                        targetTagCat.Name = tagCategory.Name;
+                        targetTagCat.ConnectionType = tagCategory.ConnectionType;
+                    }
+                    else
+                    {
+                        await dbContext.TagCategories.AddAsync(tagCategory);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new(2, $"Upsert tag category {tagCategory.Name} success");
+                }
+            }
+            catch (Exception ex)
+            {
+                return new(4, ex.Message);
+            }
+        }
+
+        public async Task<RequestResult> DeleteTagCategory(TagCategory tagCategory)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var targetTagCat = dbContext.TagCategories.Include(x => x.Tags).FirstOrDefault(x => x.Id == tagCategory.Id);
+                    if (targetTagCat != null)
+                    {
+                        dbContext.TagCategories.Remove(targetTagCat);
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Delete tag category {targetTagCat.Name} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Tag category {targetTagCat.Name} not found");
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return new(4, ex.Message);
+            }
+        }
+
+        public async Task<RequestResult> UpsertTag(Tag tag)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var targetTag = dbContext.Tags.FirstOrDefault(x => x.Id == tag.Id);
+                    if (targetTag != null)
+                    {
+                        targetTag.Name = tag.Name;
+                        targetTag.DataType = tag.DataType;
+                        targetTag.UpdateByTime = tag.UpdateByTime;
+                        targetTag.IsHeartBeat = tag.IsHeartBeat;
+
+                        targetTag.Bool1 = tag.Bool1;
+                        targetTag.Bool2 = tag.Bool2;
+                        targetTag.Bool3 = tag.Bool3;
+                        targetTag.Bool4 = tag.Bool4;
+                        targetTag.Bool5 = tag.Bool5;
+
+                        targetTag.Int1 = tag.Int1;
+                        targetTag.Int2 = tag.Int2;
+                        targetTag.Int3 = tag.Int3;
+                        targetTag.Int4 = tag.Int4;
+                        targetTag.Int5 = tag.Int5;
+
+                        targetTag.String1 = tag.String1;
+                        targetTag.String2 = tag.String2;
+                        targetTag.String3 = tag.String3;
+                        targetTag.String4 = tag.String4;
+                        targetTag.String5 = tag.String5;
+                    }
+                    else
+                    {
+                        await dbContext.Tags.AddAsync(tag);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new(2, $"Upsert tag {tag.Name} success");
+                }
+            }
+            catch (Exception ex)
+            {
+                return new(4, ex.Message);
+            }
+
+        }
+
+        public async Task<RequestResult> DeleteTag(Tag tag)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var targetTag = dbContext.Tags.FirstOrDefault(x => x.Id == tag.Id);
+                    if (targetTag != null)
+                    {
+                        dbContext.Tags.Remove(targetTag);
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Delete tag {tag.Name} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Tag {tag.Name} not found");
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return new(4, ex.Message);
+            }
+
         }
 
         public async Task<Tag?> GetMachineTag(string machineName, string tagName)
@@ -748,7 +1024,7 @@ namespace TMWeb.Services
                 if (targetMachine.hasCategory)
                 {
                     Tag? targetTag = targetMachine.TagCategory.Tags.FirstOrDefault(x => x.Name == tagName);
-                    if (targetTag!=null)
+                    if (targetTag != null)
                     {
                         if (!targetTag.UpdateByTime)
                         {
@@ -761,7 +1037,7 @@ namespace TMWeb.Services
             return null;
         }
 
-        public async Task SetMachineTag(string machineName, string tagName, Object val)
+        public async Task<RequestResult> SetMachineTag(string machineName, string tagName, Object val)
         {
             Machine? targetMachine = await GetMachineByName(machineName);
             if (targetMachine != null)
@@ -771,9 +1047,21 @@ namespace TMWeb.Services
                     Tag? targetTag = targetMachine.TagCategory.Tags.FirstOrDefault(x => x.Name == tagName);
                     if (targetTag != null)
                     {
-                        await targetMachine.SetTag(targetTag.Name, val);
+                        return await targetMachine.SetTag(targetTag.Name, val);
+                    }
+                    else
+                    {
+                        return new(4, $"Tag {tagName} not found in machine {machineName}");
                     }
                 }
+                else
+                {
+                    return new(4, $"Machine tag category not set");
+                }
+            }
+            else
+            {
+                return new(4, $"Machine {machineName} not found");
             }
         }
 
@@ -817,22 +1105,60 @@ namespace TMWeb.Services
                     );
             }
         }
-        public Task<Workorder?> GetWorkordersDetails(Guid id)
+        public Task<List<ItemDetailDTO>> GetItemDetailDTOInInterval(DateTime startTime, DateTime endTime)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var woWithItem = dbContext.Workorders.Include(x => x.Process)
+                    //.Include(x => x.RecipeCategory).ThenInclude(x => x.Recipes)
+                    //.Include(x => x.WorkorderRecordCategory)//.ThenInclude(x => x.WorkorderRecordContents).ThenInclude(x => x.WorkorderRecordDetails.Where(x=>x.WorkerderId == id))
+                    //.Include(x => x.WorkorderRecordDetails).ThenInclude(x => x.RecordContent)
+                    //.Include(x => x.ItemRecordsCategory)//.ThenInclude(x => x.ItemRecordContents).ThenInclude(x => x.ItemRecordDetails)
+                    //.Include(x => x.TaskRecordCategory)//.ThenInclude(x => x.TaskRecordContents).ThenInclude(x => x.TaskRecordDetails)
+                    .Include(x => x.ItemDetails)
+                    .AsSplitQuery()
+                    .AsNoTracking()
+                    .Where(x => x.CreateTime >= startTime && x.CreateTime <= endTime).ToList();
+                var res = new List<ItemDetailDTO>();
+                foreach (var wo in woWithItem)
+                {
+                    foreach (var item in wo.ItemDetails)
+                    {
+                        res.Add(new ItemDetailDTO
+                        {
+                            Process = wo.Process.Name,
+                            WorkorderNo = wo.WorkorderNo,
+                            Lot = wo.Lot,
+                            PartNo = wo.PartNo,
+                            SerialNo = item.SerialNo,
+                            TargetAmount = item.TargetAmount,
+                            Okamount = item.Okamount,
+                            Ngamount = item.Ngamount,
+                            StartTime = item.StartTime,
+                            FinishedTime = item.FinishedTime,
+                        });
+                    }
+                }
+                return Task.FromResult(res);
+            }
+        }
+        public Task<Workorder?> GetWorkordersDetailsForConfig(Guid id)
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
                 return Task.FromResult(dbContext.Workorders.Include(x => x.Process)
-                    .Include(x => x.RecipeCategory).ThenInclude(x => x.WorkorderRecipeContents)
-                    .Include(x => x.WorkorderRecordCategory).ThenInclude(x => x.WorkorderRecordContents).ThenInclude(x => x.WorkorderRecordDetails)
-                    .Include(x => x.ItemRecordsCategory).ThenInclude(x => x.ItemRecordContents).ThenInclude(x => x.ItemRecordDetails)
-                    .Include(x => x.TaskRecordCategory).ThenInclude(x => x.TaskRecordContents).ThenInclude(x => x.TaskRecordDetails)
+                    .Include(x => x.RecipeCategory).ThenInclude(x => x.Recipes)
+                    .Include(x => x.WorkorderRecordCategory)//.ThenInclude(x => x.WorkorderRecordContents).ThenInclude(x => x.WorkorderRecordDetails.Where(x=>x.WorkerderId == id))
+                    .Include(x => x.WorkorderRecordDetails).ThenInclude(x=>x.RecordContent)
+                    .Include(x => x.ItemRecordsCategory)//.ThenInclude(x => x.ItemRecordContents).ThenInclude(x => x.ItemRecordDetails)
+                    .Include(x => x.TaskRecordCategory)//.ThenInclude(x => x.TaskRecordContents).ThenInclude(x => x.TaskRecordDetails)
                     .AsSplitQuery()
                     .AsNoTracking()
                     .FirstOrDefault(x => x.Id == id));
             }
         }
-
         public Task<Workorder?> GetWorkorderByNoAndLot(string wo, string lot)
         {
             using (var scope = scopeFactory.CreateScope())
@@ -841,49 +1167,301 @@ namespace TMWeb.Services
                 return Task.FromResult(dbContext.Workorders.FirstOrDefault(x => x.WorkorderNo == wo && x.Lot == lot));
             }
         }
+        public async Task<RequestResult> UpsertWorkorderConfig(Workorder workorder)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.Workorders.FirstOrDefault(x => x.Id == workorder.Id);
+                    if (target != null)
+                    {
+                        target.ProcessId = workorder.ProcessId;
+                        target.WorkorderNo = workorder.WorkorderNo;
+                        target.Lot = workorder.Lot;
+                        target.PartNo = workorder.PartNo;
+                        target.RecipeCategoryId = workorder.RecipeCategoryId;
+                        target.WorkorderRecordCategoryId = workorder.WorkorderRecordCategoryId;
+                        target.ItemRecordsCategoryId = workorder.ItemRecordsCategoryId;
+                        target.TaskRecordCategoryId = workorder.TaskRecordCategoryId;
+                        target.TargetAmount = workorder.TargetAmount;
+                    }
+                    else
+                    {
+                        await dbContext.AddAsync(workorder);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new(2, $"Upsert workorder {workorder.WorkorderNo}/{workorder.Lot} success");
+                }
+                catch (Exception e)
+                {
+                    return new(4, $"Upsert workorder {workorder.WorkorderNo}/{workorder.Lot} fail({e.Message})");
+                }
 
-        public async Task UpsertWorkorderConfig(Workorder workorder)
+            }
+        }
+        public async Task<RequestResult> DeleteWorkorder(Workorder workorder)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.Workorders.Include(x => x.WorkorderRecordDetails)
+                        .Include(x => x.ItemDetails).ThenInclude(x => x.TaskDetails)
+                        .FirstOrDefault(x => x.Id == workorder.Id);
+                    if (target != null)
+                    {
+                        dbContext.Workorders.Remove(target);
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Delete workorder {workorder.WorkorderNo}/{workorder.Lot} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Workorder {workorder.WorkorderNo}/{workorder.Lot} not found");
+                    }
+                }
+                catch (Exception e)
+                {
+                    return new(4, $"Delete workorder {workorder.WorkorderNo}/{workorder.Lot} fail({e.Message})");
+                }
+
+
+            }
+        }
+        private async Task<RequestResult> SetWorkorderStatusStartByID(Guid id)
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                var target = dbContext.Workorders.FirstOrDefault(x => x.Id == workorder.Id);
-                if (target != null)
+                var targetWo = dbContext.Workorders.FirstOrDefault(x => x.Id == id);
+                if (targetWo is not null)
                 {
-                    target.ProcessId = workorder.ProcessId;
-                    target.WorkorderNo = workorder.WorkorderNo;
-                    target.Lot = workorder.Lot;
-                    target.RecipeCategoryId = workorder.RecipeCategoryId;
-                    target.WorkorderRecordCategoryId = workorder.WorkorderRecordCategoryId;
-                    target.ItemRecordsCategoryId = workorder.ItemRecordsCategoryId;
-                    target.TaskRecordCategoryId = workorder.TaskRecordCategoryId;
-                    target.TargetAmount = workorder.TargetAmount;
+                    if (targetWo.Status == (int)WorkorderStatus.Init)
+                    {
+                        targetWo.Status = (int)WorkorderStatus.Running;
+                        targetWo.StartTime = DateTime.Now;
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Start workorder success");
+                    }
+                    else
+                    {
+                        return new(4, $"Workorder is not at Init status");
+                    }
                 }
                 else
                 {
-                    await dbContext.AddAsync(workorder);
+                    return new(4, $"Workorder not found");
                 }
-                await dbContext.SaveChangesAsync();
             }
         }
-        public Task<Workorder?> GetWorkorderAndRecipeByIdString(string id)
+        public async Task<RequestResult> StartWorkorderByID(Guid id)
         {
-            using (var scope = scopeFactory.CreateScope())
+            var wo = await GetWorkordersDetailsForConfig(id);
+            if (wo is not null)
             {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Workorders.FirstOrDefault(x => x.Id == new Guid(id)));
+                var recipeRes = await DeployWorkorderRecipeInProcess(wo);
+                if (!recipeRes.IsSuccess)
+                {
+                    return recipeRes;
+                }
+                else
+                {
+                    var stations = await GetStationsByProcessID(wo.ProcessId);
+                    bool stationsNotReady = stations.Any(x => x.Status != (int)WorkorderStatus.Init);
+                    if (stationsNotReady)
+                    {
+                        return new(4, $"Not all stations ready");
+                    }
+                    else
+                    {
+                        return await SetWorkorderStatusStartByID(id);
+                    }
+                }
+            }
+            else
+            {
+                return new(4, "Workorder not found");
             }
         }
         #endregion
 
         #region recipe
-        public Task<WorkorderRecipeConfig?> GetRecipeConfigsByName(string RecipeName)
+
+        public Task<List<WorkorderRecipeConfig>> GetAllRecipes()
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.WorkorderRecipeConfigs.Include(x => x.WorkorderRecipeContents).FirstOrDefault(x => x.RecipeCategory == RecipeName));
+                return Task.FromResult(dbContext.WorkorderRecipeConfigs.Include(x => x.Recipes).ToList());
             }
+        }
+        public async Task<RequestResult> UpsertRecipeConfig(WorkorderRecipeConfig recipeConfig)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var targetRecipeConfig = dbContext.WorkorderRecipeConfigs.FirstOrDefault(x => x.Id == recipeConfig.Id);
+                    if (targetRecipeConfig != null)
+                    {
+                        targetRecipeConfig.RecipeCategory = recipeConfig.RecipeCategory;
+                    }
+                    else
+                    {
+                        await dbContext.WorkorderRecipeConfigs.AddAsync(recipeConfig);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new(2, $"Upsert tag category {recipeConfig.RecipeCategory} success");
+                }
+            }
+            catch (Exception ex)
+            {
+                return new(4, ex.Message);
+            }
+        }
+
+        public async Task<RequestResult> DeleteRecipeConfig(WorkorderRecipeConfig recipeConfig)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var targetTagCat = dbContext.WorkorderRecipeConfigs.Include(x => x.Recipes).FirstOrDefault(x => x.Id == recipeConfig.Id);
+                    if (targetTagCat != null)
+                    {
+                        dbContext.WorkorderRecipeConfigs.Remove(targetTagCat);
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Delete recipe config {targetTagCat.RecipeCategory} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Recipe config {targetTagCat.RecipeCategory} not found");
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return new(4, ex.Message);
+            }
+        }
+        public async Task<RequestResult> UpsertRecipeItem(RecipeItemBase recipeItemBase)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var targetRecipeItem = dbContext.RecipeBases.FirstOrDefault(x => x.Id == recipeItemBase.Id);
+                    if (targetRecipeItem != null)
+                    {
+                        targetRecipeItem.RecipeItemName = recipeItemBase.RecipeItemName;
+                        targetRecipeItem.DataType = recipeItemBase.DataType;
+                        targetRecipeItem.TriggerTiming = recipeItemBase.TriggerTiming;
+                        targetRecipeItem.TargetTagCatId = recipeItemBase.TargetTagCatId;
+                        targetRecipeItem.TargetTagId = recipeItemBase.TargetTagId;
+                        if (recipeItemBase.GetType() == typeof(StaticRecipe))
+                        {
+                            StaticRecipe target = targetRecipeItem as StaticRecipe;
+                            StaticRecipe newVal = recipeItemBase as StaticRecipe;
+
+                            if (target != null && newVal != null)
+                            {
+                                //target.RecipeItemName = newVal.RecipeItemName;
+                                //target.DataType = newVal.DataType;
+                                target.ValueString = newVal.ValueString;
+                                //target.TriggerTiming = newVal.TriggerTiming;
+                                //target.TargetTagCatId = newVal.TargetTagCatId;
+                                //target.TargetTagId = newVal.TargetTagId;
+                            }
+                            else
+                            {
+                                return new(4, $"type casting error");
+                            }
+                        }
+                        else if (recipeItemBase.GetType() == typeof(BuildInRecipe))
+                        {
+                            BuildInRecipe target = targetRecipeItem as BuildInRecipe;
+                            BuildInRecipe newVal = recipeItemBase as BuildInRecipe;
+
+                            if (target != null && newVal != null)
+                            {
+                                //target.RecipeItemName = newVal.RecipeItemName;
+                                //target.DataType = newVal.DataType;
+                                //target.TriggerTiming = newVal.TriggerTiming;
+                                //target.TargetTagCatId = newVal.TargetTagCatId;
+                                //target.TargetTagId = newVal.TargetTagId;
+                                target.TargetProp = newVal.TargetProp;
+                            }
+                            else
+                            {
+                                return new(4, $"type casting error");
+                            }
+                        }
+                        else if (recipeItemBase.GetType() == typeof(CustomRecipe))
+                        {
+                            CustomRecipe target = targetRecipeItem as CustomRecipe;
+                            CustomRecipe newVal = recipeItemBase as CustomRecipe;
+
+                            if (target != null && newVal != null)
+                            {
+                                target.TargetRecordCatID = newVal.TargetRecordCatID;
+                                target.TargetRecordID = newVal.TargetRecordID;
+                            }
+                            else
+                            {
+                                return new(4, $"type casting error");
+                            }
+                        }
+                        else
+                        {
+                            return new(4, $"type error {recipeItemBase.GetType().Name}");
+                        }
+                    }
+                    else
+                    {
+                        await dbContext.RecipeBases.AddAsync(recipeItemBase);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new(2, $"Upsert recipe item {recipeItemBase.RecipeItemName} success");
+                }
+            }
+            catch (Exception ex)
+            {
+                return new(4, ex.Message);
+            }
+
+        }
+        public async Task<RequestResult> DeleteRecipeItem(RecipeItemBase recipeItemBase)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var targetRecipeItem = dbContext.RecipeBases.FirstOrDefault(x => x.Id == recipeItemBase.Id);
+                    if (targetRecipeItem != null)
+                    {
+                        dbContext.RecipeBases.Remove(targetRecipeItem);
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Delete tag {recipeItemBase.RecipeItemName} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Tag {recipeItemBase.RecipeItemName} not found");
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return new(4, ex.Message);
+            }
+
         }
         public Task<List<WorkorderRecipeConfig>> GetWorkorderRecipeConfigs()
         {
@@ -898,10 +1476,60 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                var a = dbContext.WorkorderRecipeConfigs.Include(x => x.WorkorderRecipeContents).ToList();
+                var a = dbContext.WorkorderRecipeConfigs.Include(x => x.Recipes).ToList();
                 return Task.FromResult(dbContext.WorkorderRecipeConfigs.Include(x => x.Workorders).ToList());//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
             }
         }
+
+        public async Task<RequestResult> DeployWorkorderRecipeInProcess(Workorder wo)
+        {
+            var targetProcess = await GetProcessByID(wo.ProcessId);
+            if (targetProcess is not null)
+            {
+                var machines = await GetMachineByProcessID(targetProcess.Id);
+                if (!machines.Exists(x => x.Status != Status.Idel && x.Status != Status.Running))
+                {
+                    foreach (var recipe in wo.RecipeCategory.Recipes)
+                    {
+                        var recipeRes = recipe.GetValue(wo);
+                        if (recipeRes.Item1 && recipeRes.Item2 is not null)
+                        {
+                            var machineHasRecipe = machines.Where(x => x.TagCategoryId == recipe.TargetTagCatId);
+                            foreach (var machine in machineHasRecipe)
+                            {
+                                var targetTag = machine.TagCategory.Tags.FirstOrDefault(x => x.Id == recipe.TargetTagId);
+                                if (targetTag is not null)
+                                {
+                                    var res = await SetMachineTag(machine.Name, targetTag.Name, recipeRes.Item2);
+                                    if (!res.IsSuccess)
+                                    {
+                                        return res;
+                                    }
+                                }
+                                else
+                                {
+                                    return new(4, $"Machine target tag not found in tag category");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            return new(4, $"Get recipe {recipe.RecipeItemName} value fail");
+                        }
+                    }
+                    return new(1, "Deploy recipes success");
+                }
+                else
+                {
+                    return new(4, $"Machines in porcess {targetProcess.Name} not all available");
+                }
+            }
+            else
+            {
+                return new(4, $"Process of workorder not found");
+            }
+        }
+
         #endregion
 
         #region workorder record
@@ -913,6 +1541,228 @@ namespace TMWeb.Services
                 return Task.FromResult(dbContext.WorkorderRecordConfigs.ToList());//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
             }
         }
+
+        public List<WorkorderRecordContent> GetWorkorderRecordContentsByConfigID(Guid? id)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return dbContext.WorkorderRecordContents.Where(x=>x.ConfigId == id).ToList();//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
+            }
+        }
+
+        public Task<List<WorkorderRecordConfig>> GetWorkorderRecordAndDetails()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.WorkorderRecordConfigs.Include(x => x.WorkorderRecordContents).AsNoTracking().ToList());//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
+            }
+        }
+
+        public Task<WorkorderRecordConfig>? GetWorkorderRecordDetailsByConfigID(Guid? id)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.WorkorderRecordConfigs.Include(x => x.WorkorderRecordContents).FirstOrDefault(x => x.Id == id));//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
+            }
+        }
+
+        public Task<List<WorkorderRecordDetail>> GetWorkorderRecordDetailByWoAndConfig(Guid wo)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.WorkorderRecordDetails.Include(x=>x.RecordContent).Where(x => x.WorkerderId == wo).ToList());//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
+            }
+        }
+
+        public async Task<RequestResult> UpsertWorkorderRecordConfig(WorkorderRecordConfig workorderRecordConfig)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.WorkorderRecordConfigs.FirstOrDefault(x => x.Id == workorderRecordConfig.Id);
+                    if (target != null)
+                    {
+                        target.WorkorderRecordCategory = workorderRecordConfig.WorkorderRecordCategory;
+                    }
+                    else
+                    {
+                        await dbContext.WorkorderRecordConfigs.AddAsync(workorderRecordConfig);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new(2, $"Upsert workorder record config {workorderRecordConfig.WorkorderRecordCategory} success");
+                }
+                catch (Exception ex)
+                {
+                    return new(4, $"Upsert workorder record config {workorderRecordConfig.WorkorderRecordCategory} fail({ex.Message})");
+                }
+
+            }
+        }
+
+        public async Task<RequestResult> DeletetWorkorderRecordConfig(WorkorderRecordConfig workorderRecordConfig)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.WorkorderRecordConfigs.FirstOrDefault(x => x.Id == workorderRecordConfig.Id);
+                    if (target != null)
+                    {
+                        dbContext.WorkorderRecordConfigs.Remove(target);
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Delete workorder record config {target.WorkorderRecordCategory} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Workorder record config {workorderRecordConfig.WorkorderRecordCategory} not exist");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new(4, $"Delete workorder record config {workorderRecordConfig.WorkorderRecordCategory} fail({ex.Message})");
+                }
+
+            }
+        }
+
+        public Task<WorkorderRecordContent>? GetWorkorderRecordContentByID(Guid? configId, Guid? id)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.WorkorderRecordContents.FirstOrDefault(x =>x.ConfigId == configId && x.Id == id));//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
+            }
+        }
+
+        public async Task<RequestResult> UpsertWorkorderRecordContent(WorkorderRecordContent workorderRecordContent)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.WorkorderRecordContents.FirstOrDefault(x => x.Id == workorderRecordContent.Id);
+                    if (target != null)
+                    {
+                        target.RecordName = workorderRecordContent.RecordName;
+                        target.DataType = workorderRecordContent.DataType;
+                    }
+                    else
+                    {
+                        await dbContext.WorkorderRecordContents.AddAsync(workorderRecordContent);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new(2, $"Upsert workorder record content {workorderRecordContent.RecordName} success");
+                }
+                catch (Exception ex)
+                {
+                    return new(4, $"Upsert workorder record config {workorderRecordContent.RecordName} fail({ex.Message})");
+                }
+
+            }
+        }
+
+        public async Task<RequestResult> DeletetWorkorderRecordContent(WorkorderRecordContent workorderRecordContent)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.WorkorderRecordContents.FirstOrDefault(x => x.Id == workorderRecordContent.Id);
+                    if (target != null)
+                    {
+                        dbContext.WorkorderRecordContents.Remove(target);
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Delete workorder record config {target.RecordName} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Workorder record config {workorderRecordContent.RecordName} not exist");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new(4, $"Delete workorder record config {workorderRecordContent.RecordName} fail({ex.Message})");
+                }
+
+            }
+        }
+
+        public async Task<List<WorkorderRecordDetail>> RetriveOrGenerateWorkorderRecordContent(Workorder wo, Guid? itemRecordConfigId)
+        {
+            List<WorkorderRecordDetail> res = new();
+            var content = await GetWorkorderRecordDetailsByConfigID(itemRecordConfigId);
+            if (content != null)
+            {
+                //total content
+                var woRecordConfig = await GetWorkorderRecordDetailsByConfigID(wo.WorkorderRecordCategoryId);
+                var totalWorkorderRecordContent = woRecordConfig.WorkorderRecordContents;
+                //current record
+                List<WorkorderRecordDetail> currentWorkorderRecordDetail = await GetWorkorderRecordDetailByWoAndConfig(wo.Id);
+                foreach (var recordContent in totalWorkorderRecordContent)
+                {
+                    var existDetails = currentWorkorderRecordDetail.FirstOrDefault(x => x.RecordContentId == recordContent.Id);
+                    if (existDetails != null)
+                    {
+                        //existDetails.RecordContent = recordContent;
+                        res.Add(existDetails);
+                    }
+                    else
+                    {
+                        res.Add(new WorkorderRecordDetail(wo.Id, recordContent));
+                    }
+                }
+            }
+            return res;
+        }
+
+        public async Task<RequestResult> UpdateWorkorderRecordDetails(Guid woId, IEnumerable<WorkorderRecordDetail> workorderRecordDetails)
+        {
+            var workorderRecordDetailsWithFilter = workorderRecordDetails.Where(x => !string.IsNullOrEmpty(x.Value));
+            var woOnlyone = workorderRecordDetailsWithFilter.DistinctBy(x => x.WorkerderId);
+            if (woOnlyone.Count() > 1)
+            {
+                return new RequestResult(4, $"Update multiple workorder record items at once is invalid");
+            }
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var currentInDB = dbContext.WorkorderRecordDetails.Where(x => x.WorkerderId == woId);
+
+                    dbContext.WorkorderRecordDetails.RemoveRange(currentInDB);
+
+
+                    var detailWithoutNav = workorderRecordDetailsWithFilter.Select(
+                        x => new WorkorderRecordDetail()
+                        {
+                            WorkerderId = x.WorkerderId,
+                            RecordContentId = x.RecordContentId,
+                            Value = x.Value,
+                        });
+                    await dbContext.WorkorderRecordDetails.AddRangeAsync(detailWithoutNav);
+
+                    await dbContext.SaveChangesAsync();
+                    return new(2, $"Update workorder record items success");
+                }
+                catch (Exception ex)
+                {
+                    return new(4, $"Update workorder record items fail({ex.Message})");
+                }
+
+            }
+        }
+
+
         #endregion
 
         #region item
@@ -959,6 +1809,135 @@ namespace TMWeb.Services
         #endregion
 
         #region item record
+
+        public Task<List<ItemRecordConfig>> GetItemRecordConfigs()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+
+                return Task.FromResult(dbContext.ItemRecordConfigs.AsNoTracking().ToList());
+            }
+        }
+
+        public Task<List<ItemRecordConfig>> GetItemRecordConfigsAndContent()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+
+                return Task.FromResult(dbContext.ItemRecordConfigs.Include(x => x.ItemRecordContents).AsNoTracking().ToList());
+            }
+        }
+
+        public async Task<RequestResult> UpsertItemRecordConfig(ItemRecordConfig itemRecordConfig)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.ItemRecordConfigs.FirstOrDefault(x => x.Id == itemRecordConfig.Id);
+                    if (target != null)
+                    {
+                        target.ItemRecordCategory = itemRecordConfig.ItemRecordCategory;
+                    }
+                    else
+                    {
+                        await dbContext.ItemRecordConfigs.AddAsync(itemRecordConfig);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new(2, $"Upsert item record config {itemRecordConfig.ItemRecordCategory} success");
+                }
+                catch (Exception ex)
+                {
+                    return new(4, $"Upsert item record config {itemRecordConfig.ItemRecordCategory} fail({ex.Message})");
+                }
+            }
+        }
+
+        public async Task<RequestResult> DeletetItemRecordConfig(ItemRecordConfig itemRecordConfig)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.ItemRecordConfigs.FirstOrDefault(x => x.Id == itemRecordConfig.Id);
+                    if (target != null)
+                    {
+                        dbContext.ItemRecordConfigs.Remove(target);
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Delete Item record config {target.ItemRecordCategory} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Item record config {itemRecordConfig.ItemRecordCategory} not exist");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new(4, $"Delete item record config {itemRecordConfig.ItemRecordCategory} fail({ex.Message})");
+                }
+
+            }
+        }
+
+
+        public async Task<RequestResult> UpsertItemRecordContent(ItemRecordContent itemRecordContent)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.ItemRecordContents.FirstOrDefault(x => x.Id == itemRecordContent.Id);
+                    if (target != null)
+                    {
+                        target.RecordName = itemRecordContent.RecordName;
+                        target.DataType = itemRecordContent.DataType;
+                    }
+                    else
+                    {
+                        await dbContext.ItemRecordContents.AddAsync(itemRecordContent);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new(2, $"Upsert item record content {itemRecordContent.RecordName} success");
+                }
+                catch (Exception ex)
+                {
+                    return new(4, $"Upsert item record config {itemRecordContent.RecordName} fail({ex.Message})");
+                }
+            }
+        }
+
+        public async Task<RequestResult> DeletetItemRecordContent(ItemRecordContent itemRecordContent)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.ItemRecordContents.FirstOrDefault(x => x.Id == itemRecordContent.Id);
+                    if (target != null)
+                    {
+                        dbContext.ItemRecordContents.Remove(target);
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Delete Item record content {target.RecordName} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Item record content {itemRecordContent.RecordName} not exist");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return new(4, $"Delete item record content {itemRecordContent.RecordName} fail({ex.Message})");
+                }
+
+            }
+        }
+
 
         public List<ItemRecordDetail> RetriveOrGenerateItemRecordDetail(Workorder wo, ItemDetail item)
         {
@@ -1066,15 +2045,7 @@ namespace TMWeb.Services
 
         }
 
-        public Task<List<ItemRecordConfig>> GetItemRecordConfigs()
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
 
-                return Task.FromResult(dbContext.ItemRecordConfigs.ToList());
-            }
-        }
 
         public ItemRecordDetail? GetItemRecordDetail(Guid ItemID, Guid? recordID)
         {
@@ -1377,6 +2348,17 @@ namespace TMWeb.Services
 
         #endregion
 
+        #region log
+        private async Task WriteEventLog(RequestResult requestResult)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var eventLogService = scope.ServiceProvider.GetRequiredService<EventLogService>();
+                await eventLogService.AddEventLog(requestResult);
+            }
+        }
+        #endregion
+
         #region developer
 
         public async Task<RequestResult> ResetWorkorderById(Guid id)
@@ -1396,7 +2378,7 @@ namespace TMWeb.Services
                     var workorder = dbContext.Workorders.FirstOrDefault(x => x.Id == id);
                     if (workorder != null)
                     {
-                        workorder.Status = 0;
+                        workorder.Status = (int)WorkorderStatus.Init;
                         workorder.Okamount = 0;
                         workorder.Ngamount = 0;
                         workorder.StartTime = null;

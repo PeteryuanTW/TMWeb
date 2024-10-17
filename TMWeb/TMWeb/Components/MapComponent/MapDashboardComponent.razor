@@ -17,7 +17,7 @@
 
     private string shapeCss => componentAssigned ? $"left:{MapComponentConfig.PositionX}%; top:{MapComponentConfig.PositionY}%; width:{MapComponentConfig.Width}%; height:{MapComponentConfig.Height}%;" : string.Empty;
     private string name = string.Empty;
-    private Status status = Status.Uninit;
+    private Status status = Status.Init;
 
 
     protected override async Task OnInitializedAsync()
@@ -60,8 +60,6 @@
     {
         switch (status)
         {
-            case Status.Uninit:
-                return "uninit";
             case Status.Running:
                 return "running";
             // case Status.Pause:

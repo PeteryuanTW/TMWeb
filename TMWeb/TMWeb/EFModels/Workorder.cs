@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using TMWeb.Data.CustomAttribute;
 
 namespace TMWeb.EFModels;
 
@@ -7,8 +9,11 @@ public partial class Workorder
 {
     public Guid Id { get; set; }
 
+    [Required]
+    [PublicProperty]
     public string WorkorderNo { get; set; } = null!;
-
+    [Required]
+    [PublicProperty]
     public string Lot { get; set; } = null!;
 
     public int Status { get; set; }
@@ -21,12 +26,12 @@ public partial class Workorder
 
     public Guid? TaskRecordCategoryId { get; set; }
 
-    public Guid ProcessId { get; set; }
-
+    [Required]
+    public Guid? ProcessId { get; set; }
+    [PublicProperty]
     public string? PartNo { get; set; }
-
-    public int TargetAmount { get; set; }
-
+    [PublicProperty]
+    public ushort TargetAmount { get; set; }
     public int Okamount { get; set; }
 
     public int Ngamount { get; set; }
@@ -34,6 +39,8 @@ public partial class Workorder
     public DateTime? StartTime { get; set; }
 
     public DateTime? FinishedTime { get; set; }
+
+    public DateTime CreateTime { get; set; }
 
     public virtual ICollection<ItemDetail> ItemDetails { get; set; } = new List<ItemDetail>();
 

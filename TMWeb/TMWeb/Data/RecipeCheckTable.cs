@@ -4,26 +4,26 @@ namespace TMWeb.Data
 {
     public class RecipeCheckTable
     {
-        public WorkorderRecipeContent recipeContent { get; set; }
+        //public WorkorderRecipeContent recipeContent { get; set; }
 
-        public List<RecipeCheckItem> recipeCheckItems { get; set; }
+        //public List<RecipeCheckItem> recipeCheckItems { get; set; }
 
-        public bool RecipeReady => CheckRecipeValue();
+        //public bool RecipeReady => CheckRecipeValue();
 
-        public RecipeCheckTable(WorkorderRecipeContent workorderRecipeContent)
-        {
-            recipeContent = workorderRecipeContent;
-            recipeCheckItems = new();
-        }
+        //public RecipeCheckTable(WorkorderRecipeContent workorderRecipeContent)
+        //{
+        //    recipeContent = workorderRecipeContent;
+        //    recipeCheckItems = new();
+        //}
 
-        public void AddCheckItem(RecipeCheckItem recipeCheckItem)
-        {
-            recipeCheckItems.Add(recipeCheckItem);
-        }
+        //public void AddCheckItem(RecipeCheckItem recipeCheckItem)
+        //{
+        //    recipeCheckItems.Add(recipeCheckItem);
+        //}
 
-        private bool CheckRecipeValue()
-        {
-            return !recipeCheckItems.Exists(x => x.Val != recipeContent.Value);
-        }
+        //private bool CheckRecipeValue()
+        //{
+        //    return !recipeCheckItems.Exists(x => x.Val != recipeContent.Value);
+        //}
     }
 }

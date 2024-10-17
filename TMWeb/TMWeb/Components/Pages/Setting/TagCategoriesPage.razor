@@ -1,0 +1,374 @@
+﻿@page "/TagCategoriesPage"
+@rendermode InteractiveServer
+
+<DxGridLayout RowSpacing="1rem" ColumnSpacing="1rem">
+    <Rows>
+        <DxGridLayoutRow></DxGridLayoutRow>
+    </Rows>
+    <Columns>
+        <DxGridLayoutColumn Width="3fr"></DxGridLayoutColumn>
+        <DxGridLayoutColumn Width="8fr"></DxGridLayoutColumn>
+    </Columns>
+    <Items>
+        <DxGridLayoutItem Row="0" Column="0">
+            <Template>
+                <div>
+                    <DxGrid @ref="@catGrid" Data="@tagCategories" DataItemDeleting="DeleteTagCategory" FocusedRowEnabled="true" FocusedRowChanged="CatSelected" HighlightRowOnHover="true">
+                        <ToolbarTemplate>
+                            <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                <Items>
+                                    <DxToolbarItem IconCssClass="oi oi-plus" Click="NewCatClicked" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowCatPopup" Enabled="@catSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowCatDelete" Enabled="@catSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                </Items>
+                            </DxToolbar>
+                        </ToolbarTemplate>
+                        <Columns>
+                            <DxGridDataColumn FieldName="@nameof(TagCategory.Name)"></DxGridDataColumn>
+                            <DxGridDataColumn FieldName="@nameof(TagCategory.ConnectionType)">
+                                <CellDisplayTemplate>
+                                    <div>@((ConnectType)((int)context.Value))</div>
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                            <DxGridDataColumn FieldName="@nameof(TagCategory.TagCount)"></DxGridDataColumn>
+                        </Columns>
+                    </DxGrid>
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+        <DxGridLayoutItem Row="0" Column="1">
+            <Template>
+                <div>
+                    <DxGrid @ref="@tagGrid" Data="@tags" DataItemDeleting="DeleteTag" FocusedRowEnabled="true" FocusedRowChanged="TagSelected" HighlightRowOnHover="true">
+                        <ToolbarTemplate>
+                            <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                <Items>
+                                    <DxToolbarItem IconCssClass="oi oi-plus" Click="NewTagClicked" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowTagPopup" Enabled="@tagSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowTagDelete" Enabled="@tagSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-eye" Click="SwitchTagDeatilVisible" Alignment="ToolbarItemAlignment.Right" RenderStyle="@detailStyle" BeginGroup="true" />
+                                </Items>
+                            </DxToolbar>
+                        </ToolbarTemplate>
+                        <Columns>
+                            <DxGridDataColumn FieldName="@nameof(Tag.Name)"></DxGridDataColumn>
+                            <DxGridDataColumn FieldName="@nameof(Tag.DataType)">
+                                <CellDisplayTemplate>
+                                    <div>@((DataType)((int)context.Value))</div>
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                            <DxGridDataColumn FieldName="@nameof(Tag.UpdateByTime)">
+                                <CellDisplayTemplate>
+                                    <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.IsHeartBeat)">
+                                <CellDisplayTemplate>
+                                    <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.Bool1)">
+                                <CellDisplayTemplate>
+                                    <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.Bool2)">
+                                <CellDisplayTemplate>
+                                    <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.Bool3)">
+                                <CellDisplayTemplate>
+                                    <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.Bool4)">
+                                <CellDisplayTemplate>
+                                    <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.Bool5)">
+                                <CellDisplayTemplate>
+                                    <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.Int1)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.Int2)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.Int3)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.Int4)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.Int5)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.String1)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.String2)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.String3)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.String4)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@showTagDetails" FieldName="@nameof(Tag.String5)"></DxGridDataColumn>
+                        </Columns>
+                    </DxGrid>
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+    </Items>
+</DxGridLayout>
+
+<DxPopup @bind-Visible="@catPopupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" Width="50rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="CloseCatPopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <EditForm Model="@targetCat" Context="EditFormContext" OnValidSubmit="UpsertTagCategory">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" BeginRow="true">
+                    <DxTextBox @bind-Text="@targetCat.Name" ShowValidationIcon="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Connection Type"]}")" ColSpanLg="6">
+                    <DxComboBox Data="@ConnectTypes" @bind-Value="@targetCat.ConnectionType" ValueFieldName="@(nameof(ConnectionTypeWrapperClass.Index))" TextFieldName="@(nameof(ConnectionTypeWrapperClass.DisplayName))" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                        </Items>
+                    </DxToolbar>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
+    </BodyContentTemplate>
+</DxPopup>
+
+<DxPopup @bind-Visible="@tagPopupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" Width="80rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="CloseTagPopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <EditForm Model="@targetTag" Context="EditFormContext" OnValidSubmit="UpsertTag">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="3" BeginRow="true">
+                    <DxTextBox @bind-Text="@targetTag.Name" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["DataType"]}")" ColSpanLg="3">
+                    <DxComboBox Data="@DataTypes" @bind-Value="@targetTag.DataType" ValueFieldName="@(nameof(DataTypeWrapperClass.Index))" TextFieldName="@(nameof(DataTypeWrapperClass.DisplayName))"></DxComboBox>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Update By Time"]}")" ColSpanLg="3">
+                    <DxCheckBox @bind-Checked="@targetTag.UpdateByTime" CheckType="CheckType.Switch" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Is Heartbeat"]}")" ColSpanLg="3">
+                    <DxCheckBox @bind-Checked="@targetTag.IsHeartBeat" CheckType="CheckType.Switch" />
+                </DxFormLayoutItem>
+
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Bool1"]}")" ColSpanLg="2" BeginRow="true">
+                    <DxCheckBox @bind-Checked="@targetTag.Bool1" CheckType="CheckType.Switch" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Bool2"]}")" ColSpanLg="2">
+                    <DxCheckBox @bind-Checked="@targetTag.Bool2" CheckType="CheckType.Switch" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Bool3"]}")" ColSpanLg="2">
+                    <DxCheckBox @bind-Checked="@targetTag.Bool3" CheckType="CheckType.Switch" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Bool4"]}")" ColSpanLg="2">
+                    <DxCheckBox @bind-Checked="@targetTag.Bool4" CheckType="CheckType.Switch" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Bool5"]}")" ColSpanLg="2">
+                    <DxCheckBox @bind-Checked="@targetTag.Bool5" CheckType="CheckType.Switch" />
+                </DxFormLayoutItem>
+
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Int1"]}")" ColSpanLg="2" BeginRow="true">
+                    <DxSpinEdit @bind-Value="@targetTag.Int1" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Int2"]}")" ColSpanLg="2">
+                    <DxSpinEdit @bind-Value="@targetTag.Int2" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Int3"]}")" ColSpanLg="2">
+                    <DxSpinEdit @bind-Value="@targetTag.Int3" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Int4"]}")" ColSpanLg="2">
+                    <DxSpinEdit @bind-Value="@targetTag.Int4" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Int5"]}")" ColSpanLg="2">
+                    <DxSpinEdit @bind-Value="@targetTag.Int5" />
+                </DxFormLayoutItem>
+
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["String1"]}")" ColSpanLg="2" BeginRow="true">
+                    <DxTextBox @bind-Text="@targetTag.String1" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["String2"]}")" ColSpanLg="2">
+                    <DxTextBox @bind-Text="@targetTag.String2" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["String3"]}")" ColSpanLg="2">
+                    <DxTextBox @bind-Text="@targetTag.String3" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["String4"]}")" ColSpanLg="2">
+                    <DxTextBox @bind-Text="@targetTag.String4" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["String5"]}")" ColSpanLg="2">
+                    <DxTextBox @bind-Text="@targetTag.String5" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <Template>
+                        <DxToolbar>
+                            <Items>
+                                <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                            </Items>
+                        </DxToolbar>
+                    </Template>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
+    </BodyContentTemplate>
+</DxPopup>
+
+
+@code {
+    IGrid? catGrid { get; set; }
+    private IEnumerable<TagCategory>? tagCategories;
+    private TagCategory? targetCat;
+    private bool catSelected => targetCat != null;
+
+
+    IGrid? tagGrid { get; set; }
+    private List<Tag> tags => catSelected ? targetCat.Tags.ToList() : new();
+    private Tag? targetTag;
+    private bool tagSelected => targetTag != null;
+
+
+    private bool catPopupVisible;
+    private bool tagPopupVisible;
+
+
+    private IEnumerable<ConnectionTypeWrapperClass> ConnectTypes => TypeEnumHelper.GetConnectTypesWrapperClass();
+    private IEnumerable<DataTypeWrapperClass> DataTypes => TypeEnumHelper.GetDataTypesWrapperClass();
+
+    private bool showTagDetails = false;
+    private ButtonRenderStyle detailStyle => showTagDetails ? ButtonRenderStyle.Info : ButtonRenderStyle.Secondary;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitParameter();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task InitParameter()
+    {
+        tagCategories = await shopfloorService.GetAllTagCategoriesWithTags();
+    }
+
+    private void CatSelected(GridFocusedRowChangedEventArgs args)
+    {
+        targetCat = args.DataItem as TagCategory;
+    }
+
+    private void TagSelected(GridFocusedRowChangedEventArgs args)
+    {
+        targetTag = args.DataItem as Tag;
+    }
+
+    private void ShowCatPopup()
+    {
+        catPopupVisible = true;
+    }
+
+    private async void CloseCatPopup()
+    {
+        catPopupVisible = false;
+        await InitParameter();
+    }
+
+    private void NewCatClicked()
+    {
+        GenrateNewCat();
+        ShowCatPopup();
+    }
+
+    private void GenrateNewCat()
+    {
+        targetCat = new TagCategory(Guid.NewGuid());
+    }
+
+    private async void ConnectTypeChanged(ConnectType connectType)
+    {
+        targetCat.ConnectionType = (int)connectType;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpsertTagCategory()
+    {
+        var res = await shopfloorService.UpsertTagCategory(targetCat);
+        CloseCatPopup();
+        uiService.ShowToast(res);
+    }
+
+    private void ShowCatDelete()
+    {
+        catGrid?.ShowDataItemDeleteConfirmation(targetCat);
+    }
+
+    private async Task DeleteTagCategory()
+    {
+        var res = await shopfloorService.DeleteTagCategory(targetCat);
+        await InitParameter();
+        uiService.ShowToast(res);
+    }
+
+
+
+
+    private void ShowTagPopup()
+    {
+        tagPopupVisible = true;
+    }
+
+    private void SwitchTagDeatilVisible()
+    {
+        showTagDetails = !showTagDetails;
+    }
+
+    private async void CloseTagPopup()
+    {
+        tagPopupVisible = false;
+        await InitParameter();
+    }
+
+    private void NewTagClicked()
+    {
+        GenrateNewTag();
+        ShowTagPopup();
+    }
+
+    private void GenrateNewTag()
+    {
+        targetTag = new Tag(targetCat.Id);
+    }
+
+    private async Task UpsertTag()
+    {
+        var res = await shopfloorService.UpsertTag(targetTag);
+        await InitParameter();
+        CloseTagPopup();
+        uiService.ShowToast(res);
+    }
+
+    private void ShowTagDelete()
+    {
+        tagGrid.ShowDataItemDeleteConfirmation(tagSelected);
+    }
+
+    private async Task DeleteTag()
+    {
+        var res = await shopfloorService.DeleteTag(targetTag);
+        await InitParameter();
+        uiService.ShowToast(res);
+    }
+}

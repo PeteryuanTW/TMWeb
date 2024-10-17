@@ -1,73 +1,93 @@
 ﻿@using DevExpress.Blazor
 @rendermode RenderMode.InteractiveServer
 @inherits AuthComponentBase
-@inject NavigationManager nav
 
 <div class="w-25 card p-5 ">
-    <DxFormLayout>
-        @if (!UIProcessing)
+    @if (!UIProcessing)
+    {
+        @if (authService.RetivedUserInfo && !authService.IsProcessing)
         {
-            @if (authService.RetivedUserInfo && !authService.IsProcessing)
+            @if (authService.isAuth)
             {
-                @if (authService.isAuth)
-                {
-                    <DxFormLayoutItem Caption="@($"{localizer["User"]}")" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
-                        <DxTextBox Text="@authService.UserInfoDTO.UserName" ReadOnly="true"></DxTextBox>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem Caption="@($"{localizer["Role"]}")" BeginRow="true" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
-                        <DxTextBox Text="@authService.UserInfoDTO.Role?.RoleName" ReadOnly="true"></DxTextBox>
-                    </DxFormLayoutItem>
-                }
-                else
-                {
-                    <DxFormLayoutItem Caption="@($"{localizer["User"]}")" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
-                        <DxTextBox @bind-Text="@loginDataDTO.UserName"></DxTextBox>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem Caption="@($"{localizer["Password"]}")" ColSpanLg="12" BeginRow="true" CaptionPosition="CaptionPosition.Vertical">
-                        <DxTextBox @bind-Text="@loginDataDTO.Password"></DxTextBox>
-                    </DxFormLayoutItem>
-                }
-                <DxFormLayoutItem BeginRow="true" ColSpanLg="12">
-                    <Template>
-                        <div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
-                            <DxButton Text="@btnString" Click="BtnClick" RenderStyle="@buttonRenderStyle"></DxButton>
-                        </div>
-                    </Template>
+                <EditForm Model="@authService.UserInfoDTO" Context="EditFormContext" OnValidSubmit="BtnClick">
+                    <DxFormLayout>
+                        <DxFormLayoutItem Caption="@($"{localizer["User"]}")" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
+                            <DxTextBox Text="@authService.UserInfoDTO.UserName" ReadOnly="true" TextExpression="@(()=>authService.UserInfoDTO.UserName)"></DxTextBox>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="@($"{localizer["Role"]}")" BeginRow="true" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
+                            <DxTextBox Text="@authService.UserInfoDTO.Role?.RoleName" ReadOnly="true" TextExpression="@(()=>authService.UserInfoDTO.Role.RoleName)"></DxTextBox>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem BeginRow="true" ColSpanLg="12">
+                            <Template>
+                                <div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
+                                    <DxButton Text="@btnString" SubmitFormOnClick="true" RenderStyle="@buttonRenderStyle"></DxButton>
+                                </div>
+                            </Template>
 
-                </DxFormLayoutItem>
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+                </EditForm>
             }
             else
             {
-                <DxFormLayoutItem BeginRow="true" ColSpanLg="12">
-                    <Template>
-                        <div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
-                            <DxProgressBar Type="ProgressBarType.Circular"
-                                           SizeMode="SizeMode.Large"
-                                           ShowLabel="false"
-                                           Indeterminate="true" />
-                        </div>
-                    </Template>
+                <EditForm Model="@loginDataDTO" Context="EditFormContext" OnValidSubmit="BtnClick">
+                    <DxFormLayout>
+                        <DataAnnotationsValidator />
+                        <DxFormLayoutItem Caption="@($"{localizer["User"]}")" ColSpanLg="12" CaptionPosition="CaptionPosition.Vertical">
+                            <DxTextBox @bind-Text="@loginDataDTO.UserName" ShowValidationIcon="true"></DxTextBox>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem Caption="@($"{localizer["Password"]}")" ColSpanLg="12" BeginRow="true" CaptionPosition="CaptionPosition.Vertical">
+                            <DxTextBox @bind-Text="@loginDataDTO.Password" Password="true" ShowValidationIcon="true"></DxTextBox>
+                        </DxFormLayoutItem>
+                        <DxFormLayoutItem BeginRow="true" ColSpanLg="12">
+                            <Template>
+                                <div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
+                                    <DxButton Text="@btnString" SubmitFormOnClick="true" RenderStyle="@buttonRenderStyle"></DxButton>
+                                </div>
+                            </Template>
 
-                </DxFormLayoutItem>
+                        </DxFormLayoutItem>
+                    </DxFormLayout>
+                </EditForm>
             }
+
         }
         else
         {
-            <DxFormLayoutItem BeginRow="true" ColSpanLg="12">
-                <Template>
-                    <div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
-                        <DxProgressBar Type="ProgressBarType.Circular"
-                                       SizeMode="SizeMode.Large"
-                                       ShowLabel="false"
-                                       Indeterminate="true" />
-                    </div>
-                </Template>
-
-            </DxFormLayoutItem>
+            @* <DxFormLayoutItem BeginRow="true" ColSpanLg="12">
+    <Template> *@
+            <div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
+                @* <DxProgressBar Type="ProgressBarType.Circular"
+        SizeMode="SizeMode.Large"
+        ShowLabel="false"
+        Indeterminate="true" /> *@
+                <DxWaitIndicator Visible="true"
+                                 SizeMode="SizeMode.Large"
+                                 CssClass="m-auto"
+                                 AnimationType="WaitIndicatorAnimationType.Pulse" />
+            </div>
+            @* </Template>
+    </DxFormLayoutItem> *@
         }
+    }
+    else
+    {
+        @*  <DxFormLayoutItem BeginRow="true" ColSpanLg="12">
+    <Template> *@
+        <div class="w-100 h-100 d-flex flex-wrap align-content-center justify-content-center">
+            @* <DxProgressBar Type="ProgressBarType.Circular"
+        SizeMode="SizeMode.Large"
+        ShowLabel="false"
+        Indeterminate="true" /> *@
+            <DxWaitIndicator Visible="true"
+                             SizeMode="SizeMode.Large"
+                             CssClass="m-auto"
+                             AnimationType="WaitIndicatorAnimationType.Pulse" />
+        </div>
+        @* </Template>
 
-
-    </DxFormLayout>
+    </DxFormLayoutItem> *@
+    }
 </div>
 @code {
     [Parameter]
@@ -78,6 +98,8 @@
     private string btnString => authService.isAuth ? $"{localizer["Logout"]}" : $"{localizer["Login"]}";
 
     private ButtonRenderStyle buttonRenderStyle => authService.isAuth ? ButtonRenderStyle.Danger : ButtonRenderStyle.Info;
+
+
 
     private async Task BtnClick()
     {
@@ -98,7 +120,9 @@
         {
             nav.NavigateTo("/");
         }
-        UIRelease();
-
+        else
+        {
+            UIRelease();
+        }
     }
 }

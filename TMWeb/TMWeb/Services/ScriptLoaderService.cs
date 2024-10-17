@@ -12,7 +12,6 @@ namespace TMWeb.Services
 {
     public class ScriptLoaderService
     {
-
         public ScriptLoaderService(NavigationManager navigationManager)
         {
             //_httpClient.BaseAddress = new Uri(navigationManager.BaseUri);
@@ -42,7 +41,7 @@ namespace TMWeb.Services
                 //    var bytes = await tmp.Content.ReadAsByteArrayAsync();
                 //    ret = MetadataReference.CreateFromImage(bytes);
                 //    //Console.WriteLine($"metadataReference loaded: {assembly} success");
-                    Console.WriteLine($"O {assemblyName} found.");
+                //Console.WriteLine($"O {assemblyName} found.");
                 //}
             }
             catch (Exception ex)

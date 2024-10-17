@@ -10,7 +10,7 @@ namespace CommonLibrary.Auth
     public class AuthService
     {
         private string cookieName = "TMMAuthCookie";
-        private readonly int delay = 500;
+        private readonly int delay = 300;
 
 
         private readonly IServiceScopeFactory scopeFactory;
@@ -92,7 +92,7 @@ namespace CommonLibrary.Auth
             StopProcessing();
         }
 
-        public async Task Login(string token)
+        public Task Login(string token)
         {
             StartProcessing();
             using (var scope = scopeFactory.CreateScope())
@@ -108,6 +108,7 @@ namespace CommonLibrary.Auth
                 }
             }
             StopProcessing();
+            return Task.CompletedTask;
         }
         public async Task<RequestResult> Login(LoginDataDTO loginDataDTO)
         {
@@ -125,8 +126,9 @@ namespace CommonLibrary.Auth
                         if (BCryptHelper.CheckPassword(loginDataDTO.Password, user.HashPassword))
                         {
                             SetUserInfo(user);
+                            var userData = dbContext.UserInfos.FirstOrDefault(x => x.UserName == loginDataDTO.UserName);
                             Guid newToken = Guid.NewGuid();
-                            user.Token = newToken;
+                            userData.Token = newToken;
                             await dbContext.SaveChangesAsync();
                             await cookieService.SetAsync(cookieName, newToken.ToString(), DateTime.Now.AddHours(1), CancellationToken.None);
                             AuthStatusChanged();

@@ -17,19 +17,16 @@ namespace TMWeb.EFModels
     {
         public Station() { }
 
-        public Station(Process process, string name)
+        public Station(Guid processId)
         {
-            Process = process;
-            ProcessId = process.Id;
+            ProcessId = processId;
             Id = Guid.NewGuid();
-            ProcessIndex = 0;
-            StationType = 0;
-            Name = name;
+            Enable = true;
         }
 
 
 
-        private Status stationStatus = Status.Uninit;
+        private Status stationStatus = Status.Init;
         public Status Status => stationStatus;
 
         protected void UIUpdate()

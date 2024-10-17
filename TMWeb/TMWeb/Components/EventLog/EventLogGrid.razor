@@ -1,0 +1,64 @@
+﻿@rendermode InteractiveServer
+@implements IDisposable
+
+<DxGrid @ref="@grid" Data="@eventLogService.EventLogs">
+    <Columns>
+        <DxGridDataColumn FieldName="@nameof(EventLog.ReturnCode)" TextAlignment="GridTextAlignment.Center">
+            <CellDisplayTemplate>
+                <div>
+                    @{
+                        EventLog eventLog = (context.DataItem as EventLog);
+                    }
+                    <DxButton SizeMode="SizeMode.Small" RenderStyle="@GetStatusStyle(eventLog.ReturnCode)" Text="@(((EventLogLevel)(eventLog.ReturnCode)).ToString())"></DxButton>
+                </div>
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(EventLog.OccuredTime)" DisplayFormat="g"></DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(EventLog.Msg)"></DxGridDataColumn>
+    </Columns>
+</DxGrid>
+@code {
+
+    IGrid grid { get; set; }
+    protected override async Task OnInitializedAsync()
+    {
+        eventLogService.EventLogChangedAct += EventLogChanged;
+        await base.OnInitializedAsync();
+    }
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            grid.AutoFitColumnWidths();
+        }
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+
+    private async void EventLogChanged()
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        eventLogService.EventLogChangedAct -= EventLogChanged;
+    }
+
+    public ButtonRenderStyle GetStatusStyle(int statusCode)
+    {
+        switch (statusCode)
+        {
+            case 1:
+                return ButtonRenderStyle.Info;
+            case 2:
+                return ButtonRenderStyle.Success;
+            case 3:
+                return ButtonRenderStyle.Warning;
+            case 4:
+                return ButtonRenderStyle.Danger;
+            default:
+                return ButtonRenderStyle.None;
+        }
+    }
+}

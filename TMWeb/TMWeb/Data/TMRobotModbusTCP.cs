@@ -1,4 +1,6 @@
-﻿using TMWeb.EFModels;
+﻿using DevExpress.Pdf.ContentGeneration.Interop;
+using TMWeb.EFModels;
+using static System.Collections.Specialized.BitVector32;
 
 namespace TMWeb.Data
 {
@@ -6,69 +8,42 @@ namespace TMWeb.Data
     {
         public TMRobotModbusTCP(Machine machine) : base(machine)
         {
-        }
-
-
-        public override async Task UpdateTag(Tag tag)
-        {
-            if (status != Status.Error || status != Status.Stop)
-            {
-                try
-                {
-                    //MachineStatus newStatus = MachineStatus.Init;
-                    //bool isError = (await master?.ReadInputsAsync(1, 7201, 1)).FirstOrDefault();
-                    //bool isRunProject = (await master?.ReadInputsAsync(1, 7202, 1)).FirstOrDefault();
-
-                    //newStatus = GetRobotState(isError, isRunProject);
-                    //Console.WriteLine(newStatus.ToString());
-                    //if (newStatus != Status)
-                    //{
-                    //    switch (newStatus)
-                    //    {
-                    //        case MachineStatus.Init:
-                    //            break;
-                    //        case MachineStatus.Disconnect:
-                    //            Disconnect(string.Empty);
-                    //            break;
-                    //        case MachineStatus.Idel:
-                    //            Idel();
-                    //            break;
-                    //        case MachineStatus.Running:
-                    //            Running();
-                    //            break;
-                    //        case MachineStatus.Error:
-                    //            var errorCode = await master.ReadInputRegistersAsync(1, 7320, 2);
-                    //            Error("Error");
-                    //            break;
-                    //    }
-                    //}
-                }
-                catch (Exception e)
-                {
-                    Error(e.Message);
-                }
-                
-            }
             
         }
 
-        private Status GetRobotState(bool isError, bool isRunProject)
+        protected override async Task UpdateStatus()
         {
-            if (isError)
+            bool[] statusList = await master.ReadInputsAsync((byte)1, (ushort)7200, (ushort)14);
+            if (statusList[8])
             {
-                return Status.Error;
+                Stop();
             }
             else
             {
-                if (isRunProject)
+                if (statusList[1])
                 {
-                    return Status.Running;
+                    Error("Error from robot");
                 }
                 else
                 {
-                    return Status.Idel; ;
+                    if (statusList[4])
+                    {
+                        Pause();
+                    }
+                    else
+                    {
+                        if (statusList[2])
+                        {
+                            Running();
+                        }
+                        else
+                        {
+                            Idel();
+                        }
+                    }
                 }
             }
+            //await base.UpdateStatus();
         }
     }
 }

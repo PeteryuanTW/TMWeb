@@ -4,6 +4,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<WasmEnableWebcil>false</WasmEnableWebcil>
+		<OutputType>Exe</OutputType>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<Optimize>True</Optimize>
@@ -22,6 +23,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Localization" Version="8.0.7" />
 		<PackageReference Include="NModbus" Version="3.0.81" />
 		<PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
@@ -29,7 +31,6 @@
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.2" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\..\CommonLibrary\CommonLibrary.csproj" />
 		<ProjectReference Include="..\..\RazorCommonLibrary\RazorCommonLibrary.csproj" />
 		<ProjectReference Include="..\TMWeb.Client\TMWeb.Client.csproj" />
 	</ItemGroup>
@@ -51,5 +52,10 @@
 	</ItemGroup>
 	<ItemGroup>
 		<Folder Include="wwwroot\map\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Content Update="Components\Pages\Setting\TagCategoriesPage.razor">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	  </Content>
 	</ItemGroup>
 </Project>

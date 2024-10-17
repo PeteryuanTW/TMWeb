@@ -67,7 +67,7 @@
                         <DxFormLayoutGroup>
                             @foreach (Tag val in values)
                             {
-                                <DxFormLayoutItem Caption="@(val.Param3)" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="3">
+                                <DxFormLayoutItem Caption="@(val.Int1.ToString())" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="3">
                                     @if (isBool)
                                     {
                                         <DxCheckBox Checked="@(Convert.ToBoolean(val.ValueString))" CheckedChanged="@((bool b)=>SetInput(val, b))" ReadOnly="@isRead" CheckType="CheckType.Switch" />
@@ -222,7 +222,7 @@
             Tag newTag = new Tag()
                 {
                     DataType = dataType,
-                    Param3 = (startIndex + i).ToString(),
+                    Int1 = startIndex + i,
                 };
             newTag.Init();
             values.Add(newTag);

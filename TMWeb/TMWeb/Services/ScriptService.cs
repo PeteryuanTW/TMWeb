@@ -7,6 +7,8 @@ namespace TMWeb.Services
 {
     public class ScriptService
     {
+        public string Root => ".\\Scripts\\Source";
+
         private readonly IServiceScopeFactory scopeFactory;
         private List<ScriptConfig> scriptConfigs;
 
@@ -14,7 +16,7 @@ namespace TMWeb.Services
         {
             this.scopeFactory = scopeFactory;
             scriptConfigs = new();
-            InitAllScripts();
+            //InitAllScripts();
         }
 
         public List<ScriptConfig> GetAllScripts()
@@ -27,15 +29,43 @@ namespace TMWeb.Services
             return scriptConfigs.FirstOrDefault(x => x.Id == id);
         }
 
-        public Task InitAllScripts()
+        public async Task InitAllScripts()
         {
             scriptConfigs = new();
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
                 scriptConfigs = dbContext.ScriptConfigs.AsNoTracking().ToList();
+                foreach (var scriptConfig in scriptConfigs)
+                {
+                    if (scriptConfig.Enable)
+                    {
+                        await ReadScriptAndCompile(scriptConfig);
+                    }
+                }
             }
-            return Task.CompletedTask;
+        }
+
+        private async Task ReadScriptAndCompile(ScriptConfig scriptConfig)
+        {
+            try
+            {
+                var code = await File.ReadAllTextAsync($"{Root}\\{scriptConfig.ScriptName}.script");
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var loaderService = scope.ServiceProvider.GetRequiredService<ScriptLoaderService>();
+                    var assembly = await loaderService.CompileToDLLAssembly(code, release: true);
+                    var mytype = assembly.GetType($"TMWeb.Scripts.Source.{scriptConfig.ClassName}");
+                    var sfcService = scope.ServiceProvider.GetRequiredService<TMWebShopfloorService>();
+                    var instance = (ScriptBaseClass)Activator.CreateInstance(mytype, sfcService);
+                    DeployScriptByID(scriptConfig.Id, instance);
+                }
+            }
+            catch (Exception e)
+            {
+
+            }
+
         }
 
         public void DeployScriptByID(Guid id, ScriptBaseClass targetScript)

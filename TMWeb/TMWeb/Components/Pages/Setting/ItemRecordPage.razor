@@ -1,0 +1,249 @@
+﻿@page "/ItemRecord"
+@rendermode InteractiveServer
+
+<DxGridLayout RowSpacing="1rem" ColumnSpacing="1rem">
+    <Rows>
+        <DxGridLayoutRow></DxGridLayoutRow>
+    </Rows>
+    <Columns>
+        <DxGridLayoutColumn Width="3fr"></DxGridLayoutColumn>
+        <DxGridLayoutColumn Width="8fr"></DxGridLayoutColumn>
+    </Columns>
+    <Items>
+        <DxGridLayoutItem Row="0" Column="0">
+            <Template>
+                <div>
+                    <DxGrid @ref="@configGrid" Data="@itemRecordConfig" DataItemDeleting="DeleteConfig" FocusedRowEnabled="true" FocusedRowChanged="ConfigSelected" HighlightRowOnHover="true">
+                        <ToolbarTemplate>
+                            <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                <Items>
+                                    <DxToolbarItem IconCssClass="oi oi-plus" Click="NewConfigClicked" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowConfigPopup" Enabled="@configSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowConfigDelete" Enabled="@configSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                </Items>
+                            </DxToolbar>
+                        </ToolbarTemplate>
+                        <Columns>
+                            <DxGridDataColumn FieldName="@nameof(ItemRecordConfig.ItemRecordCategory)"></DxGridDataColumn>
+                        </Columns>
+                    </DxGrid>
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+        <DxGridLayoutItem Row="0" Column="1">
+            <Template>
+                <div>
+                    <DxGrid @ref="@contentGrid" Data="@itemRecordContent" DataItemDeleting="DeleteContent" FocusedRowEnabled="true" FocusedRowChanged="ContentSelected" HighlightRowOnHover="true">
+                        <ToolbarTemplate>
+                            <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                <Items>
+                                    <DxToolbarItem IconCssClass="oi oi-plus" Click="NewContentClicked" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowContentPopup" Enabled="@contentSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowContentDelete" Enabled="@contentSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                </Items>
+                            </DxToolbar>
+                        </ToolbarTemplate>
+                        <Columns>
+                            <DxGridDataColumn FieldName="@nameof(ItemRecordContent.RecordName)"></DxGridDataColumn>
+                            <DxGridDataColumn FieldName="@nameof(ItemRecordContent.DataType)">
+                                <CellDisplayTemplate>
+                                    <div>@((DataType)((int)context.Value))</div>
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                            </Columns>
+                    </DxGrid>
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+    </Items>
+</DxGridLayout>
+
+<DxPopup @bind-Visible="@configPopupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" Width="50rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="CloseConfigPopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <EditForm Model="@targetConfig" Context="EditFormContext" OnValidSubmit="UpsertConfig">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" BeginRow="true">
+                    <DxTextBox @bind-Text="@targetConfig.ItemRecordCategory" ShowValidationIcon="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                        </Items>
+                    </DxToolbar>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
+    </BodyContentTemplate>
+</DxPopup>
+
+<DxPopup @bind-Visible="@contentPopupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" Width="50rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="CloseContentPopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <EditForm Model="@targetContent" Context="EditFormContext" OnValidSubmit="UpsertContent">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" BeginRow="true">
+                    <DxTextBox @bind-Text="@targetContent.RecordName" ShowValidationIcon="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["DataType"]}")" ColSpanLg="3">
+                    <DxComboBox Data="@DataTypes" @bind-Value="@targetContent.DataType" ValueFieldName="@(nameof(DataTypeWrapperClass.Index))" TextFieldName="@(nameof(DataTypeWrapperClass.DisplayName))"></DxComboBox>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                        </Items>
+                    </DxToolbar>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
+    </BodyContentTemplate>
+</DxPopup>
+
+
+@code {
+    IGrid? configGrid { get; set; }
+
+    private IEnumerable<ItemRecordConfig>? itemRecordConfig;
+    private ItemRecordConfig? targetConfig;
+    private bool configSelected => targetConfig != null;
+    private bool configPopupVisible;
+
+    IGrid? contentGrid { get; set; }
+    private List<ItemRecordContent> itemRecordContent => configSelected ? targetConfig.ItemRecordContents.ToList() : new();
+    private ItemRecordContent? targetContent;
+    private bool contentSelected => targetContent != null;
+    private bool contentPopupVisible;
+    private IEnumerable<DataTypeWrapperClass> DataTypes => TypeEnumHelper.GetDataTypesWrapperClass();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitParameter();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task InitParameter()
+    {
+        itemRecordConfig = await shopfloorService.GetItemRecordConfigsAndContent();
+    }
+
+    #region config
+
+    private void ConfigSelected(GridFocusedRowChangedEventArgs args)
+    {
+        targetConfig = args.DataItem as ItemRecordConfig;
+    }
+
+    private void ShowConfigPopup()
+    {
+        configPopupVisible = true;
+    }
+
+    private async void CloseConfigPopup()
+    {
+        configPopupVisible = false;
+        await InitParameter();
+    }
+
+    private void NewConfigClicked()
+    {
+        GenrateNewConfig();
+        ShowConfigPopup();
+    }
+
+    private void GenrateNewConfig()
+    {
+        targetConfig = new ItemRecordConfig(Guid.NewGuid());
+    }
+
+    private async Task UpsertConfig()
+    {
+        var res = await shopfloorService.UpsertItemRecordConfig(targetConfig);
+        CloseConfigPopup();
+        uiService.ShowToast(res);
+    }
+
+    private void ShowConfigDelete()
+    {
+        configGrid?.ShowDataItemDeleteConfirmation(targetConfig);
+    }
+
+    private async Task DeleteConfig()
+    {
+        var res = await shopfloorService.DeletetItemRecordConfig(targetConfig);
+        await InitParameter();
+        uiService.ShowToast(res);
+    }
+
+    #endregion
+
+    #region content
+
+
+    private void ContentSelected(GridFocusedRowChangedEventArgs args)
+    {
+        targetContent = args.DataItem as ItemRecordContent;
+    }
+
+    private void ShowContentPopup()
+    {
+        contentPopupVisible = true;
+    }
+
+    private async void CloseContentPopup()
+    {
+        contentPopupVisible = false;
+        await InitParameter();
+    }
+
+    private void NewContentClicked()
+    {
+        GenrateNewContent();
+        ShowContentPopup();
+    }
+
+    private void GenrateNewContent()
+    {
+        targetContent = new ItemRecordContent(targetConfig.Id);
+    }
+
+    private async Task UpsertContent()
+    {
+        var res = await shopfloorService.UpsertItemRecordContent(targetContent);
+        CloseContentPopup();
+        uiService.ShowToast(res);
+    }
+
+    private void ShowContentDelete()
+    {
+        contentGrid.ShowDataItemDeleteConfirmation(targetContent);
+    }
+
+    private async Task DeleteContent()
+    {
+        var res = await shopfloorService.DeletetItemRecordContent(targetContent);
+        await InitParameter();
+        uiService.ShowToast(res);
+    }
+
+    #endregion
+}

@@ -1,0 +1,98 @@
+﻿@rendermode InteractiveServer
+@implements IDisposable
+
+
+<div class="w-100 h-100">
+    <DxStackLayout Orientation="Orientation.Vertical" ItemSpacing="1rem" CssClass="h-100">
+        <Items>
+            <DxStackLayoutItem Length="1fr">
+                <Template>
+                    <div class="d-flex flex-wrap align-content-center gap-1 justify-content-center">
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb">
+                                @foreach (var style in statusStyles())
+                                {
+                                    <li class="breadcrumb-item active" style="color: @(style.ColorRGBString)">@($"{localizer[style.status.ToString()]}")</li>
+                                }
+                            </ol>
+                        </nav>
+                    </div>
+                </Template>
+            </DxStackLayoutItem>
+            <DxStackLayoutItem Length="8fr">
+                <Template>
+                    <div class="w-100">
+                        <DxBarGauge StartValue="0"
+                                    EndValue="@Machines.Count()"
+                                    Palette="@statusStyles().Select(x=>x.ColorHTMLString).ToArray()"
+                                    Values="@GetStatusSum().ToArray()">
+                            <DxGaugeAnimationSettings Duration="200" />
+                            <DxBarGaugeLabelSettings Indent="30">
+                                <DxTextFormatSettings LdmlString="#" />
+                            </DxBarGaugeLabelSettings>
+                            <DxTooltipSettings Enabled="true">
+                                <DxTextFormatSettings />
+                            </DxTooltipSettings>
+                        </DxBarGauge>
+                    </div>
+                </Template>
+            </DxStackLayoutItem>
+
+        </Items>
+    </DxStackLayout>
+</div>
+
+@code {
+    [Parameter]
+    public List<Machine> Machines { get; set; } = new();
+    private bool hasMachines => Machines.Any();
+
+    private IEnumerable<StatusStyle> statusStyles() => TypeEnumHelper.StatusStyles;
+
+    protected override Task OnInitializedAsync()
+    {
+        if (hasMachines)
+        {
+            foreach (var machine in Machines)
+            {
+                machine.MachineStatechangedAct += Update;
+            }
+        }
+        return base.OnInitializedAsync();
+    }
+
+    private void Update(Status s)
+    {
+        InvokeAsync(StateHasChanged);
+    }
+
+    private IEnumerable<double> GetStatusSum()
+    {
+        foreach (var s in Enum.GetValues(typeof(Status)).Cast<Status>().Order())
+        {
+            yield return Machines.Where(x => x.Status == s).Count();
+        }
+        // return new double[]
+        // {
+        //     Machines.Where(x=>x.Status == Status.Init).Count(),
+        //     Machines.Where(x=>x.Status == Status.TryConnecting).Count(),
+        //     Machines.Where(x=>x.Status == Status.Disconnect).Count(),
+        //     Machines.Where(x=>x.Status == Status.Idel).Count(),
+        //     Machines.Where(x=>x.Status == Status.Running).Count(),
+        //     Machines.Where(x=>x.Status == Status.Pause).Count(),
+        //     Machines.Where(x=>x.Status == Status.Stop).Count(),
+        //     Machines.Where(x=>x.Status == Status.Error).Count(),
+        // };
+    }
+
+    public void Dispose()
+    {
+        if (hasMachines)
+        {
+            foreach (var machine in Machines)
+            {
+                machine.MachineStatechangedAct -= Update;
+            }
+        }
+    }
+}

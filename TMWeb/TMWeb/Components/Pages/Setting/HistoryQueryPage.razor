@@ -1,0 +1,56 @@
+﻿@page "/HistoryQuery"
+@rendermode InteractiveServer
+
+<DxGrid @ref="@Grid" Data="@workorders">
+    <ToolbarTemplate>
+        <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+            <Items>
+                <DxToolbarItem BeginGroup="true">
+                    <Template Context="con">
+                        <DxDateRangePicker @bind-StartDate="@startTime"
+                                           @bind-EndDate="@endTime" CssClass="w-auto"/>
+                    </Template>
+                </DxToolbarItem>
+                <DxToolbarItem Click="QueryInInterval" BeginGroup="true" IconCssClass="oi oi-magnifying-glass" />
+                <DxToolbarItem Click="Export" Enabled="@hasData" BeginGroup="true" IconCssClass="oi oi-data-transfer-download" />
+            </Items>
+        </DxToolbar>
+    </ToolbarTemplate>
+    <Columns>
+        <DxGridDataColumn FieldName="@nameof(ItemDetailDTO.Process)"></DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(ItemDetailDTO.WorkorderNo)"></DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(ItemDetailDTO.Lot)"></DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(ItemDetailDTO.PartNo)"></DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(ItemDetailDTO.SerialNo)"></DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(ItemDetailDTO.TargetAmount)"></DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(ItemDetailDTO.Okamount)"></DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(ItemDetailDTO.Ngamount)"></DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(ItemDetailDTO.StartTime)" DisplayFormat="G"></DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(ItemDetailDTO.FinishedTime)" DisplayFormat="G"></DxGridDataColumn>
+    </Columns>
+</DxGrid>
+
+@code {
+    IGrid? Grid { get; set; }
+    IEnumerable<ItemDetailDTO>? workorders;
+    private DateTime startTime = DateTime.Now;
+    private DateTime endTime = DateTime.Now;
+
+    private bool hasData => workorders is not null && workorders.Count() > 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
+
+    private async Task QueryInInterval()
+    {
+        workorders = await shopfloorService.GetItemDetailDTOInInterval(startTime, endTime);
+        //await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Export()
+    {
+        await Grid?.ExportToXlsxAsync($"TMItem_{startTime.ToString("G")}_{endTime.ToString("G")}");
+    }
+}

@@ -72,7 +72,7 @@
     public ScriptConfig? scriptConfig;
     private bool hasScriptConfig => scriptConfig != null;
 
-    private string root = ".\\Scripts\\Source";
+    //private string root = ".\\Scripts\\Source";
 
     private string code = string.Empty;
 
@@ -113,7 +113,7 @@
         {
             try
             {
-                await standaloneCodeEditor?.SetValue(await File.ReadAllTextAsync($"{root}\\{scriptConfig.ScriptName}.script"));
+                await standaloneCodeEditor?.SetValue(await File.ReadAllTextAsync($"{scriptService.Root}\\{scriptConfig.ScriptName}.script"));
                 uiService.ShowToast(new(1, $"Read script {scriptConfig.ScriptName} success"));
             }
             catch (Exception ex)
@@ -133,7 +133,7 @@
         try
         {
             await GetCodeFromEditor();
-            await File.WriteAllTextAsync($"{root}\\{scriptConfig.ScriptName}.script", code);
+            await File.WriteAllTextAsync($"{scriptService.Root}\\{scriptConfig.ScriptName}.script", code);
             uiService.ShowToast(new(1, $"Save script {scriptConfig.ScriptName} success"));
         }
         catch (Exception ex)

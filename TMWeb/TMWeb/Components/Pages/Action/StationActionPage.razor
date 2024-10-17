@@ -50,7 +50,7 @@
                     </DxStackLayoutItem>
                     <DxStackLayoutItem Length="9fr">
                         <Template>
-                            <div class="overflow-auto h-100 w-100 d-flex flex-wrap align-content-center gap-1 justify-content-center">
+                            <div class="overflow-auto h-100 w-100 d-flex flex-wrap align-sa gap-1 justify-content-center m-auto">
                                 @foreach (Station station in currentPageStations)
                                 {
                                     <StationComponentFactory StationParam="@station" />
@@ -70,6 +70,37 @@
                     </DxStackLayoutItem>
                 </Items>
             </DxStackLayout>
+            @* <div class="container-fluid overflow-y-auto" style="height: 100vh">
+                <div class="row">
+                    <div class="col-12">
+                        <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="@process.Name">
+                            <Items>
+                                <DxToolbarItem RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="oi oi-plus" Click="ShowDrawer" BeginGroup="true" />
+                                <DxToolbarItem RenderStyle="ButtonRenderStyle.Success" IconCssClass="oi oi-media-play" Click="RunAllStations" BeginGroup="true" />
+                                <DxToolbarItem RenderStyle="ButtonRenderStyle.Warning" IconCssClass="oi oi-media-pause" Click="PauseAllStations" BeginGroup="true" />
+                                <DxToolbarItem RenderStyle="ButtonRenderStyle.Danger" IconCssClass="oi oi-media-stop" Click="StopAllStations" BeginGroup="true" />
+                                <DxToolbarItem RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="oi oi-reload" Click="ResetAllStations" BeginGroup="true" />
+                            </Items>
+                        </DxToolbar>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 overflow-y-auto h-100 w-100 d-flex flex-wrap align-content-center gap-1 justify-content-center">
+                        @foreach (Station station in currentPageStations)
+                        {
+                            <StationComponentFactory StationParam="@station" />
+                        }
+                    </div>
+                </div>
+                 <div class="row">
+                    <div class="col-12">
+                        <DxSpinEdit @bind-Value="@amountPerPage" MinValue="1"></DxSpinEdit>
+                        <DxPager PageCount="@pageCount"
+                                 @bind-ActivePageIndex="@currentPage"
+                                 NavigationMode=@PagerNavigationMode.InputBox />
+                    </div>
+                </div> 
+            </div> *@
         </TargetContent>
     </DxDrawer>
 

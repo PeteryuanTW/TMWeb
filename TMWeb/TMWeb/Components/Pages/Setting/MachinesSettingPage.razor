@@ -1,0 +1,142 @@
+﻿@page "/MachinesSetting"
+@rendermode InteractiveServer
+
+<DxGrid @ref="grid" Data="@machines" FocusedRowEnabled="true" FocusedRowChanged="MachineSelected" DataItemDeleting="DeleteMachine" HighlightRowOnHover="true">
+    <ToolbarTemplate>
+        <DxToolbar SizeMode="SizeMode.Large" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+            <DxToolbarItem IconCssClass="oi oi-plus" Click="NewMachineClicked" BeginGroup="true" />
+            <DxToolbarItem Enabled="@machineSelected" Click="ShowMachinePopup" IconCssClass="oi oi-pencil" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+            <DxToolbarItem Enabled="@machineSelected" Click="ShowDelete" IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+        </DxToolbar>
+    </ToolbarTemplate>
+    <Columns>
+        <DxGridDataColumn Caption="@($"{localizer["Name"]}")" FieldName="@nameof(Machine.Name)" />
+        <DxGridDataColumn Caption="@($"{localizer["IP"]}")" FieldName="@nameof(Machine.Ip)" />
+        <DxGridDataColumn Caption="@($"{localizer["Port"]}")" FieldName="@nameof(Machine.Port)" />
+        <DxGridDataColumn Caption="@($"{localizer["Connection Type"]}")" FieldName="@nameof(Machine.ConnectionType)">
+            <CellDisplayTemplate>
+                                    <div>@((ConnectType)((int)context.Value))</div>
+                                </CellDisplayTemplate>
+        </DxGridDataColumn>
+        <DxGridDataColumn Caption="@($"{localizer["Enable"]}")" FieldName="@nameof(Machine.Enabled)">
+            <CellDisplayTemplate>
+                <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
+    </Columns>
+</DxGrid>
+
+<DxPopup @bind-Visible="@popupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" Width="50rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="CloseMachinePopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <EditForm Model="@taregtMachine" Context="EditFormContext" OnValidSubmit="UpsertMachine">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" BeginRow="true">
+                    <DxTextBox @bind-Text="@taregtMachine.Name" ShowValidationIcon="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Process"]}")" ColSpanLg="6">
+                    <DxComboBox Data="processes" @bind-Value="@taregtMachine.ProcessId" ValueFieldName="@nameof(Process.Id)" TextFieldName="@nameof(Process.Name)"></DxComboBox>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["IP"]}")" ColSpanLg="6">
+                    <DxTextBox @bind-Text="@taregtMachine.Ip" ShowValidationIcon="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Port"]}")" ColSpanLg="6">
+                    <DxSpinEdit @bind-Value="@taregtMachine.Port" MinValue="0" MaxValue="65535" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Connection Type"]}")" ColSpanLg="6">
+                    <DxComboBox Data="@ConnectTypes" @bind-Value="@taregtMachine.ConnectionType" ValueFieldName="@(nameof(ConnectionTypeWrapperClass.Index))" TextFieldName="@(nameof(ConnectionTypeWrapperClass.DisplayName))" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["TagCategory"]}")" ColSpanLg="6">
+                    <DxComboBox Data="tagCategoriesWithFilter" @bind-Value="@taregtMachine.TagCategoryId" ValueFieldName="@nameof(TagCategory.Id)" TextFieldName="@nameof(TagCategory.Name)" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Enable"]}")" ColSpanLg="6">
+                    <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@taregtMachine.Enabled" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                        </Items>
+                    </DxToolbar>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
+    </BodyContentTemplate>
+</DxPopup>
+
+@code {
+    private IEnumerable<ConnectionTypeWrapperClass> ConnectTypes => TypeEnumHelper.GetConnectTypesWrapperClass();
+
+    IGrid? grid { get; set; }
+    private IEnumerable<Machine> machines;
+    private Machine? taregtMachine;
+    private bool machineSelected => taregtMachine != null;
+    private bool popupVisible;
+
+    private IEnumerable<Process> processes;
+    private IEnumerable<TagCategory> tagCategories;
+    private IEnumerable<TagCategory> tagCategoriesWithFilter => machineSelected ? tagCategories.Where(x => x.ConnectionType == taregtMachine.ConnectionType) : new List<TagCategory>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitParam();
+        await base.OnInitializedAsync();
+    }
+    private async Task InitParam()
+    {
+        machines = await shopfloorService.GetAllMachinesConfig();
+        processes = await shopfloorService.GetAllProcess();
+        tagCategories = await shopfloorService.GetAllTagCategories();
+    }
+
+    private void MachineSelected(GridFocusedRowChangedEventArgs args)
+    {
+        taregtMachine = args.DataItem as Machine;
+    }
+
+    private void ShowMachinePopup()
+    {
+        popupVisible = true;
+    }
+
+    private async void CloseMachinePopup()
+    {
+        popupVisible = false;
+        await InitParam();
+    }
+
+    private void NewMachineClicked()
+    {
+        taregtMachine = new(Guid.NewGuid());
+        ShowMachinePopup();
+    }
+
+    private async Task UpsertMachine()
+    {
+        var res = await shopfloorService.UpsertMachineConfig(taregtMachine);
+        CloseMachinePopup();
+        uiService.ShowToast(res);
+    }
+
+    private void ShowDelete()
+    {
+        grid.ShowDataItemDeleteConfirmation(taregtMachine);
+    }
+
+    private async Task DeleteMachine()
+    {
+        var res = await shopfloorService.DeleteMachine(taregtMachine);
+        //CloseMachinePopup();
+        await InitParam();
+        uiService.ShowToast(res);
+    }
+}

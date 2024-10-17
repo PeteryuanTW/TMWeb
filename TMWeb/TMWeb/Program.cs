@@ -10,6 +10,7 @@ using CommonLibrary.Auth;
 using CommonLibrary.Auth.EFModels;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using BitzArt.Blazor.Cookies;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +26,7 @@ builder.Services.AddDevExpressBlazor(options =>
 });
 
 builder.AddBlazorCookies();
+
 
 
 //https://github.com/nethawkChen/dotnet8-Serilog
@@ -55,7 +57,7 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddDbContextFactory<TmwebContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection"));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")/*, o =>o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)*/);
 });
 builder.Services.AddDbContextFactory<UserDbContext>(options =>
 {
@@ -63,6 +65,7 @@ builder.Services.AddDbContextFactory<UserDbContext>(options =>
 });
 
 builder.Services.AddSingleton<TMWebShopfloorService>();
+builder.Services.AddSingleton<EventLogService>();
 builder.Services.AddSingleton<ScriptService>();
 builder.Services.AddScoped<UIService>();
 builder.Services.AddScoped<ScriptLoaderService>();
@@ -70,6 +73,8 @@ builder.Services.AddScoped<AuthService>(p =>
 {
     return new AuthService("TMWeb", p.GetRequiredService<IServiceScopeFactory>(), p.GetRequiredService<ICookieService>());
 });
+
+builder.Services.AddHostedService<HostedService>();
 
 builder.Services.AddLocalization();
 var supportedCultures = new[] { "zh-TW", "en-US" };
@@ -82,9 +87,7 @@ builder.Services.AddControllers();
 
 builder.Services.AddCascadingAuthenticationState();
 
-
-
-
+builder.Host.UseWindowsService();
 
 var app = builder.Build();
 app.UseRequestLocalization(localizationOptions);

@@ -1,7 +1,5 @@
 ﻿@rendermode InteractiveServer
 @inherits AuthComponentBase
-@inject IStringLocalizer<Language> localizer
-@inject NavigationManager nav
 
 <ToastComponent />
 
@@ -11,14 +9,25 @@
             DisplayMode="MenuDisplayMode.Desktop"
             CollapseItemsToHamburgerMenu="true"
             CollapseItemToIconMode="MenuCollapseItemToIconMode.All">
-        <TitleTemplate>
-            <DxButton RenderStyle="ButtonRenderStyle.None" Text="@($"{localizer["Service"]}")"></DxButton>
-        </TitleTemplate>
         <Items>
+            <DxMenuItem IconCssClass="oi oi-home" NavigateUrl="/" Position="ItemPosition.Start" />
             <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Shopfloor"]}")" IconCssClass="oi oi-list">
                 <Items>
                     <DxMenuItem Text="@($"{localizer["Process"]}")" IconCssClass="oi oi-ellipses" NavigateUrl="/Process" />
-                    <DxMenuItem Text="@($"{localizer["Workorder"]}")" IconCssClass="oi oi-clipboard" NavigateUrl="/WorkordersGrid" />
+                    <DxMenuItem Text="@($"{localizer["Workorder"]}")" IconCssClass="oi oi-document" NavigateUrl="/WorkordersGrid" />
+                    <DxMenuItem Text="@($"{localizer["Recipe"]}")" IconCssClass="oi oi-beaker" NavigateUrl="/Recipe" />
+                    <DxMenuItem Text="@($"{localizer["Record"]}")" IconCssClass="oi oi-pencil">
+                        <Items>
+                            <DxMenuItem Text="@($"{localizer["Workorder"]}")" IconCssClass="oi oi-document" NavigateUrl="/WorkorderRecord" />
+                            <DxMenuItem Text="@($"{localizer["Item"]}")" IconCssClass="oi oi-box" NavigateUrl="/ItemRecord" />
+                        </Items>
+                    </DxMenuItem>
+                </Items>
+            </DxMenuItem>
+            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Connection"]}")" IconCssClass="oi oi-rss">
+                <Items>
+                    <DxMenuItem Text="@($"{localizer["Machine"]}")" IconCssClass="oi oi-monitor" NavigateUrl="/MachinesSetting" />
+                    <DxMenuItem Text="@($"{localizer["Tag"]}")" IconCssClass="oi oi-tags" NavigateUrl="/TagCategoriesPage" />
                 </Items>
             </DxMenuItem>
             <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Script"]}")" IconCssClass="oi oi-script" NavigateUrl="/Scripts" />
@@ -28,7 +37,7 @@
                     <DxMenuItem Text="@($"{localizer["List"]}")" IconCssClass="oi oi-list" NavigateUrl="/MapsGrid" />
                 </Items>
             </DxMenuItem>
-            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Setting"]}")" IconCssClass="oi oi-cog" NavigateUrl="/Setting" BeginGroup="true"></DxMenuItem>
+            @*<DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Setting"]}")" IconCssClass="oi oi-cog" NavigateUrl="/Setting" BeginGroup="true"></DxMenuItem> *@
             @if (authService.IsRole("SuperUser"))
             {
                 <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Developer"]}")" IconCssClass="oi oi-peosple" BeginGroup="true">
@@ -39,44 +48,17 @@
                     </Items>
                 </DxMenuItem>
             }
-
-
-
             <AuthComponent></AuthComponent>
         </Items>
     </DxMenu>
 </div>
 
 @code {
-    // private CultureInfo[] supportedCultures = new[]
-    // {
-    //     new CultureInfo("zh-TW"),
-    //     new CultureInfo("en-US"),
-    // };
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+    }
 
-    // private CultureInfo? selectedCulture;
-
-    // protected override Task OnInitializedAsync()
-    // {
-    //     selectedCulture = CultureInfo.CurrentCulture;
-    //     return base.OnInitializedAsync();
-    // }
-
-    // private async Task ApplySelectedCultureAsync(CultureInfo cultureInfo)
-    // {
-    //     if (CultureInfo.CurrentCulture != cultureInfo)
-    //     {
-    //         selectedCulture = cultureInfo;
-    //         var uri = new Uri(nav.Uri)
-    //             .GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
-    //         var cultureEscaped = Uri.EscapeDataString(selectedCulture.Name);
-    //         var uriEscaped = Uri.EscapeDataString(uri);
-
-    //         nav.NavigateTo(
-    //             $"Culture/Set?culture={cultureEscaped}&redirectUri={uriEscaped}",
-    //             forceLoad: true);
-    //     }
-    // }
 
 
 }

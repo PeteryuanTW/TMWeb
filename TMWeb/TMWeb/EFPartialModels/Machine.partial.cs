@@ -1,18 +1,27 @@
-﻿using TMWeb.Data;
+﻿using CommonLibrary.API.Message;
+using NModbus;
+using System.Net.Sockets;
+using System.Runtime.InteropServices;
+using TMWeb.Data;
 
 namespace TMWeb.EFModels
 {
-    public enum MachineConnectType
-    {
-        ModbusTCP = 0,
-        TMRobot = 1,
-        ModbusTCPother = 2,
-        WebAPI = 10,
 
-    }
-    
-    public partial class Machine
+
+    public partial class Machine : IDisposable
     {
+        public int MaxRetryCount => 5;
+
+        protected int retryCount = 0;
+
+        public int RetryCount => retryCount;
+
+        public Machine() { }
+
+        public Machine(Guid id)
+        {
+            this.Id = id;
+        }
         public bool hasCategory => TagCategory != null;
         public bool hasTags => hasCategory && TagCategory?.Tags.Count > 0;
         public bool hasTagsUpdateByTime => hasTags && TagCategory.Tags.Any(x => x.UpdateByTime);
@@ -21,13 +30,15 @@ namespace TMWeb.EFModels
         public Status Status => status;
         public string StatusStr => status.ToString();
 
+        public bool tagUsable => status != Status.Init && status != Status.Disconnect && status != Status.TryConnecting && status != Status.Error;
+
         //public bool 
 
         private DateTime initTime;
         private DateTime lastStatusChangedTime;
         private DateTime lastTagUpdateTime;
 
-        private bool runFlag = false;
+        private bool runFlag => status != Status.Init && status != Status.Disconnect && status != Status.TryConnecting;
         public bool RunFlag => runFlag;
 
         private string errorMsg = string.Empty;
@@ -58,17 +69,17 @@ namespace TMWeb.EFModels
             Init();
             return Task.CompletedTask;
         }
-        public virtual Task UpdateTag(Tag tag)
+        public virtual Task<RequestResult> UpdateTag(Tag tag)
         {
-            return Task.CompletedTask;
+            return Task.FromResult(new RequestResult(3, "Not implement yet"));
         }
-        public virtual Task SetTag(string tagName, object val)
+        public virtual Task<RequestResult> SetTag(string tagName, object val)
         {
-            return Task.CompletedTask;
+            return Task.FromResult(new RequestResult(3, "Not implement yet"));
         }
-        public virtual Task SetTag(Tag tag, object val)
+        public virtual Task<RequestResult> SetTag(Tag tag, object val)
         {
-            return Task.CompletedTask;
+            return Task.FromResult(new RequestResult(3, "Not implement yet"));
         }
         private async Task UpdateTags()
         {
@@ -76,7 +87,8 @@ namespace TMWeb.EFModels
             {
                 if (tag.UpdateByTime)
                 {
-                    await UpdateTag(tag);
+                    var res = await UpdateTag(tag);
+                    //Console.WriteLine(res.ReturnCode+": "+res.Msg);
                 }
             }
             lastTagUpdateTime = DateTime.Now;
@@ -85,23 +97,60 @@ namespace TMWeb.EFModels
         {
             return Task.CompletedTask;
         }
-        private void StartUpdating()
+        public void StartUpdating()
         {
             try
             {
                 new Thread(async () =>
                 {
-                    while (runFlag)
+                    while (Enabled)
                     {
-                        if (hasTagsUpdateByTime)
+                        try
                         {
-                            await UpdateTags();
-                            TagsStatechange();
+                            if (runFlag)
+                            {
+                                await UpdateStatus();
+                                if (hasTagsUpdateByTime)
+                                {
+                                    await UpdateTags();
+                                    TagsStatechange();
+                                }
+
+                            }
+                            else
+                            {
+                                if (status == Status.Disconnect || status == Status.Init)
+                                {
+                                    if (retryCount < MaxRetryCount)
+                                    {
+                                        await ConnectAsync();
+                                    }
+                                }
+                                else if (status == Status.TryConnecting)
+                                {
+
+                                }
+                            }
                         }
-                        await UpdateStatus();
-                        await Task.Delay(500);
+                        catch (IOException ex)
+                        {
+                            Disconnect(ex.Message);
+                        }
+                        catch (SocketException e)
+                        {
+                            Disconnect(e.Message);
+                        }
+                        catch (Exception e)
+                        {
+                            Error(e.Message);
+                        }
+                        finally
+                        {
+                            await Task.Delay(500);
+                        }
                     }
-                }).Start();
+                }
+                ).Start();
 
             }
             catch (Exception e)
@@ -112,54 +161,98 @@ namespace TMWeb.EFModels
 
         protected void Init()
         {
-            status = Status.Init;
-            errorMsg = string.Empty;
-            lastStatusChangedTime = DateTime.Now;
-            MachineStatechanged();
+            if (status != Status.Init)
+            {
+                status = Status.Init;
+                errorMsg = string.Empty;
+                lastStatusChangedTime = DateTime.Now;
+                MachineStatechanged();
+            }
         }
         protected void Idel()
         {
-            status = Status.Idel;
-            errorMsg = string.Empty;
-            lastStatusChangedTime = DateTime.Now;
-            MachineStatechanged();
+            if (status != Status.Idel)
+            {
+                status = Status.Idel;
+                errorMsg = string.Empty;
+                lastStatusChangedTime = DateTime.Now;
+                MachineStatechanged();
+            }
+        }
+        protected void TryConnecting()
+        {
+            if (status != Status.TryConnecting)
+            {
+                status = Status.TryConnecting;
+                errorMsg = string.Empty;
+                lastStatusChangedTime = DateTime.Now;
+                MachineStatechanged();
+            }
         }
         public void Running()
         {
-            runFlag = true;
-            status = Status.Running;
-            errorMsg = string.Empty;
-            lastStatusChangedTime = DateTime.Now;
-            StartUpdating();
-            MachineStatechanged();
+            if (status != Status.Running)
+            {
+                status = Status.Running;
+                errorMsg = string.Empty;
+                lastStatusChangedTime = DateTime.Now;
+                MachineStatechanged();
+            }
+        }
+        protected void Pause()
+        {
+            if (status != Status.Pause)
+            {
+                status = Status.Pause;
+                errorMsg = string.Empty;
+                lastStatusChangedTime = DateTime.Now;
+                MachineStatechanged();
+            }
         }
         protected void Stop()
         {
-            runFlag = false;
-            lastStatusChangedTime = DateTime.Now;
-            MachineStatechanged();
+            if (status != Status.Stop)
+            {
+                status = Status.Stop;
+                lastStatusChangedTime = DateTime.Now;
+                MachineStatechanged();
+            }
         }
         protected void Disconnect(string msg)
         {
-            status = Status.Stop;
-            lastStatusChangedTime = DateTime.Now;
-            if (!string.IsNullOrEmpty(msg))
+            if (status != Status.Disconnect)
             {
-                errorMsg = msg;
+                status = Status.Disconnect;
+                lastStatusChangedTime = DateTime.Now;
+                if (!string.IsNullOrEmpty(msg))
+                {
+                    errorMsg = msg;
+                }
+                else
+                {
+                    errorMsg = string.Empty;
+                }
+                MachineStatechanged();
             }
-            else
-            {
-                errorMsg = string.Empty;
-            }
-            Stop();
         }
         protected void Error(string msg)
         {
-            
-            status = Status.Error;
-            errorMsg = msg;
-            lastStatusChangedTime = DateTime.Now;
-            Stop();
+            if (status != Status.Error)
+            {
+                status = Status.Error;
+                errorMsg = msg;
+                lastStatusChangedTime = DateTime.Now;
+                MachineStatechanged();
+            }
+        }
+
+
+
+
+        //dispose
+        public void Dispose()
+        {
+            Enabled = false;
         }
     }
 }

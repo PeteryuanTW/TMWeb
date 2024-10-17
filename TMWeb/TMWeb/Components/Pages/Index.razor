@@ -1,9 +1,117 @@
 ﻿@page "/"
+@rendermode InteractiveServer
+@implements IDisposable
+
+<DxGridLayout ColumnSpacing="3rem" RowSpacing="3rem">
+    <Rows>
+        <DxGridLayoutRow></DxGridLayoutRow>
+    </Rows>
+    <Columns>
+        <DxGridLayoutColumn Width="3fr"></DxGridLayoutColumn>
+        <DxGridLayoutColumn Width="3fr"></DxGridLayoutColumn>
+    </Columns>
+    <Items>
+        <DxGridLayoutItem Row="0" Column="0">
+            <Template>
+                <DxFormLayout>
+                    @* <DxFormLayoutItem Caption="AutoPlay" ColSpanLg="3" CaptionPosition="CaptionPosition.Vertical">
+                        <DxCheckBox Checked="@autoPlay" CheckType="CheckType.Switch" CheckedChanged="((bool b)=>SwitchAutoPlay(b))"></DxCheckBox>
+                    </DxFormLayoutItem>
+                    <DxFormLayoutItem Caption="DelaySecond" Visible="@autoPlay" ColSpanLg="3" CaptionPosition="CaptionPosition.Vertical">
+                        <DxSpinEdit @bind-Value="@autoPlaySec"></DxSpinEdit>
+                    </DxFormLayoutItem> *@
+                    <DxFormLayoutItem ColSpanLg="12">
+                        @* <DxTabs @bind-ActiveTabIndex="@activeIndex" >
+                            <DxTabPage Text="Machine">
+                                <div> *@
+                        <MachinesSummaryBarGauge Machines="@machines"></MachinesSummaryBarGauge>
+                                @* </div>
+                            </DxTabPage>
+                            <DxTabPage Text="Test">
+                                <div>
+                                    Test
+                                </div>
+                            </DxTabPage>
+                        </DxTabs> *@
+                    </DxFormLayoutItem>
+                </DxFormLayout>
+            </Template>
+        </DxGridLayoutItem>
+        <DxGridLayoutItem Row="0" Column="1">
+            <Template>
+                <EventLogGrid/>
+            </Template>
+        </DxGridLayoutItem>
+    </Items>
+</DxGridLayout>
+
+
+
 
 @code {
+    private List<Machine> machines;
+    private int activeIndex = 0;
+    private int totalIndex = 1;
+
+    private int autoPlaySec = 10;
+    private int autoPlayDelay => autoPlaySec *1000;
+
+    private bool autoPlay = true;
+    private bool running = true;
+
+    Thread t;
+
     protected override async Task OnInitializedAsync()
     {
-        //var a = await userDataService.GetAllUsers();
+        //var a = await shopfloorService.Test();
+        machines = shopfloorService.Machines;
+
         await base.OnInitializedAsync();
+    }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            t = new Thread(AutoPlay);
+            t.Start();
+        }
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    private void SwitchAutoPlay(bool b)
+    {
+        autoPlay = b;
+        if (autoPlay)
+        {
+            running = true;
+            t = new Thread(AutoPlay);
+            t.Start();
+        }
+        else
+        {
+            running = false;
+        }
+    }
+
+    private async void AutoPlay()
+    {
+        while (running)
+        {
+            if (activeIndex < totalIndex)
+            {
+                activeIndex++;
+            }
+            else
+            {
+                activeIndex = 0;
+            }
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(autoPlayDelay);
+        }
+    }
+
+    public void Dispose()
+    {
     }
 }

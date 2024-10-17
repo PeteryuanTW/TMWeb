@@ -1,0 +1,11 @@
+﻿.priority-info {
+    background-color: rgb(0, 255, 255)
+}
+
+.priority-warning {
+    background-color: var(--bs-orange)
+}
+
+.priority-danger {
+    background-color: var(--bs-red)
+}

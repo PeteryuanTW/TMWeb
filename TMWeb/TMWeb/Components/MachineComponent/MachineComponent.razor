@@ -1,6 +1,7 @@
 ﻿@rendermode InteractiveServer
+@implements IDisposable
 
-<div class="card shadow text-center background-card p-3 panel @(GetStatusCssClass())" @onclick="@Nav">
+<div class="card shadow text-center background-card p-3 panel " style="background-color:@(TypeEnumHelper.GetStatusStyle((int)MachineParam.Status)?.ColorHTMLString)" @onclick="@Nav">
     <DxGridLayout >
         <Rows>
             <DxGridLayoutRow Height="2fr" />
@@ -51,8 +52,30 @@
 @code {
     [Parameter]
     public Machine? MachineParam { get; set; }
+    private bool hasNachine => MachineParam != null;
 
+    protected override async Task OnInitializedAsync()
+    {
+        if (hasNachine)
+        {
+            MachineParam.MachineStatechangedAct += StatusUpdate;
+        }
 
+    }
+
+    public void Dispose()
+    {
+        if (hasNachine)
+        {
+            MachineParam.MachineStatechangedAct -= StatusUpdate;
+        }
+
+    }
+
+    private async void StatusUpdate(Status status)
+    {
+        await InvokeAsync(StateHasChanged);
+    }
 
     private string GetImageString()
     {
@@ -71,20 +94,7 @@
 
     private string GetStatusCssClass()
     {
-        switch (MachineParam?.Status)
-        {
-            case Status.Init:
-                return string.Empty;
-            case Status.Running:
-                return "running";
-            case Status.Idel:
-                return "idel";
-            case Status.Stop:
-            case Status.Error:
-                return "error";
-            default:
-                return string.Empty;
-        }
+        return MachineParam?.StatusStr.ToLower();
     }
 
     private void Nav()

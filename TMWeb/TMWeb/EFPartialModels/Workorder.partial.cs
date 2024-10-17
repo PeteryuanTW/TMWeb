@@ -9,16 +9,13 @@
     public partial class Workorder
     {
         public Workorder() { }
-        public Workorder(Guid processId)
+        
+        public Workorder(Guid id)
         {
-            Id = Guid.NewGuid();
-            ProcessId = processId;
-            Status = 0;
-            TargetAmount = 0;
-            Okamount = 0;
-            Ngamount = 0;
+            this.Id = id;
+            Status = (int)WorkorderStatus.Init;
+            CreateTime = DateTime.Now;
         }
-
 
         public bool HasRecipe => RecipeCategoryId != null;
         public bool RecipeIncluded => RecipeCategory != null;

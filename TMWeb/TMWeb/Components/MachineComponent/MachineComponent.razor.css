@@ -1,17 +1,37 @@
 ﻿.panel {
     width: 20rem;
     height: 20rem;
-    border-radius:1rem;
+    border-radius: 1rem;
 }
 
-.running {
-    background-color: rgb(1, 178, 104);
+.init {
+    background-color: rgb(119, 136, 153);
+}
+
+.tryconnecting {
+    background-color: rgb(0, 255, 255);
+}
+
+.disconnect {
+    background-color: rgb(128, 0, 0);
 }
 
 .idel {
-    background-color: rgb(0, 153, 153);
+    background-color: rgb(176, 196, 222);
+}
+
+.running {
+    background-color: rgb(0, 255, 127);
+}
+
+.pause {
+    background-color: rgb(255, 215, 0);
+}
+
+.stop {
+    background-color: rgb(255, 0, 0);
 }
 
 .error {
-    background-color: rgb(173, 0, 0);
+    background-color: rgb(139, 0, 0);
 }

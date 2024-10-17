@@ -1,4 +1,4 @@
-﻿@page "/Setting"
+﻿@* @page "/Setting" *@
 @rendermode InteractiveServer
 
 <DxComboBox Data="supportedCultures" Value="selectedCulture" TextFieldName="@(nameof(CultureInfo.Name))" ValueChanged="((CultureInfo cultureInfo)=>ApplySelectedCultureAsync(cultureInfo))"></DxComboBox>
