@@ -2,8 +2,6 @@
 using CommonLibrary.API.Message;
 using TMWeb.Data;
 using TMWeb.EFModels;
-using DevExpress.Pdf.Native.BouncyCastle.Asn1.X509;
-using DevExpress.XtraPrinting.Native.LayoutAdjustment;
 using TMWeb.Data.DTO;
 
 namespace TMWeb.Services
@@ -328,10 +326,14 @@ namespace TMWeb.Services
                             break;
                         case 2:
                             StationSingleWorkorderNoSerial? stationSingleWorkorderNoSerial = targetStation as StationSingleWorkorderNoSerial;
+                            
                             var itemDetail = await GetOrGenerateItemDetailByWorkorderWithoutSerialNo(stationSingleWorkorderNoSerial.Workerder);
                             stationSingleWorkorderNoSerial?.AddItemDetail(itemDetail);
+                            ItemDetailUpdate(itemDetail.Id);
+
                             var taskDetail = await GenerateTaskDetailByItem(targetStation, itemDetail);
                             stationSingleWorkorderNoSerial?.AddTaskDetail(taskDetail);
+                            
                             stationSingleWorkorderNoSerial?.StationInWithAmount(amount);
                             break;
                         default:
@@ -613,7 +615,7 @@ namespace TMWeb.Services
                 if (targetItem != null)
                 {
                     targetItem.FinishedTime = DateTime.Now;
-                    targetItem.Ngamount = targetItem.TaskDetails.Max(x => x.Ngamount);
+                    targetItem.Ngamount = targetItem.TaskDetails.Sum(x => x.Ngamount);
                     targetItem.Okamount = targetItem.TaskDetails.Min(x => x.Okamount);
 
                     await dbContext.SaveChangesAsync();
@@ -1767,6 +1769,19 @@ namespace TMWeb.Services
 
         #region item
 
+        public Action<Guid>? ItemDetailUpdateAct;
+
+        private void ItemDetailUpdate(Guid id) => ItemDetailUpdateAct?.Invoke(id);
+
+        public ItemDetail? GetIetmDetailByID(Guid id)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return dbContext.ItemDetails.AsNoTracking().FirstOrDefault(x=>x.Id == id);
+            }
+        }
+
         private async Task<ItemDetail> GetOrGenerateItemDetailByWorkorderAndSerialNo(Workorder workorder, string serialNo)
         {
             using (var scope = scopeFactory.CreateScope())
@@ -1786,23 +1801,29 @@ namespace TMWeb.Services
                 }
             }
         }
-        private async Task<ItemDetail> GetOrGenerateItemDetailByWorkorderWithoutSerialNo(Workorder workorder)
+        private async Task<ItemDetail?> GetOrGenerateItemDetailByWorkorderWithoutSerialNo(Workorder workorder)
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
                 var wo = dbContext.Workorders.Include(x => x.ItemDetails).FirstOrDefault(x => x.Id == workorder.Id);
-                if (wo.ItemDetails.Any(x => string.IsNullOrEmpty(x.SerialNo)))
+                if (wo is not null)
                 {
-                    return wo.ItemDetails.FirstOrDefault(x => string.IsNullOrEmpty(x.SerialNo));
+                    var targetItem = wo.ItemDetails.FirstOrDefault(x => string.IsNullOrEmpty(x.SerialNo));
+                    if (targetItem is not null)
+                    {
+                        var a = dbContext.Entry(targetItem);
+                        return targetItem;
+                    }
+                    else
+                    {
+                        ItemDetail newItemDetail = new ItemDetail(workorder);
+                        await dbContext.ItemDetails.AddAsync(newItemDetail);
+                        await dbContext.SaveChangesAsync();
+                        return newItemDetail;
+                    }
                 }
-                else
-                {
-                    ItemDetail newItemDetail = new ItemDetail(workorder);
-                    await dbContext.ItemDetails.AddAsync(newItemDetail);
-                    await dbContext.SaveChangesAsync();
-                    return newItemDetail;
-                }
+                return null;
             }
         }
 
@@ -1950,7 +1971,7 @@ namespace TMWeb.Services
                 Workorder? targetWo = dbContext.Workorders
                     .Include(x => x.ItemRecordsCategory).ThenInclude(x => x.ItemRecordContents)
                     .FirstOrDefault(x => x.Id == wo.Id);
-                if (targetWo != null && targetWo.ItemRecordsCategory.ItemRecordContents.Count > 0)
+                if (targetWo != null && targetWo.HasItemRecord && targetWo.ItemRecordsCategory?.ItemRecordContents.Count > 0)
                 {
                     List<ItemRecordContent> totalRecord = targetWo.ItemRecordsCategory.ItemRecordContents.ToList();
                     //current record

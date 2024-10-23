@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 using TMWeb.EFModels;
 
@@ -8,28 +9,61 @@ using TMWeb.Scripts.Template;
 
 namespace TMWeb.Scripts.Source
 {
+    public class FuncConf
+    {
+        public bool working {get; set;}
+        public string stationName {get; set;}
+        public string tagName {get; set;}
+
+    }
+
+
     public class Test : ScriptBaseClass
     {
         public Test(TMWebShopfloorService tmWebShopfloorService):base(tmWebShopfloorService)
         {
             
-        }             
-        public override void OnStart()
+        }
+
+        private List<FuncConf> funConf = new List<FuncConf>{};
+        private bool workingTag1 = false;
+        private bool workingTag2 = false;
+
+        public override async void OnStart()
         {
-            
+            funConf = new List<FuncConf>()
+            {
+                new FuncConf(){working = workingTag1, stationName = "測試工站1", tagName = "S1作業中"},
+                new FuncConf(){working = workingTag2, stationName = "測試工站2", tagName = "S2作業中"},
+            };
         }
         
         public override async Task RunAction()
         {
-            var a = await tmWebShopfloorService.GetMachineTag("本機測試", "動作判定");
-            if(a == null)
+            List<Task> tasks = new List<Task>();
+            foreach(var a in funConf)
             {
-                WriteLog("null");
+                tasks.Add(Task.Run(async() =>
+                {
+                     Tag? t = await tmWebShopfloorService.GetMachineTag("本機測試", a.tagName);
+                     if(t is not null)
+                     {
+                        if(a.working != Convert.ToBoolean(t.Value))
+                        {
+                            a.working = Convert.ToBoolean(t.Value);
+                            if(a.working)
+                            {
+                                await tmWebShopfloorService.StationInByNameAndSerialNo(a.stationName, DateTime.Now.ToString("yyyyMMddHHmmss"));
+                            }
+                            else
+                            {
+                                await tmWebShopfloorService.StationOutByFIFO(a.stationName, true);
+                            }
+                        }
+                     }
+                }));
             }
-            else
-            {
-                WriteLog(a.ValueString);
-            }
+            await Task.WhenAll(tasks);
         }
         
         public override void OnStop()

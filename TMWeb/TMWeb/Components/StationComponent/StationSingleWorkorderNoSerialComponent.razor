@@ -88,7 +88,7 @@
                                 @* <DxFormLayoutItem Caption="HasItem" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                             <DxCheckBox Checked="@stationSingleWorkorderSingleSerial.HasItem" CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
                             </DxFormLayoutItem> *@
-                                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                <DxFormLayoutItem Caption="@($"{localizer["WIP"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxSpinEdit ReadOnly="true" Value="@stationSingleWorkorderNoSerial.WIP"></DxSpinEdit>
                                 </DxFormLayoutItem>
                                 @* @foreach (TaskDetail taskDetail in stationSingleWorkorderMutipleSerial.TaskDetailsInStation)
@@ -131,7 +131,6 @@
     private int stationOutOkAmount = 0;
     private int stationOutNgAmount = 0;
 
-    private bool stationInNotZero => stationInAmount != 0;
     private bool stationOutNotZero => stationOutOkAmount != 0 || stationOutNgAmount !=0;
 
     protected override Task OnInitializedAsync()

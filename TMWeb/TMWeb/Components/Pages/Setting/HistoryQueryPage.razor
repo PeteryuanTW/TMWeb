@@ -8,7 +8,8 @@
                 <DxToolbarItem BeginGroup="true">
                     <Template Context="con">
                         <DxDateRangePicker @bind-StartDate="@startTime"
-                                           @bind-EndDate="@endTime" CssClass="w-auto"/>
+                                           @bind-EndDate="@endTime"
+                                           DisplayFormat="G" CssClass="cw-320" />
                     </Template>
                 </DxToolbarItem>
                 <DxToolbarItem Click="QueryInInterval" BeginGroup="true" IconCssClass="oi oi-magnifying-glass" />

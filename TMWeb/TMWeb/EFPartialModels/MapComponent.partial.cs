@@ -9,6 +9,7 @@ namespace TMWeb.EFModels
     }
     public partial class MapComponent
     {
+        
 
         public MapComponent() { }
 

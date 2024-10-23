@@ -2,5 +2,5 @@
     width: 23rem;
     height: auto;
     border-radius: 1rem;
-    background-color: rgb(45, 51, 57);
+    backdrop-filter:blur(100px);
 }

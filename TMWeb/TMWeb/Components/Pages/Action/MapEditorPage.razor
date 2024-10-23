@@ -1,9 +1,29 @@
 ﻿@page "/MapEditorPage/{Id}"
 @rendermode InteractiveServer
-@inject IStringLocalizer<Language> localizer
-@inject NavigationManager nav
-@inject TMWebShopfloorService shopfloorService
-@inject UIService uiService
+
+@using Blazor.Diagrams.Options
+@using Blazor.Diagrams.Components
+@using Blazor.Diagrams
+@using Blazor.Diagrams.Core
+@using Blazor.Diagrams.Core.Models
+@using Blazor.Diagrams.Core.Extensions
+@using GE = Blazor.Diagrams.Core.Geometry
+@using Blazor.Diagrams.Core.Models.Base;
+@using Blazor.Diagrams.Core.Options
+@using Blazor.Diagrams.Core.PathGenerators
+@using Blazor.Diagrams.Core.Routers
+@using EV = Blazor.Diagrams.Core.Events
+
+<style>
+    .diagram-container {
+        width: 100%;
+        height: 100%;
+        border: 1px solid black; /* Just visual */
+    }
+</style>
+
+
+
 @if (hasImage)
 {
     <DxGridLayout RowSpacing="1rem" ColumnSpacing="1rem">
@@ -18,12 +38,17 @@
         <Items>
             <DxGridLayoutItem Row="0" Column="0" RowSpan="2">
                 <Template>
-                    <div class="card h-100 position-relative p-3">
-                        <img @onclick="SetTargetNull" class=" h-100 w-100" src="@($"data:{mapConfig.Image.DataType};base64,{Convert.ToBase64String(mapConfig.Image.DataByte ?? Array.Empty<byte>())}") " />
-                        @foreach (MapComponent mapComponent in mapConfig.MapComponents)
+                    <div class="w-100 h-100 p-3">
+                        @* <img @onclick="SetTargetNull" class="h-100 w-100" src="@($"data:{mapConfig.Image.DataType};base64,{Convert.ToBase64String(mapConfig.Image.DataByte ?? Array.Empty<byte>())}") " /> *@
+                        <div class="diagram-container" style="background-image:url(@($"data:{mapConfig.Image.DataType};base64,{Convert.ToBase64String(mapConfig.Image.DataByte ?? Array.Empty<byte>())}"))">
+                            @* @foreach (MapComponent mapComponent in mapConfig.MapComponents)
                         {
-                            <MapEditComponent MapComponentConfig="@mapComponent" IsMain="@IsMain(mapComponent.Id)" ClickCallback="OnComponentClicked" />
-                        }
+                        <MapEditComponent MapComponentConfig="@mapComponent" IsMain="@IsMain(mapComponent.Id)" ClickCallback="OnComponentClicked" />
+                        } *@
+                            <CascadingValue Value="@MapDiagram" IsFixed="true">
+                                <DiagramCanvas></DiagramCanvas>
+                            </CascadingValue>
+                        </div>
                     </div>
                 </Template>
             </DxGridLayoutItem>
@@ -76,16 +101,16 @@
                                         </DxFormLayoutGroup>
                                         <DxFormLayoutGroup>
                                             <DxFormLayoutItem Caption="X" CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="6">
-                                                <DxSpinEdit @bind-Value="@targetMapComponent.PositionX"></DxSpinEdit>
+                                                <DxSpinEdit Value="@targetMapComponent?.PositionX"></DxSpinEdit>
                                             </DxFormLayoutItem>
                                             <DxFormLayoutItem Caption="Y" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
-                                                <DxSpinEdit @bind-Value="@targetMapComponent.PositionY"></DxSpinEdit>
+                                                <DxSpinEdit Value="@targetMapComponent?.PositionY"></DxSpinEdit>
                                             </DxFormLayoutItem>
                                             <DxFormLayoutItem Caption="Width" CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="6">
-                                                <DxSpinEdit @bind-Value="@targetMapComponent.Width"></DxSpinEdit>
+                                                <DxSpinEdit Value="@targetMapComponent?.Width"></DxSpinEdit>
                                             </DxFormLayoutItem>
                                             <DxFormLayoutItem Caption="Height" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
-                                                <DxSpinEdit @bind-Value="@targetMapComponent.Height"></DxSpinEdit>
+                                                <DxSpinEdit Value="@targetMapComponent?.Height"></DxSpinEdit>
                                             </DxFormLayoutItem>
                                         </DxFormLayoutGroup>
 
@@ -163,6 +188,10 @@
     private bool hasMapConfig => mapConfig != null;
     private bool hasImage => hasMapConfig && mapConfig.Image != null;
 
+    private BlazorDiagram MapDiagram { get; set; } = null!;
+
+
+
     private List<MapComponent> mapComponents = new();
     private MapComponent? targetMapComponent;
     private bool componentSelected => targetMapComponent != null;
@@ -193,8 +222,62 @@
         mapComponents = mapConfig?.MapComponents.ToList();
         stations = await shopfloorService.GetAllStationsConfig();
         machines = await shopfloorService.GetAllMachinesConfig();
+        InitDiagram();
+        InitNode();
+    }
+
+    private void InitDiagram()
+    {
+        var options = new BlazorDiagramOptions
+            {
+                AllowMultiSelection = false,
+                Zoom =
+                {
+                    Enabled = false,
+                },
+            };
+
+        MapDiagram = new BlazorDiagram(options);
+        MapDiagram.PointerUp += MosueEventOnNode;
+        MapDiagram.RegisterComponent<NodeModel, MapIconComponent>();
+
+        //Diagram.
+
 
     }
+
+    private void InitNode()
+    {
+        MapDiagram.Nodes.Clear();
+        foreach (var item in mapConfig.MapComponents)
+        {
+            var a = MapDiagram.Nodes.Add(new NodeModel(item.Id.ToString())
+                {
+                    Position = new GE.Point(item.PositionX, item.PositionY),
+                    Size = new GE.Size(item.Width, item.Height),
+                });
+
+        }
+    }
+
+    private void MosueEventOnNode(Model? model, EV.PointerEventArgs arg)
+    {
+        if (model is not null)
+        {
+            if (model.GetType() == typeof(NodeModel))
+            {
+                NodeModel? nodeModel = model as NodeModel;
+                targetMapComponent = mapComponents.FirstOrDefault(x => x.Id.ToString() == nodeModel.Id);
+                if (componentSelected)
+                {
+                    targetMapComponent.PositionX = nodeModel.Position.X;
+                    targetMapComponent.PositionY = nodeModel.Position.Y;
+                    InitNode();
+                }
+            }
+        }
+    }
+
 
     private async Task OnComponentClicked(Task<Guid> componentId)
     {
@@ -233,6 +316,7 @@
     private async Task UpdateComponentAttribute()
     {
         var res = await shopfloorService.UpsertMapComponentsAttribute(mapComponents);
+        var a = MapDiagram.Nodes.GetEnumerator();
         await InitParameter();
         uiService.ShowToast(res);
     }

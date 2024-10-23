@@ -1,0 +1,10 @@
+﻿@using Blazor.Diagrams.Core.Models
+
+<div style="background-color:gray; width:@(Node.Size?.Width)px; height:@(Node.Size?.Height)px">
+
+</div>
+
+@code {
+    [Parameter]
+    public NodeModel Node { get; set; } = null!;
+}

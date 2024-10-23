@@ -29,6 +29,7 @@
 		<PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
 		<PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.2" />
+		<PackageReference Include="Z.Blazor.Diagrams" Version="3.0.2" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\RazorCommonLibrary\RazorCommonLibrary.csproj" />
@@ -51,6 +52,7 @@
 		</Compile>
 	</ItemGroup>
 	<ItemGroup>
+		<Folder Include="Data\Map\" />
 		<Folder Include="wwwroot\map\" />
 	</ItemGroup>
 	<ItemGroup>

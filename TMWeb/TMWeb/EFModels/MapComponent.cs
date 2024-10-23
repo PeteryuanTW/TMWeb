@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace TMWeb.EFModels;
+﻿namespace TMWeb.EFModels;
 
 public partial class MapComponent
 {
@@ -15,9 +12,9 @@ public partial class MapComponent
 
     public Guid? StationId { get; set; }
 
-    public int PositionX { get; set; }
+    public double PositionX { get; set; }
 
-    public int PositionY { get; set; }
+    public double PositionY { get; set; }
 
     public int Height { get; set; }
 

@@ -1,8 +1,8 @@
 ﻿@page "/ScriptEditor/{ScriptID}"
 @rendermode InteractiveServer
+@inject ScriptLoaderService scriptLoaderService
 @using BlazorMonaco.Editor
 @using System.Reflection
-@inject ScriptLoaderService scriptLoaderService
 
 <style>
     .codeeditor {
@@ -50,7 +50,7 @@
             <DxGridLayoutItem Row="1" Column="0">
                 <Template>
                     <div class="h-100">
-                        <StandaloneCodeEditor  @ref="@standaloneCodeEditor" CssClass="codeeditor" ConstructionOptions="EditorConstructionOptions" />
+                        <StandaloneCodeEditor @ref="@standaloneCodeEditor" CssClass="codeeditor" OnDidInit="EditorDidInit" ConstructionOptions="EditorConstructionOptions" />
                     </div>
                 </Template>
             </DxGridLayoutItem>
@@ -98,13 +98,10 @@
         await base.OnInitializedAsync();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    private async Task EditorDidInit()
     {
-        if (firstRender)
-        {
-            await ReadFile();
-        }
-        await base.OnAfterRenderAsync(firstRender);
+        await ReadFile();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task ReadFile()
