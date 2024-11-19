@@ -22,6 +22,8 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<Machine> Machines { get; set; }
 
+    public virtual DbSet<MachineStatusLog> MachineStatusLogs { get; set; }
+
     public virtual DbSet<MapComponent> MapComponents { get; set; }
 
     public virtual DbSet<MapConfig> MapConfigs { get; set; }
@@ -157,6 +159,20 @@ public partial class TmwebContext : DbContext
                 .HasForeignKey(d => d.TagCategoryId)
                 .HasConstraintName("FK__Machine__TagCate__6477ECF3");
         });
+
+
+        modelBuilder.Entity<MachineStatusLog>(entity =>
+        {
+
+            entity.ToTable("MachineStatusLogs");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.MachineID).HasColumnName("MachineID");
+            entity.Property(e => e.Status).HasColumnName("Status");
+            entity.Property(e => e.LogTime).HasColumnName("LogTime");
+        });
+
+
 
         modelBuilder.Entity<MapComponent>(entity =>
         {
