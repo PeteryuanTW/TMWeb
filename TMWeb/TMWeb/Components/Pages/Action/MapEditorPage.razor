@@ -1,133 +1,127 @@
 ﻿@page "/MapEditorPage/{Id}"
 @rendermode InteractiveServer
+@inject IJSRuntime js
 
-@using Blazor.Diagrams.Options
-@using Blazor.Diagrams.Components
-@using Blazor.Diagrams
-@using Blazor.Diagrams.Core
-@using Blazor.Diagrams.Core.Models
-@using Blazor.Diagrams.Core.Extensions
-@using GE = Blazor.Diagrams.Core.Geometry
-@using Blazor.Diagrams.Core.Models.Base;
-@using Blazor.Diagrams.Core.Options
-@using Blazor.Diagrams.Core.PathGenerators
-@using Blazor.Diagrams.Core.Routers
-@using EV = Blazor.Diagrams.Core.Events
+<div class="w-100 h-100">
+    @if (hasImage)
+    {
+        <DxGridLayout RowSpacing="1rem" ColumnSpacing="1rem">
+            <Rows>
+                <DxGridLayoutRow Height="1fr"></DxGridLayoutRow>
+                <DxGridLayoutRow Height="11fr"></DxGridLayoutRow>
+            </Rows>
+            <Columns>
+                <DxGridLayoutColumn Width="10fr"></DxGridLayoutColumn>
+                <DxGridLayoutColumn Width="2fr"></DxGridLayoutColumn>
+            </Columns>
+            <Items>
+                <DxGridLayoutItem Row="0" Column="0" RowSpan="2">
+                    <Template>
+                        <div class="h-100 w-100 position-relative" @ondrop="OnDrop" ondragover="event.preventDefault();">
+                            <img class="h-100 w-100 p-3 position-absolute" src="@($"data:{mapConfig.Image.DataType};base64,{Convert.ToBase64String(mapConfig.Image.DataByte ?? Array.Empty<byte>())}") " />
+                            <div @ref="shapeLayer" class="h-100 w-100 p-3 position-absolute"
+                                 @onclick="SetTargetNull">
+                                @* ondragover="event.preventDefault();" *@
+                                @foreach (MapComponent mapComponent in mapComponents)
+                                {
+                                    @if (!mapComponent.IsRunningCommand)
+                                    {
+                                        <MapEditComponent MapComponentConfig="@mapComponent" IsMain="@IsMain(mapComponent.Id)" MapEditCommandCallback="MapEditCommandChanged" ShapePanelSize="@shapePanelSize" ClickCallback="OnComponentClicked" />
+                                    }
+                                }
 
-<style>
-    .diagram-container {
-        width: 100%;
-        height: 100%;
-        border: 1px solid black; /* Just visual */
-    }
-</style>
-
-
-
-@if (hasImage)
-{
-    <DxGridLayout RowSpacing="1rem" ColumnSpacing="1rem">
-        <Rows>
-            <DxGridLayoutRow Height="1fr"></DxGridLayoutRow>
-            <DxGridLayoutRow Height="11fr"></DxGridLayoutRow>
-        </Rows>
-        <Columns>
-            <DxGridLayoutColumn Width="10fr"></DxGridLayoutColumn>
-            <DxGridLayoutColumn Width="2fr"></DxGridLayoutColumn>
-        </Columns>
-        <Items>
-            <DxGridLayoutItem Row="0" Column="0" RowSpan="2">
-                <Template>
-                    <div class="w-100 h-100 p-3">
-                        @* <img @onclick="SetTargetNull" class="h-100 w-100" src="@($"data:{mapConfig.Image.DataType};base64,{Convert.ToBase64String(mapConfig.Image.DataByte ?? Array.Empty<byte>())}") " /> *@
-                        <div class="diagram-container" style="background-image:url(@($"data:{mapConfig.Image.DataType};base64,{Convert.ToBase64String(mapConfig.Image.DataByte ?? Array.Empty<byte>())}"))">
-                            @* @foreach (MapComponent mapComponent in mapConfig.MapComponents)
-                        {
-                        <MapEditComponent MapComponentConfig="@mapComponent" IsMain="@IsMain(mapComponent.Id)" ClickCallback="OnComponentClicked" />
-                        } *@
-                            <CascadingValue Value="@MapDiagram" IsFixed="true">
-                                <DiagramCanvas></DiagramCanvas>
-                            </CascadingValue>
+                            </div>
                         </div>
-                    </div>
-                </Template>
-            </DxGridLayoutItem>
-            <DxGridLayoutItem Row="0" Column="1">
-                <Template>
-                    <div>
-                        <DxToolbar>
-                            <Items>
-                                <DxToolbarItem Click="NewComponentClick" IconCssClass="oi oi-plus"></DxToolbarItem>
-                                <DxToolbarItem Click="DeleteComponent" Enabled="@componentSelected" IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true"></DxToolbarItem>
-                                <DxToolbarItem Click="UpdateComponentAttribute" IconCssClass="oi oi-data-transfer-download" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true"></DxToolbarItem>
-                                @* <DxToolbarItem>
-                            <Template>
-                            <DxComboBox Data="mapComponents" @bind-Value="@targetMapComponent" TextFieldName="@(nameof(MapComponent.MachineId))" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
-                            </Template>
-                            </DxToolbarItem> *@
-                            </Items>
-                        </DxToolbar>
-                    </div>
-                </Template>
-            </DxGridLayoutItem>
-            <DxGridLayoutItem Row="1" Column="1">
-                <Template>
-                    <div class="w-100 h-75">
-                        <DxDrawer IsOpen="@componentSelected" Position="DrawerPosition.Right" PanelWidth="100%">
-                            <BodyTemplate>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="0" Column="1">
+                    <Template>
+                        <div>
+                            <DxToolbar>
+                                <Items>
+                                    <DxToolbarItem Click="NewComponentClick" IconCssClass="oi oi-plus"></DxToolbarItem>
+                                    <DxToolbarItem Click="DeleteComponent" Enabled="@componentSelected" IconCssClass="oi oi-trash" Alignment="ToolbarItemAlignment.Right" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true"></DxToolbarItem>
+                                    <DxToolbarItem Click="UpdateComponentAttribute" IconCssClass="oi oi-data-transfer-download" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true"></DxToolbarItem>
+                                    @* <DxToolbarItem>
+                                <Template>
+                                <DxComboBox Data="mapComponents" @bind-Value="@targetMapComponent" TextFieldName="@(nameof(MapComponent.MachineId))" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+                                </Template>
+                                </DxToolbarItem> *@
+                                </Items>
+                            </DxToolbar>
+                        </div>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="1" Column="1">
+                    <Template>
+                        <div class="w-100 h-75">
+                            <DxFormLayout ItemCaptionAlignment="ItemCaptionAlignment.None">
+                                <DxFormLayoutItem Caption="target" ColSpanLg="12" CaptionPosition="CaptionPosition.Horizontal">
+                                    <hr />
+                                </DxFormLayoutItem>
+                                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="12">
+                                    <DxComboBox Data="@mapComponents" @bind-Value="@targetMapComponent" TextFieldName="@(nameof(MapComponent.Id))" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+                                </DxFormLayoutItem>
+                               
                                 @if (componentSelected)
                                 {
-                                    <DxFormLayout>
-                                        <DxFormLayoutGroup>
-                                            <DxFormLayoutItem Caption="Type" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
-                                                <DxComboBox Data="@targetTypes" Value="@targetMapComponent.Type" ValueChanged="@((int i)=>SetComponentType(i))"></DxComboBox>
-                                            </DxFormLayoutItem>
-                                            <DxFormLayoutItem ColSpanLg="6">
-                                                @if (targetMapComponent.Type == 0)
-                                                {
-                                                    <DxComboBox Data="@stations" @bind-Value="@targetMapComponent.StationId" ValueFieldName="@(nameof(Station.Id))" TextFieldName="@(nameof(Station.Name))"></DxComboBox>
-                                                }
-                                                else if (targetMapComponent.Type == 1)
-                                                {
+                                    <DxFormLayoutItem Caption="Command" ColSpanLg="12" CaptionPosition="CaptionPosition.Horizontal">
+                                        <hr />
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="12">
+                                        <DxComboBox Data="@mapEditCommand" @bind-Value="@currentMapEditCommand" TextFieldName="@nameof(MapEditCommandWrapperClass.DisplayName)" ValueFieldName="@nameof(MapEditCommandWrapperClass.MapEditCommand)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="position & size" ColSpanLg="12" CaptionPosition="CaptionPosition.Horizontal">
+                                        <hr />
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="X" CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="6">
+                                        <DxSpinEdit @bind-Value="@targetMapComponent.PositionX" Mask="@NumericMask.Percentage"></DxSpinEdit>
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="Y" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
+                                        <DxSpinEdit @bind-Value="@targetMapComponent.PositionY" Mask="@NumericMask.Percentage"></DxSpinEdit>
+                                    </DxFormLayoutItem>
+                                    @* <DxFormLayoutItem Caption="click offsetX" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
+                                        <DxSpinEdit Value="@targetMapComponent.MouseOffsetX"></DxSpinEdit>
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="click offsetY" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
+                                        <DxSpinEdit Value="@targetMapComponent.MouseOffsetY"></DxSpinEdit>
+                                    </DxFormLayoutItem> *@
+                                    <DxFormLayoutItem Caption="Width" CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="6">
+                                        <DxSpinEdit @bind-Value="@targetMapComponent.Width" Mask="@NumericMask.Percentage"></DxSpinEdit>
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="Height" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
+                                        <DxSpinEdit @bind-Value="@targetMapComponent.Height" Mask="@NumericMask.Percentage"></DxSpinEdit>
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="binding data" ColSpanLg="12" CaptionPosition="CaptionPosition.Horizontal">
+                                        <hr />
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="Type" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
+                                        <DxComboBox Data="@mapComponentTargetType" Value="@targetMapComponent.Type" ValueChanged="@((int i)=>SetComponentType(i))" TextFieldName="@(nameof(MapComponentTargetTypeWrapperClass.DisplayName))" ValueFieldName="@(nameof(MapComponentTargetTypeWrapperClass.Index))"></DxComboBox>
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem ColSpanLg="6">
+                                        @if (targetMapComponent.Type == 0)
+                                        {
+                                            <DxComboBox Data="@stations" @bind-Value="@targetMapComponent.TargetId" ValueFieldName="@(nameof(Station.Id))" TextFieldName="@(nameof(Station.Name))"></DxComboBox>
+                                        }
+                                        else if (targetMapComponent.Type == 1)
+                                        {
+                                            <DxComboBox Data="@machines" @bind-Value="@targetMapComponent.TargetId" ValueFieldName="@(nameof(Machine.Id))" TextFieldName="@(nameof(Machine.Name))"></DxComboBox>
+                                        }
+                                        else
+                                        {
 
-                                                    <DxComboBox Data="@machines" @bind-Value="@targetMapComponent.MachineId" ValueFieldName="@(nameof(Machine.Id))" TextFieldName="@(nameof(Machine.Name))"></DxComboBox>
-
-                                                }
-                                                else
-                                                {
-
-                                                }
-                                            </DxFormLayoutItem>
-                                        </DxFormLayoutGroup>
-                                        <DxFormLayoutGroup>
-                                            <DxFormLayoutItem Caption="X" CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="6">
-                                                <DxSpinEdit Value="@targetMapComponent?.PositionX"></DxSpinEdit>
-                                            </DxFormLayoutItem>
-                                            <DxFormLayoutItem Caption="Y" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
-                                                <DxSpinEdit Value="@targetMapComponent?.PositionY"></DxSpinEdit>
-                                            </DxFormLayoutItem>
-                                            <DxFormLayoutItem Caption="Width" CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="6">
-                                                <DxSpinEdit Value="@targetMapComponent?.Width"></DxSpinEdit>
-                                            </DxFormLayoutItem>
-                                            <DxFormLayoutItem Caption="Height" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="6">
-                                                <DxSpinEdit Value="@targetMapComponent?.Height"></DxSpinEdit>
-                                            </DxFormLayoutItem>
-                                        </DxFormLayoutGroup>
-
-                                    </DxFormLayout>
+                                        }
+                                    </DxFormLayoutItem>
                                 }
-                            </BodyTemplate>
-                            <TargetContent>
-                                <div></div>
-                            </TargetContent>
-                        </DxDrawer>
-                    </div>
-                </Template>
-            </DxGridLayoutItem>
-        </Items>
-    </DxGridLayout>
-}
-<DxPopup @bind-Visible="@popupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="true" Width="50rem">
+                            </DxFormLayout>
+                        </div>
+                    </Template>
+                </DxGridLayoutItem>
+            </Items>
+        </DxGridLayout>
+    }
+</div>
+<DxPopup @bind-Visible="@popupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" Width="50rem">
     <HeaderTemplate>
         <div class="w-100 p-3 border border-bottom">
             <DxToolbar>
@@ -138,59 +132,66 @@
         </div>
     </HeaderTemplate>
     <BodyContentTemplate Context="bodycontext">
-        <DxFormLayout>
-            <DxFormLayoutItem Caption="Type" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
-                <DxComboBox Data="@targetTypes" Value="@targetMapComponent.Type" ValueChanged="@((int i)=>SetComponentType(i))"></DxComboBox>
-            </DxFormLayoutItem>
-            <DxFormLayoutItem ColSpanLg="6">
-                @* <DxComboBox Data="@stations" @bind-Value="@targetMapComponent.StationId" ValueFieldName="@(nameof(Station.Id))" TextFieldName="@(nameof(Station.Name))"></DxComboBox>
-                <DxComboBox Data="@machines" @bind-Value="@targetMapComponent.MachineId" ValueFieldName="@(nameof(Machine.Id))" TextFieldName="@(nameof(Machine.Name))"></DxComboBox>
-                *@
-                @if (targetMapComponent.Type == 0)
-                {
-                    <DxComboBox Data="@stations" @bind-Value="@targetMapComponent.StationId" ValueFieldName="@(nameof(Station.Id))" TextFieldName="@(nameof(Station.Name))"></DxComboBox>
-                }
-                else if (targetMapComponent.Type == 1)
-                {
+        <EditForm Model="@targetMapComponent" Context="EditFormContext" OnValidSubmit="AddComponent">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem Caption="Type" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
+                    <DxComboBox Data="@mapComponentTargetType" Value="@targetMapComponent.Type" ValueChanged="@((int i)=>SetComponentType(i))" ValueExpression="@(()=>targetMapComponent.Type)" TextExpression="@(()=>((MapComponentTargetType)targetMapComponent.Type).ToString())" TextFieldName="@(nameof(MapComponentTargetTypeWrapperClass.DisplayName))" ValueFieldName="@(nameof(MapComponentTargetTypeWrapperClass.Index))"></DxComboBox>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanLg="6">
+                    @if (targetMapComponent.Type == 0)
+                    {
+                        <DxComboBox Data="@stations" @bind-Value="@targetMapComponent.TargetId" ValueFieldName="@(nameof(Station.Id))" TextFieldName="@(nameof(Station.Name))"></DxComboBox>
+                    }
+                    else if (targetMapComponent.Type == 1)
+                    {
 
-                    <DxComboBox Data="@machines" @bind-Value="@targetMapComponent.MachineId" ValueFieldName="@(nameof(Machine.Id))" TextFieldName="@(nameof(Machine.Name))"></DxComboBox>
+                        <DxComboBox Data="@machines" @bind-Value="@targetMapComponent.TargetId" ValueFieldName="@(nameof(Machine.Id))" TextFieldName="@(nameof(Machine.Name))"></DxComboBox>
 
-                }
-                else
-                {
+                    }
+                    else
+                    {
 
-                }
-            </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="X" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
-                <DxSpinEdit @bind-Value="@targetMapComponent.PositionX"></DxSpinEdit>
-            </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="Y" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
-                <DxSpinEdit @bind-Value="@targetMapComponent.PositionY"></DxSpinEdit>
-            </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="Width" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
-                <DxSpinEdit @bind-Value="@targetMapComponent.Width"></DxSpinEdit>
-            </DxFormLayoutItem>
-            <DxFormLayoutItem Caption="Height" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
-                <DxSpinEdit @bind-Value="@targetMapComponent.Height"></DxSpinEdit>
-            </DxFormLayoutItem>
-        </DxFormLayout>
+                    }
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="X" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
+                    <DxSpinEdit @bind-Value="@targetMapComponent.PositionX"></DxSpinEdit>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Y" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
+                    <DxSpinEdit @bind-Value="@targetMapComponent.PositionY"></DxSpinEdit>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Width" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
+                    <DxSpinEdit @bind-Value="@targetMapComponent.Width"></DxSpinEdit>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem Caption="Height" ColSpanLg="6" CaptionPosition="CaptionPosition.Vertical">
+                    <DxSpinEdit @bind-Value="@targetMapComponent.Height"></DxSpinEdit>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanLg="12">
+                    <hr />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                        </Items>
+                    </DxToolbar>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
     </BodyContentTemplate>
-    <FooterContentTemplate>
-        <DxButton Click="AddComponent" RenderStyle="ButtonRenderStyle.Primary" IconCssClass="oi oi-check" />
-    </FooterContentTemplate>
 </DxPopup>
 
 @code {
     [Parameter]
     public string Id { get; set; }
 
+    private ElementReference shapeLayer { get; set; }
+    private Rect shapePanelSize;
+
+
     private MapConfig? mapConfig;
     private bool hasMapConfig => mapConfig != null;
     private bool hasImage => hasMapConfig && mapConfig.Image != null;
-
-    private BlazorDiagram MapDiagram { get; set; } = null!;
-
-
 
     private List<MapComponent> mapComponents = new();
     private MapComponent? targetMapComponent;
@@ -198,7 +199,7 @@
     private bool IsMain(Guid id) => componentSelected ? id == targetMapComponent.Id : false;
 
 
-    private IEnumerable<TargetType> targetTypes => Enum.GetValues(typeof(TargetType)).Cast<TargetType>();
+    private IEnumerable<MapComponentTargetTypeWrapperClass> mapComponentTargetType => TypeEnumHelper.GetMapComponentTargetTypeWrapperClass();
 
     private IEnumerable<Station> stations;
     private IEnumerable<Machine> machines;
@@ -209,11 +210,18 @@
     private void ShowPopup() => popupVisible = true;
     private void ClosePopup() => popupVisible = false;
 
+    public MapEditCommand? currentMapEditCommand;
+    private IEnumerable<MapEditCommandWrapperClass> mapEditCommand => TypeEnumHelper.GetMapEditCommandWrapperClass();
 
     protected override async Task OnInitializedAsync()
     {
         await InitParameter();
         await base.OnInitializedAsync();
+    }
+
+    private void MapEditCommandChanged(MapEditCommand? command)
+    {
+        currentMapEditCommand = command;
     }
 
     private async Task InitParameter()
@@ -222,60 +230,8 @@
         mapComponents = mapConfig?.MapComponents.ToList();
         stations = await shopfloorService.GetAllStationsConfig();
         machines = await shopfloorService.GetAllMachinesConfig();
-        InitDiagram();
-        InitNode();
-    }
-
-    private void InitDiagram()
-    {
-        var options = new BlazorDiagramOptions
-            {
-                AllowMultiSelection = false,
-                Zoom =
-                {
-                    Enabled = false,
-                },
-            };
-
-        MapDiagram = new BlazorDiagram(options);
-        MapDiagram.PointerUp += MosueEventOnNode;
-        MapDiagram.RegisterComponent<NodeModel, MapIconComponent>();
-
-        //Diagram.
-
-
-    }
-
-    private void InitNode()
-    {
-        MapDiagram.Nodes.Clear();
-        foreach (var item in mapConfig.MapComponents)
-        {
-            var a = MapDiagram.Nodes.Add(new NodeModel(item.Id.ToString())
-                {
-                    Position = new GE.Point(item.PositionX, item.PositionY),
-                    Size = new GE.Size(item.Width, item.Height),
-                });
-
-        }
-    }
-
-    private void MosueEventOnNode(Model? model, EV.PointerEventArgs arg)
-    {
-        if (model is not null)
-        {
-            if (model.GetType() == typeof(NodeModel))
-            {
-                NodeModel? nodeModel = model as NodeModel;
-                targetMapComponent = mapComponents.FirstOrDefault(x => x.Id.ToString() == nodeModel.Id);
-                if (componentSelected)
-                {
-                    targetMapComponent.PositionX = nodeModel.Position.X;
-                    targetMapComponent.PositionY = nodeModel.Position.Y;
-                    InitNode();
-                }
-            }
-        }
+        //InitDiagram();
+        //InitNode();
     }
 
 
@@ -283,8 +239,11 @@
     {
         Guid guid = await componentId;
         targetMapComponent = mapComponents.FirstOrDefault(x => x.Id == guid);
+        shapePanelSize = await js.InvokeAsync<Rect>("GetPosition", shapeLayer);
         await InvokeAsync(StateHasChanged);
     }
+
+
 
     private void SetComponentType(int i)
     {
@@ -294,7 +253,7 @@
         }
     }
 
-    private void SetTargetNull()
+    private void SetTargetNull(MouseEventArgs e)
     {
         targetMapComponent = null;
     }
@@ -307,25 +266,94 @@
 
     private async Task AddComponent()
     {
-        var res = await shopfloorService.UpsertMapComponents(targetMapComponent);
-        await InitParameter();
+        //var res = await shopfloorService.UpsertMapComponents(targetMapComponent);
+        //await InitParameter();
+        mapComponents.Add(targetMapComponent);
         ClosePopup();
-        uiService.ShowToast(res);
+        //await InvokeAsync(StateHasChanged);
+        //uiService.ShowToast(res);
     }
 
     private async Task UpdateComponentAttribute()
     {
-        var res = await shopfloorService.UpsertMapComponentsAttribute(mapComponents);
-        var a = MapDiagram.Nodes.GetEnumerator();
+        var res = await shopfloorService.UpsertMapComponentsAttribute(new Guid(Id), mapComponents);
+        //var a = MapDiagram.Nodes.GetEnumerator();
         await InitParameter();
         uiService.ShowToast(res);
     }
 
     private async Task DeleteComponent()
     {
-        var res = await shopfloorService.DeleteMapComponents(targetMapComponent);
-        await InitParameter();
-        uiService.ShowToast(res);
+        mapComponents.Remove(targetMapComponent);
+        await InvokeAsync(StateHasChanged);
+        //var res = await shopfloorService.DeleteMapComponents(targetMapComponent);
+        //await InitParameter();
+        //uiService.ShowToast(res);
+    }
+
+    private void OnDragstart()
+    {
+
+    }
+
+    private async Task OnDrag(MouseEventArgs e)
+    {
+        if (componentSelected)
+        {
+            targetMapComponent.PositionX = (e.PageX / shapePanelSize.Width) * 100;
+            targetMapComponent.PositionY = (e.PageY / shapePanelSize.Height) * 100;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void OnDragover(DragEventArgs e)
+    {
+        targetMapComponent.PositionX = (e.ClientX - targetMapComponent.MouseOffsetX) / shapePanelSize.Width * 100;
+        targetMapComponent.PositionY = (e.ClientY - targetMapComponent.MouseOffsetY) / shapePanelSize.Height * 100;
+    }
+
+    private async Task OnDrop(MouseEventArgs e)
+    {
+
+        if (componentSelected)
+        {
+            // double currentX = shapePanelSize.Width * targetMapComponent.PositionX / 100;
+            // double currentY = shapePanelSize.Height * targetMapComponent.PositionY / 100;
+
+            // double newX = e.OffsetX;
+            // double newY = e.OffsetY;
+
+            // targetMapComponent.PositionX = ((newX - targetMapComponent.MouseOffsetX) / shapePanelSize.Width) * 100;
+            // targetMapComponent.PositionY = ((newY - targetMapComponent.MouseOffsetY) / shapePanelSize.Height)*100;
+
+            //targetMapComponent.FinishedCommand();
+            await InvokeAsync(StateHasChanged);
+            switch (currentMapEditCommand)
+            {
+                case MapEditCommand.Move:
+                    shapePanelSize = await js.InvokeAsync<Rect>("GetPosition", shapeLayer);
+                    targetMapComponent.PositionX = (e.ClientX - shapePanelSize.Left) / shapePanelSize.Width * 100;
+                    //targetMapComponent.PositionX = (e.OffsetX - targetMapComponent.MouseOffsetX) / shapePanelSize.Width * 100;
+                    targetMapComponent.PositionY = (e.ClientY - shapePanelSize.Top) / shapePanelSize.Height * 100;
+                    //targetMapComponent.PositionY = (e.OffsetY - targetMapComponent.MouseOffsetY) / shapePanelSize.Height * 100;
+                    ResetCommand();
+                    break;
+                case MapEditCommand.Resize:
+                    targetMapComponent.Width = (e.ClientX - shapePanelSize.Left )/ shapePanelSize.Width * 100 - targetMapComponent.PositionX;
+                    targetMapComponent.Height = (e.ClientY - shapePanelSize.Top) / shapePanelSize.Height * 100 - targetMapComponent.PositionY;
+                    ResetCommand();
+                    await InvokeAsync(StateHasChanged);
+                    break;
+                default:
+                    break;
+            }
+
+        }
+    }
+
+    private void ResetCommand()
+    {
+        currentMapEditCommand = null;
     }
 
 }

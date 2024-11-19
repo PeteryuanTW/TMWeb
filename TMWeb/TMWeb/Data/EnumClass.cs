@@ -115,10 +115,22 @@ namespace TMWeb.Data
                 new (Status.Error, ButtonRenderStyle.Danger, Color.FromArgb(204, 0, 0)),
             };
 
+        public static IEnumerable<MapComponentTargetTypeWrapperClass> GetMapComponentTargetTypeWrapperClass()
+        {
+            return Enum.GetValues(typeof(MapComponentTargetType)).OfType<MapComponentTargetType>()
+                .Select(x => new MapComponentTargetTypeWrapperClass(x));
+        }
+
         public static StatusStyle? GetStatusStyle(int statusCode)
         {
             var target = StatusStyles.FirstOrDefault(x => (int)x.status == statusCode);
             return target;
+        }
+
+        public static IEnumerable<MapEditCommandWrapperClass> GetMapEditCommandWrapperClass()
+        {
+            return Enum.GetValues(typeof(MapEditCommand)).OfType<MapEditCommand>()
+                .Select(x => new MapEditCommandWrapperClass(x));
         }
     }
 
@@ -257,5 +269,40 @@ namespace TMWeb.Data
         Error,
     }
 
+    public class MapComponentTargetTypeWrapperClass : WrapperClass
+    {
+        public MapComponentTargetTypeWrapperClass(MapComponentTargetType mapComponentTargetType)
+        {
+            MapComponentTargetType = mapComponentTargetType;
+            index = (int)MapComponentTargetType;
+            displayName = MapComponentTargetType.ToString();
+        }
+
+        public MapComponentTargetType MapComponentTargetType { get; init; }
+    }
+
+    public enum MapComponentTargetType
+    {
+        Station = 0,
+        Machine = 1,
+    }
+
+    public class MapEditCommandWrapperClass : WrapperClass
+    {
+        public MapEditCommandWrapperClass(MapEditCommand mapEditCommand)
+        {
+            MapEditCommand = mapEditCommand;
+            index = (int)MapEditCommand;
+            displayName = MapEditCommand.ToString();
+        }
+
+        public MapEditCommand MapEditCommand { get; init; }
+    }
+
+    public enum MapEditCommand
+    {
+        Move,
+        Resize,
+    }
 
 }

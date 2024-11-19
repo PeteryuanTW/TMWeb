@@ -19,8 +19,6 @@ public partial class Station
     [Required]
     public bool Enable { get; set; }
 
-    public virtual ICollection<MapComponent> MapComponents { get; set; } = new List<MapComponent>();
-
     public virtual Process Process { get; set; } = null!;
 
     public virtual ICollection<StationUirecord> StationUirecords { get; set; } = new List<StationUirecord>();

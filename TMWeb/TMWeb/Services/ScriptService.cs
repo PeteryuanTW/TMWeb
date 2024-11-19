@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CommonLibrary.API.Message;
+using Microsoft.EntityFrameworkCore;
 using TMWeb.Data;
 using TMWeb.EFModels;
 using TMWeb.Scripts.Template;
@@ -29,6 +30,37 @@ namespace TMWeb.Services
             return scriptConfigs.FirstOrDefault(x => x.Id == id);
         }
 
+        public async Task<RequestResult> UpsertScript(ScriptConfig scriptConfig)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.ScriptConfigs.FirstOrDefault(x => x.Id == scriptConfig.Id);
+                    if (target is not null)
+                    {
+                        target.ScriptName = scriptConfig.ScriptName;
+                        target.ClassName = scriptConfig.ClassName;
+                        target.AutoCompile = scriptConfig.AutoCompile;
+                        target.AutoRun = scriptConfig.AutoRun;
+                        target.SuorceCode = scriptConfig.SuorceCode;
+                    }
+                    else
+                    {
+                        await dbContext.ScriptConfigs.AddAsync(scriptConfig);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new(2, $"Upsert script {scriptConfig.ScriptName} success");
+                }
+            }
+            catch (Exception e)
+            {
+                return new(4, e.Message);
+            }
+        }
+
+
         public async Task InitAllScripts()
         {
             scriptConfigs = new();
@@ -38,7 +70,7 @@ namespace TMWeb.Services
                 scriptConfigs = dbContext.ScriptConfigs.AsNoTracking().ToList();
                 foreach (var scriptConfig in scriptConfigs)
                 {
-                    if (scriptConfig.Enable)
+                    if (scriptConfig.AutoCompile)
                     {
                         await ReadScriptAndCompile(scriptConfig);
                     }

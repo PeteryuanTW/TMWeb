@@ -64,6 +64,7 @@ builder.Services.AddDbContextFactory<UserDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection"));
 });
 
+builder.Services.AddSingleton<ApplicationLifetimeService>();
 builder.Services.AddSingleton<TMWebShopfloorService>();
 builder.Services.AddSingleton<EventLogService>();
 builder.Services.AddSingleton<ScriptService>();
@@ -90,6 +91,7 @@ builder.Services.AddCascadingAuthenticationState();
 builder.Host.UseWindowsService();
 
 var app = builder.Build();
+var lifetimeEvents = app.Services.GetRequiredService<ApplicationLifetimeService>();
 app.UseRequestLocalization(localizationOptions);
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

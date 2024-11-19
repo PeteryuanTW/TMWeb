@@ -2,14 +2,17 @@
 
 namespace TMWeb.EFModels
 {
-    public enum TargetType
-    {
-        Station = 0,
-        Machine = 1,
-    }
+    
     public partial class MapComponent
     {
-        
+
+        private double mouseOffsetX;
+        private double mouseOffsetY;
+        public double MouseOffsetX => mouseOffsetX;
+        public double MouseOffsetY => mouseOffsetY;
+
+        public bool IsRunningCommand => isRunningCommand;
+        private bool isRunningCommand = false;
 
         public MapComponent() { }
 
@@ -26,20 +29,27 @@ namespace TMWeb.EFModels
 
         public void SetType(int i)
         {
-            switch (i)
+            if (Type != i)
             {
-                case 0:
-                    MachineId = null;
-                    break;
-                case 1:
-                    StationId = null;
-                    break;
-                default:
-                    break;
+                TargetId = null;
             }
             Type = i;
         }
 
-        
+        public void SetClickOffset(double x, double y)
+        {
+            mouseOffsetX = x;
+            mouseOffsetY = y;
+        }
+
+        public void StartCommand()
+        {
+            isRunningCommand = true;
+        }
+
+        public void FinishedCommand()
+        {
+            isRunningCommand = false;
+        }
     }
 }

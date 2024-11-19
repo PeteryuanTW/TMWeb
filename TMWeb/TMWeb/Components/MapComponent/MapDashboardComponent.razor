@@ -33,7 +33,7 @@
             switch (MapComponentConfig.Type)
             {
                 case 0:
-                    Station? station = await shopfloorService.GetStationsById(MapComponentConfig.StationId);
+                    Station? station = await shopfloorService.GetStationsById(MapComponentConfig.TargetId);
                     if (station != null)
                     {
                         name = station.Name;
@@ -42,7 +42,7 @@
                     }
                     break;
                 case 1:
-                    Machine? machine = await shopfloorService.GetMachineByID(MapComponentConfig.MachineId);
+                    Machine? machine = await shopfloorService.GetMachineByID(MapComponentConfig.TargetId);
                     if (machine != null)
                     {
                         name = machine.Name;

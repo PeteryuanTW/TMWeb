@@ -1154,7 +1154,7 @@ namespace TMWeb.Services
                     .Include(x => x.RecipeCategory).ThenInclude(x => x.Recipes)
                     .Include(x => x.WorkorderRecordCategory)//.ThenInclude(x => x.WorkorderRecordContents).ThenInclude(x => x.WorkorderRecordDetails.Where(x=>x.WorkerderId == id))
                     .Include(x => x.WorkorderRecordDetails).ThenInclude(x=>x.RecordContent)
-                    .Include(x => x.ItemRecordsCategory)//.ThenInclude(x => x.ItemRecordContents).ThenInclude(x => x.ItemRecordDetails)
+                    .Include(x => x.ItemRecordsCategory).ThenInclude(x => x.ItemRecordContents)//.ThenInclude(x => x.ItemRecordDetails)
                     .Include(x => x.TaskRecordCategory)//.ThenInclude(x => x.TaskRecordContents).ThenInclude(x => x.TaskRecordDetails)
                     .AsSplitQuery()
                     .AsNoTracking()
@@ -1278,6 +1278,15 @@ namespace TMWeb.Services
                     }
                     else
                     {
+                        foreach (var station in stations)
+                        {
+                            var deployRes = station.SetWorkorder(wo);
+                            if (!deployRes)
+                            {
+                                return new(4, $"Deploy workorder to station {station.Name} fail");
+                            }
+                            station.Run();
+                        }
                         return await SetWorkorderStatusStartByID(id);
                     }
                 }
@@ -1491,35 +1500,42 @@ namespace TMWeb.Services
                 var machines = await GetMachineByProcessID(targetProcess.Id);
                 if (!machines.Exists(x => x.Status != Status.Idel && x.Status != Status.Running))
                 {
-                    foreach (var recipe in wo.RecipeCategory.Recipes)
+                    if (wo.HasRecipe)
                     {
-                        var recipeRes = recipe.GetValue(wo);
-                        if (recipeRes.Item1 && recipeRes.Item2 is not null)
+                        foreach (var recipe in wo.RecipeCategory?.Recipes)
                         {
-                            var machineHasRecipe = machines.Where(x => x.TagCategoryId == recipe.TargetTagCatId);
-                            foreach (var machine in machineHasRecipe)
+                            var recipeRes = recipe.GetValue(wo);
+                            if (recipeRes.Item1 && recipeRes.Item2 is not null)
                             {
-                                var targetTag = machine.TagCategory.Tags.FirstOrDefault(x => x.Id == recipe.TargetTagId);
-                                if (targetTag is not null)
+                                var machineHasRecipe = machines.Where(x => x.TagCategoryId == recipe.TargetTagCatId);
+                                foreach (var machine in machineHasRecipe)
                                 {
-                                    var res = await SetMachineTag(machine.Name, targetTag.Name, recipeRes.Item2);
-                                    if (!res.IsSuccess)
+                                    var targetTag = machine.TagCategory.Tags.FirstOrDefault(x => x.Id == recipe.TargetTagId);
+                                    if (targetTag is not null)
                                     {
-                                        return res;
+                                        var res = await SetMachineTag(machine.Name, targetTag.Name, recipeRes.Item2);
+                                        if (!res.IsSuccess)
+                                        {
+                                            return res;
+                                        }
+                                    }
+                                    else
+                                    {
+                                        return new(4, $"Machine target tag not found in tag category");
                                     }
                                 }
-                                else
-                                {
-                                    return new(4, $"Machine target tag not found in tag category");
-                                }
+                            }
+                            else
+                            {
+                                return new(4, $"Get recipe {recipe.RecipeItemName} value fail");
                             }
                         }
-                        else
-                        {
-                            return new(4, $"Get recipe {recipe.RecipeItemName} value fail");
-                        }
+                        return new(1, "Deploy recipes success");
                     }
-                    return new(1, "Deploy recipes success");
+                    else
+                    {
+                        return new(1, "No recipes");
+                    }
                 }
                 else
                 {
@@ -2011,7 +2027,7 @@ namespace TMWeb.Services
                     {
                         case 0:
                             StationSingleWorkorderSingleSerial? stationSingleWorkorderSingleSerial = station as StationSingleWorkorderSingleSerial;
-                            if (stationSingleWorkorderSingleSerial != null)
+                            if (stationSingleWorkorderSingleSerial is not null && stationSingleWorkorderSingleSerial.HasWorkorder)
                             {
                                 wo = stationSingleWorkorderSingleSerial.Workerder;
                                 itemDetail = stationSingleWorkorderSingleSerial.ItemDetail;
@@ -2019,7 +2035,7 @@ namespace TMWeb.Services
                             break;
                         case 1:
                             StationSingleWorkorderMutipleSerial? stationSingleWorkorderMutipleSerial = station as StationSingleWorkorderMutipleSerial;
-                            if (stationSingleWorkorderMutipleSerial != null)
+                            if (stationSingleWorkorderMutipleSerial is not null && stationSingleWorkorderMutipleSerial.HasWorkorder)
                             {
                                 wo = stationSingleWorkorderMutipleSerial.Workerder;
                                 itemDetail = stationSingleWorkorderMutipleSerial.ItemDetails.FirstOrDefault(x => x.SerialNo == serialNo);
@@ -2286,8 +2302,7 @@ namespace TMWeb.Services
                     if (target != null)
                     {
                         target.Type = mapComponent.Type;
-                        target.MachineId = mapComponent.MachineId;
-                        target.StationId = mapComponent.StationId;
+                        target.TargetId = mapComponent.TargetId;
                         target.PositionX = mapComponent.PositionX;
                         target.PositionY = mapComponent.PositionY;
                         target.Height = mapComponent.Height;
@@ -2308,25 +2323,40 @@ namespace TMWeb.Services
             }
         }
 
-        public async Task<RequestResult> UpsertMapComponentsAttribute(IEnumerable<MapComponent> mapComponents)
+        public async Task<RequestResult> UpsertMapComponentsAttribute(Guid mapID, IEnumerable<MapComponent> mapComponents)
         {
             try
             {
                 using (var scope = scopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var deSet = dbContext.MapComponents;
+                    var mapComponentInDBs = deSet.Where(x => x.MapId == mapID);
+
+                    foreach (var e in mapComponentInDBs)
+                    {
+                        if(!mapComponents.Any(x=>x.Id == e.Id))
+                        {
+                            deSet.Remove(e);
+                        }
+                    }
+                    
+
                     foreach (var mapComponent in mapComponents)
                     {
-                        var target = dbContext.MapComponents.FirstOrDefault(x => x.Id == mapComponent.Id);
+                        var target = deSet.FirstOrDefault(x => x.Id == mapComponent.Id);
                         if (target != null)
                         {
                             target.Type = mapComponent.Type;
-                            target.MachineId = mapComponent.MachineId;
-                            target.StationId = mapComponent.StationId;
+                            target.TargetId = mapComponent.TargetId;
                             target.PositionX = mapComponent.PositionX;
                             target.PositionY = mapComponent.PositionY;
                             target.Height = mapComponent.Height;
                             target.Width = mapComponent.Width;
+                        }
+                        else
+                        {
+                            deSet.AddAsync(mapComponent);
                         }
 
                     }

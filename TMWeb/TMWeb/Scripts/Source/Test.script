@@ -24,46 +24,55 @@ namespace TMWeb.Scripts.Source
         {
             
         }
+        //private bool workingTag1 = false;
+        //private bool workingTag2 = false;
 
-        private List<FuncConf> funConf = new List<FuncConf>{};
-        private bool workingTag1 = false;
-        private bool workingTag2 = false;
+        private int amount = 0;
+        private Queue<string> q = new Queue<string>();
 
         public override async void OnStart()
         {
-            funConf = new List<FuncConf>()
-            {
-                new FuncConf(){working = workingTag1, stationName = "測試工站1", tagName = "S1作業中"},
-                new FuncConf(){working = workingTag2, stationName = "測試工站2", tagName = "S2作業中"},
-            };
+            //funConf = new List<FuncConf>()
+            //{
+            //    new FuncConf(){working = workingTag1, stationName = "測試工站1", tagName = "S1作業中"},
+            //    new FuncConf(){working = workingTag2, stationName = "測試工站2", tagName = "S2作業中"},
+            //};
+            amount = 0;
+            q = new Queue<string>();
         }
         
         public override async Task RunAction()
         {
-            List<Task> tasks = new List<Task>();
-            foreach(var a in funConf)
+            Tag? newItem = await tmWebShopfloorService.GetMachineTag("本機測試", "pass");
+            if(newItem is not null)
             {
-                tasks.Add(Task.Run(async() =>
+                if(Convert.ToBoolean(newItem.Value))
                 {
-                     Tag? t = await tmWebShopfloorService.GetMachineTag("本機測試", a.tagName);
-                     if(t is not null)
-                     {
-                        if(a.working != Convert.ToBoolean(t.Value))
-                        {
-                            a.working = Convert.ToBoolean(t.Value);
-                            if(a.working)
-                            {
-                                await tmWebShopfloorService.StationInByNameAndSerialNo(a.stationName, DateTime.Now.ToString("yyyyMMddHHmmss"));
-                            }
-                            else
-                            {
-                                await tmWebShopfloorService.StationOutByFIFO(a.stationName, true);
-                            }
-                        }
-                     }
-                }));
+                    string s = DateTime.Now.ToString("yyyyMMddHHmmss");
+                    q.Enqueue(s);
+                    await tmWebShopfloorService.StationInByNameAndSerialNo("堆棧站", s);
+                    await tmWebShopfloorService.SetMachineTag("本機測試", "pass", false);
+                }
             }
-            await Task.WhenAll(tasks);
+
+            Tag? amountTag = await tmWebShopfloorService.GetMachineTag("本機測試", "amount");
+            if(newItem is not null)
+            {
+                int current = Convert.ToInt32(amountTag.Value);
+                if(current>amount)
+                {
+                    int a = current - amount;
+                    for(int i = 0; i< a; i++)
+                    {
+                        string ss = q.Dequeue();
+                        await tmWebShopfloorService.StationOutByFIFO("堆棧站", true);
+                    }
+                }
+                amount = current;
+            }
+
+            
+            
         }
         
         public override void OnStop()

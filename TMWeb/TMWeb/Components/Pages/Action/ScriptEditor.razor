@@ -1,6 +1,7 @@
 ﻿@page "/ScriptEditor/{ScriptID}"
 @rendermode InteractiveServer
 @inject ScriptLoaderService scriptLoaderService
+@inject IJSRuntime js
 @using BlazorMonaco.Editor
 @using System.Reflection
 
@@ -10,60 +11,83 @@
     }
 </style>
 
-<div class="w-100 h-100">
-    <DxGridLayout ColumnSpacing="1rem" RowSpacing="1rem">
-        <Rows>
-            <DxGridLayoutRow Height="auto"></DxGridLayoutRow>
-            <DxGridLayoutRow Height="8fr"></DxGridLayoutRow>
-        </Rows>
-        <Columns>
-            <DxGridLayoutColumn Width="6fr"></DxGridLayoutColumn>
-            <DxGridLayoutColumn Width="3fr"></DxGridLayoutColumn>
-        </Columns>
-        <Items>
-            <DxGridLayoutItem Row="0" Column="0" ColumnSpan="2">
-                <Template>
-                    <div class="h-100" style="display: flex; justify-content: center; align-items: center;">
-                        <DxToolbar SizeMode="SizeMode.Large">
-                            <DxToolbarItem Tooltip="Save"
-                                           Alignment="ToolbarItemAlignment.Left"
-                                           RenderStyle="ButtonRenderStyle.Info"
-                                           IconCssClass="oi oi-cloud-download"
-                                           Click="SaveFile"
-                                           BeginGroup="true" />
-                            <DxToolbarItem Tooltip="Compile"
-                                           Alignment="ToolbarItemAlignment.Left"
-                                           RenderStyle="ButtonRenderStyle.Warning"
-                                           IconCssClass="oi oi-bug"
-                                           Click="Compile"
-                                           BeginGroup="true" />
-                            <DxToolbarItem Tooltip="Deploy"
-                                           Alignment="ToolbarItemAlignment.Left"
-                                           RenderStyle="ButtonRenderStyle.Success"
-                                           IconCssClass="oi oi-code"
-                                           BeginGroup="true"
-                                           Click="Deploy" />
-                        </DxToolbar>
-                    </div>
-                </Template>
-            </DxGridLayoutItem>
-            <DxGridLayoutItem Row="1" Column="0">
-                <Template>
-                    <div class="h-100">
-                        <StandaloneCodeEditor @ref="@standaloneCodeEditor" CssClass="codeeditor" OnDidInit="EditorDidInit" ConstructionOptions="EditorConstructionOptions" />
-                    </div>
-                </Template>
-            </DxGridLayoutItem>
-            <DxGridLayoutItem Row="1" Column="1">
-                <Template>
-                    <div class="h-100">
-                        <DxMemo @bind-Text="@compileResult" CssClass="h-100" ResizeMode="MemoResizeMode.Disabled" ReadOnly="true"></DxMemo>
-                    </div>
-                </Template>
-            </DxGridLayoutItem>
-        </Items>
-    </DxGridLayout>
-</div>
+<DxLoadingPanel CssClass="w-100" Visible="@showPanel" ApplyBackgroundShading="true" IsContentBlocked="true" IndicatorVisible="true" IndicatorAnimationType="WaitIndicatorAnimationType.Flip">
+    <IndicatorTemplate>
+        <div class="loadingIcon" role="img"></div>
+    </IndicatorTemplate>
+    <ChildContent>
+        <div class="w-100 h-100">
+            <DxGridLayout ColumnSpacing="1rem" RowSpacing="1rem">
+                <Rows>
+                    <DxGridLayoutRow Height="auto"></DxGridLayoutRow>
+                    <DxGridLayoutRow Height="7fr"></DxGridLayoutRow>
+                    <DxGridLayoutRow Height="3fr"></DxGridLayoutRow>
+                </Rows>
+                <Columns>
+                    <DxGridLayoutColumn Width="6fr"></DxGridLayoutColumn>
+                    <DxGridLayoutColumn Width="3fr"></DxGridLayoutColumn>
+                </Columns>
+                <Items>
+                    <DxGridLayoutItem Row="0" Column="0" ColumnSpan="2">
+                        <Template>
+                            <div class="h-100" style="display: flex; justify-content: center; align-items: center;">
+                                <DxToolbar SizeMode="SizeMode.Large">
+                                    <DxToolbarItem Tooltip="Save"
+                                                   Alignment="ToolbarItemAlignment.Left"
+                                                   RenderStyle="ButtonRenderStyle.Info"
+                                                   IconUrl="images\MyIcon\save.svg"
+                                                   Click="SaveFile"
+                                                   BeginGroup="true" />
+                                    <DxToolbarItem Tooltip="Compile"
+                                                   Alignment="ToolbarItemAlignment.Left"
+                                                   RenderStyle="ButtonRenderStyle.Warning"
+                                                   IconCssClass="oi oi-bug"
+                                                   Click="Compile"
+                                                   BeginGroup="true" />  @* Enabled="@allowCompile" *@
+                                    <DxToolbarItem Tooltip="Deploy"
+                                                   Alignment="ToolbarItemAlignment.Left"
+                                                   RenderStyle="ButtonRenderStyle.Success"
+                                                   IconUrl="images\MyIcon\deploy.svg"
+                                                   BeginGroup="true"
+                                                   Click="Deploy" />
+                                </DxToolbar>
+                            </div>
+                        </Template>
+                    </DxGridLayoutItem>
+                    <DxGridLayoutItem Row="1" Column="0" RowSpan="2">
+                        <Template>
+                            <div class="h-100">
+                                <StandaloneCodeEditor @ref="@standaloneCodeEditor" CssClass="codeeditor" OnDidInit="EditorDidInit" ConstructionOptions="EditorConstructionOptions" OnDidChangeModelContent="OnCodeChanged" OnKeyDown="Shortcut" />
+                            </div>
+                        </Template>
+                    </DxGridLayoutItem>
+                    <DxGridLayoutItem Row="1" Column="1">
+                        <Template>
+                            <div class="h-100 overflow-auto">
+                                <ul class="list-group">
+                                    @foreach (var scriptDiagnos in scriptDiagnoses)
+                                    {
+                                        <li class=@($"list-group-item list-group-item-{@SeverityStyle(scriptDiagnos.Severity)}")>
+                                            @($"{scriptDiagnos.StartPosString} {scriptDiagnos.Message}")
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                        </Template>
+                    </DxGridLayoutItem>
+                    <DxGridLayoutItem Row="2" Column="1">
+                        <Template>
+                            <div class="h-100 overflow-auto">
+                                <DxMemo @bind-Text="@diagnoseResultString" CssClass="h-100" ResizeMode="MemoResizeMode.Disabled" ReadOnly="true"></DxMemo>
+                            </div>
+                        </Template>
+                    </DxGridLayoutItem>
+                </Items>
+            </DxGridLayout>
+        </div>
+    </ChildContent>
+</DxLoadingPanel>
+
 @code {
     [Parameter]
     public string? ScriptID { get; set; }
@@ -72,11 +96,13 @@
     public ScriptConfig? scriptConfig;
     private bool hasScriptConfig => scriptConfig != null;
 
-    //private string root = ".\\Scripts\\Source";
+    private bool hasRegister = false;
+    private bool showPanel => !hasRegister;
+    private DotNetObjectReference<ScriptLoaderService> _objRef;
 
-    private string code = string.Empty;
+    //private string code = string.Empty;
 
-    private string compileResult = string.Empty;
+    private string diagnoseResultString = string.Empty;
 
     private Assembly? assembly;
 
@@ -92,10 +118,25 @@
             };
     }
 
+    private IEnumerable<ScriptDiagnosis> scriptDiagnoses = new List<ScriptDiagnosis>();
+    private bool allowCompile => scriptDiagnoses.Count(x => x.Severity == 3) == 0;
+
     protected override async Task OnInitializedAsync()
     {
         scriptConfig = scriptService.GetScriptByID(new Guid(ScriptID));
         await base.OnInitializedAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!hasRegister)
+        {
+            _objRef = DotNetObjectReference.Create(scriptLoaderService);
+            await js.InvokeAsync<string>("registerProvider", _objRef);
+            await js.InvokeVoidAsync("blockBtnEvent");
+            hasRegister = true;
+        }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task EditorDidInit()
@@ -110,7 +151,7 @@
         {
             try
             {
-                await standaloneCodeEditor?.SetValue(await File.ReadAllTextAsync($"{scriptService.Root}\\{scriptConfig.ScriptName}.script"));
+                await standaloneCodeEditor?.SetValue(scriptConfig.SuorceCode);//await File.ReadAllTextAsync($"{scriptService.Root}\\{scriptConfig.ScriptName}.script")
                 uiService.ShowToast(new(1, $"Read script {scriptConfig.ScriptName} success"));
             }
             catch (Exception ex)
@@ -125,24 +166,71 @@
         }
     }
 
+    private async Task Shortcut(BlazorMonaco.KeyboardEvent kbEvent)
+    {
+        if (kbEvent.CtrlKey)
+        {
+            if (kbEvent.KeyCode == BlazorMonaco.KeyCode.KeyS)
+            {
+                await SaveFile();
+            }
+        }
+    }
+
     private async Task SaveFile()
     {
-        try
-        {
-            await GetCodeFromEditor();
-            await File.WriteAllTextAsync($"{scriptService.Root}\\{scriptConfig.ScriptName}.script", code);
-            uiService.ShowToast(new(1, $"Save script {scriptConfig.ScriptName} success"));
-        }
-        catch (Exception ex)
-        {
-            uiService.ShowToast(new(4, $"Save script {scriptConfig.ScriptName} fail({ex.Message})"));
-        }
+        await GetCodeFromEditor();
+        //await File.WriteAllTextAsync($"{scriptService.Root}\\{scriptConfig.ScriptName}.script", code);
+        var res = await scriptService.UpsertScript(scriptConfig);
+        uiService.ShowToast(res);
 
     }
 
     private async Task GetCodeFromEditor()
     {
-        code = await standaloneCodeEditor?.GetValue();
+        scriptConfig.SuorceCode = await standaloneCodeEditor?.GetValue();
+    }
+
+
+    private async Task OnCodeChanged(ModelContentChangedEvent e)
+    {
+        await GetCodeFromEditor();
+        var uri = (await standaloneCodeEditor.GetModel()).Uri;
+        //var diagnoseResult = await scriptLoaderService.GetDiagnosticsAsync(code);
+        scriptDiagnoses = await scriptLoaderService.GetDiagnosticsAsync(scriptConfig.SuorceCode);
+        try
+        {
+            await js.InvokeVoidAsync("setDiagnostics", scriptDiagnoses, uri);//diagnoseResult.Select(x => new ScriptDiagnosis(x))
+        }
+        catch (Exception ee)
+        {
+
+        }
+        diagnoseResultString = await GetDiagnosisString(scriptDiagnoses);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public string SeverityStyle(int s) =>
+       s switch
+       {
+           0 => "light",
+           1 => "info",
+           2 => "warning",
+           3 => "danger",
+           _ => "light",
+       };
+
+    private async Task<string> GetDiagnosisString(IEnumerable<ScriptDiagnosis> diagnostics)
+    {
+        var errors = new StringBuilder();
+        foreach (ScriptDiagnosis diagnostic in diagnostics)
+        {
+            //var startLinePos = diagnostic.Location.GetLineSpan().StartLinePosition;
+            //var err = $"{diagnostic.Severity.ToString()} ({startLinePos.Line + 1}, {startLinePos.Character - 2}) {diagnostic.Id} {diagnostic.GetMessage()}";
+            var err = $"{diagnostic.Severity.ToString()} ({diagnostic.Start.Line}, {diagnostic.Start.Character}) {diagnostic.Message}";
+            errors.AppendLine(err);
+        }
+        return errors.ToString();
     }
 
     private async Task Compile()
@@ -151,12 +239,12 @@
         await GetCodeFromEditor();
         try
         {
-            assembly = await scriptLoaderService.CompileToDLLAssembly(code, release: true);
-            compileResult = $"[{DateTime.Now}]:Compile success";
+            assembly = await scriptLoaderService.CompileToDLLAssembly(scriptConfig.SuorceCode, release: true);
+            diagnoseResultString = $"[{DateTime.Now}]:Compile success";
         }
         catch (Exception e)
         {
-            compileResult = $"[{DateTime.Now}]:{e.Message}";
+            diagnoseResultString = $"[{DateTime.Now}]:{e.Message}";
         }
         //loadingPanel.ClosePanle();
     }

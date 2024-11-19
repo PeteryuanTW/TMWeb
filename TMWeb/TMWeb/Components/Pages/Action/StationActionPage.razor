@@ -51,14 +51,14 @@
                     <DxStackLayoutItem Length="9fr">
                         <Template>
                             <div class="overflow-auto h-100 w-100 d-flex flex-wrap align-sa gap-1 justify-content-center m-auto">
-                                @foreach (Station station in currentPageStations)
+                                @foreach (Station station in stations)
                                 {
                                     <StationComponentFactory StationParam="@station" />
                                 }
                             </div>
                         </Template>
                     </DxStackLayoutItem>
-                    <DxStackLayoutItem Length="1fr">
+                    @* <DxStackLayoutItem Length="1fr">
                         <Template>
                             <div class="d-flex flex-wrap align-content-center justify-content-center">
                                 <DxSpinEdit @bind-Value="@amountPerPage" MinValue="1"></DxSpinEdit>
@@ -67,7 +67,7 @@
                                          NavigationMode=@PagerNavigationMode.InputBox />
                             </div>
                         </Template>
-                    </DxStackLayoutItem>
+                    </DxStackLayoutItem> *@
                 </Items>
             </DxStackLayout>
             @* <div class="container-fluid overflow-y-auto" style="height: 100vh">
@@ -112,7 +112,7 @@
     Process? process;
 
     private List<Station> stations = new();
-    private List<Station> currentPageStations => stations.Skip(amountPerPage * (currentPage)).Take(amountPerPage).ToList();
+    //private List<Station> currentPageStations => stations.Skip(amountPerPage * (currentPage)).Take(amountPerPage).ToList();
 
     private List<Workorder> workorders_start = new();
     private Workorder? selectedWorkorder_start;
@@ -121,21 +121,21 @@
 
     private bool drawerVisible = false;
 
-    private int totalStationAmount => stations.Count();
-    private int pageCount => totalStationAmount % amountPerPage == 0 ? totalStationAmount / amountPerPage : totalStationAmount / amountPerPage + 1;
-    private int amountPerPage;
-    private int currentPage;
+    // private int totalStationAmount => stations.Count();
+    // private int pageCount => totalStationAmount % amountPerPage == 0 ? totalStationAmount / amountPerPage : totalStationAmount / amountPerPage + 1;
+    // private int amountPerPage;
+    // private int currentPage;
 
     protected override async Task OnInitializedAsync()
     {
         process = await shopfloorService.GetProcessByID(new Guid(ProcessID));
         stations = await shopfloorService.GetStationsByProcessID(new Guid(ProcessID));
-        amountPerPage = totalStationAmount;
+        //amountPerPage = totalStationAmount;
     }
 
     private void SelectedNewPage(int i)
     {
-        currentPage = i;
+        //currentPage = i;
     }
 
     private async Task SetAllStationsWorkorder(Workorder wo)

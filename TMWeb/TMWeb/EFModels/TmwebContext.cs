@@ -165,26 +165,15 @@ public partial class TmwebContext : DbContext
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("ID");
-            entity.Property(e => e.MachineId).HasColumnName("MachineID");
+            entity.Property(e => e.TargetId).HasColumnName("TargetID");
             entity.Property(e => e.MapId).HasColumnName("MapID");
             entity.Property(e => e.PositionX).HasColumnName("Position_x");
             entity.Property(e => e.PositionY).HasColumnName("Position_y");
-            entity.Property(e => e.StationId).HasColumnName("StationID");
-
-            entity.HasOne(d => d.Machine).WithMany(p => p.MapComponents)
-                .HasForeignKey(d => d.MachineId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("FK_Machine");
 
             entity.HasOne(d => d.Map).WithMany(p => p.MapComponents)
                 .HasForeignKey(d => d.MapId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_MapComponent");
-
-            entity.HasOne(d => d.Station).WithMany(p => p.MapComponents)
-                .HasForeignKey(d => d.StationId)
-                .OnDelete(DeleteBehavior.SetNull)
-                .HasConstraintName("FK_Stations");
         });
 
         modelBuilder.Entity<MapConfig>(entity =>
@@ -234,6 +223,9 @@ public partial class TmwebContext : DbContext
                 .HasColumnName("ID");
             entity.Property(e => e.ClassName).HasMaxLength(50);
             entity.Property(e => e.ScriptName).HasMaxLength(50);
+            entity.Property(e => e.AutoCompile).HasColumnName("AutoCompile");
+            entity.Property(e => e.AutoRun).HasColumnName("AutoRun");
+            entity.Property(e => e.SuorceCode).HasColumnName("SourceCode").HasColumnType("VARCHAR(MAX)");
         });
 
         modelBuilder.Entity<Station>(entity =>

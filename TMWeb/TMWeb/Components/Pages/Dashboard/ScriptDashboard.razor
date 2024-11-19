@@ -58,8 +58,11 @@
                                     <DxFormLayoutItem Caption="@($"{localizer["Name"]}")" CaptionPosition="CaptionPosition.Vertical">
                                         <DxTextBox Text="@scriptConfig?.ScriptName" ReadOnly="true"/>
                                     </DxFormLayoutItem>
-                                    <DxFormLayoutItem Caption="@($"{localizer["Enable"]}")" CaptionPosition="CaptionPosition.Vertical">
-                                        <DxCheckBox Checked="@scriptConfig?.Enable" CheckType="CheckType.Switch" ReadOnly="true"/>
+                                    <DxFormLayoutItem Caption="@($"{localizer["AutoCompile"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                        <DxCheckBox Checked="@scriptConfig?.AutoCompile" CheckType="CheckType.Switch" ReadOnly="true"/>
+                                    </DxFormLayoutItem>
+                                    <DxFormLayoutItem Caption="@($"{localizer["AutoRun"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                        <DxCheckBox Checked="@scriptConfig?.AutoRun" CheckType="CheckType.Switch" ReadOnly="true" />
                                     </DxFormLayoutItem>
                                 </DxFormLayoutGroup>
 

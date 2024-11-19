@@ -2,36 +2,51 @@
 
 @if (componentAssigned)
 {
-    <div class=@($"icon rounded {IsMainCss}") @onclick="@(()=>OnComponentClicked(MapComponentConfig.Id))" data-toggle="tooltip" data-placement="top" title="@($"{name}")" style="@shapeCss">
-        <img src=@($"/images/MyIcon/{IconCss()}.svg") class="w-50 h-50 object-fit-contain" />
+    <div class=@($"mycontent rounded {IsMainCss}")
+         style="@(shapeCss)"
+         @onclick="@((MouseEventArgs e)=>OnComponentClicked(e, MapComponentConfig?.Id))"
+         @onclick:stopPropagation="@true">
+        @if (IsMain)
+        {
+            <span draggable="true" @onmousedown="@((MouseEventArgs e)=>OnMouseDown(e, MapEditCommand.Move))" @onmouseup="@OnMouseUp" class="movecursor position-absolute top-0 start-0 translate-middle p-2 bg-info border border-light rounded-circle " />
+            <span draggable="true" @onmousedown="@((MouseEventArgs e)=>OnMouseDown(e, MapEditCommand.Resize))" @onmouseup="@OnMouseUp" class="resizecursor position-absolute top-100 start-100 translate-middle p-2 bg-info border border-light rounded-circle " />
+        }
     </div>
 }
 
 
 @code {
+    //@onclick="@((MouseEventArgs e)=>OnComponentClicked(e ,MapComponentConfig?.Id))"
     [Parameter]
     public MapComponent? MapComponentConfig { get; set; }
     [Parameter]
     public EventCallback<Task<Guid>> ClickCallback { get; set; }
     [Parameter]
     public bool IsMain { get; set; }
+    [Parameter]
+    public EventCallback<MapEditCommand?> MapEditCommandCallback { get; set; }
+    [Parameter]
+    public Data.Map.Rect ShapePanelSize { get; set; }
+
 
     private bool componentAssigned => MapComponentConfig != null;
-
     private string shapeCss => componentAssigned ? $"left:{MapComponentConfig.PositionX}%; top:{MapComponentConfig.PositionY}%; width:{MapComponentConfig.Width}%; height:{MapComponentConfig.Height}%;" : string.Empty;
+
     private string name = string.Empty;
+
+
+    // private bool cmdSelected => CurrentMapEditCommand is not null;
+    // private bool canMove => cmdSelected && CurrentMapEditCommand == MapEditCommand.Move;
+    // private string moveCss => canMove ? "movemode" : string.Empty;
+
+    // private bool canResize => cmdSelected && CurrentMapEditCommand == MapEditCommand.Resize;
+    // private string resizeCss => canResize ? "resizemode" : string.Empty;
 
     protected override async Task OnInitializedAsync()
     {
         await RetriveName();
         await base.OnInitializedAsync();
     }
-
-    private async Task OnComponentClicked(Guid componentId)
-    {
-        await ClickCallback.InvokeAsync(Task.FromResult(MapComponentConfig.Id));
-    }
-
     private string IsMainCss => IsMain ? "main" : string.Empty;
 
     private string IconCss()
@@ -53,8 +68,6 @@
             return string.Empty;
         }
     }
-
-
     private async Task RetriveName()
     {
         if (componentAssigned)
@@ -62,14 +75,14 @@
             switch (MapComponentConfig.Type)
             {
                 case 0:
-                    Station? station = await shopfloorService.GetStationsById(MapComponentConfig.StationId);
+                    Station? station = await shopfloorService.GetStationsById(MapComponentConfig.TargetId);
                     if (station != null)
                     {
                         name = station.Name;
                     }
                     break;
                 case 1:
-                    Machine? machine = await shopfloorService.GetMachineByID(MapComponentConfig.MachineId);
+                    Machine? machine = await shopfloorService.GetMachineByID(MapComponentConfig.TargetId);
                     if (machine != null)
                     {
                         name = machine.Name;
@@ -78,6 +91,39 @@
                 default:
                     break;
             }
+        }
+    }
+
+    private async Task OnComponentClicked(MouseEventArgs e, Guid? componentId)
+    {
+        if (componentId is not null)
+        {
+            //MapComponentConfig.SetClickOffset(e.OffsetX, e.OffsetY);
+            await ClickCallback.InvokeAsync(Task.FromResult(MapComponentConfig.Id));
+        }
+    }
+
+    private async Task OnMouseDown(MouseEventArgs e, MapEditCommand mapEditCommand)
+    {
+        if (componentAssigned)
+        {
+            //MapComponentConfig.StartCommand();
+            await OnComponentClicked(e, MapComponentConfig?.Id);
+            await MapEditCommandCallback.InvokeAsync(mapEditCommand);
+            MapComponentConfig?.SetClickOffset(e.OffsetX, e.OffsetY);
+            //await MapEditCommandCB.InvokeAsync(cmd);
+            //await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnMouseUp(MouseEventArgs e)
+    {
+        if (componentAssigned)
+        {
+            //MapComponentConfig.FinishedCommand();
+            MapComponentConfig?.SetClickOffset(0, 0);
+            await MapEditCommandCallback.InvokeAsync(null);
+            await InvokeAsync(StateHasChanged);
         }
     }
 }

@@ -25,7 +25,7 @@ namespace TMWeb.Data
 			if (!HasWorkorder && Status== Status.Init)
 			{
                 workorder = wo;
-                //UIUpdate();
+                UIUpdate();
                 return true;
             }
 			else

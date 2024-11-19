@@ -1,0 +1,159 @@
+using System;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+
+using TMWeb.EFModels;
+
+using TMWeb.Services;
+using TMWeb.Scripts.Template;
+
+namespace TMWeb.Scripts.Source
+{
+    public class Palletizing : ScriptBaseClass
+    {
+        public Palletizing(TMWebShopfloorService tmWebShopfloorService):base(tmWebShopfloorService)
+        {
+            
+        }
+        
+        
+        private int amount = 0;
+        private Queue<string> q = new Queue<string>();
+
+        public override async void OnStart()
+        {
+            Tag? retriveTag = await tmWebShopfloorService.GetMachineTag("堆棧手臂(A)", "當前堆棧總數");
+            amount = Convert.ToInt32(retriveTag.Value);
+            Queue<string> q = new Queue<string>();
+        }
+        
+        public override async Task RunAction()
+        {
+            Tag? hasItem = await tmWebShopfloorService.GetMachineTag("輸送帶-A", "是否進料-暫");
+            if(hasItem is not null)
+            {
+                if(Convert.ToBoolean(hasItem.Value))
+                {
+                    WriteLog("element find");
+                    Tag? passTmp = await tmWebShopfloorService.GetMachineTag("本機測試", "pass");
+                    if(passTmp is not null)
+                    {
+                        bool p = Convert.ToBoolean(passTmp.Value);
+                        if(p)
+                        {
+                            var a2 = await tmWebShopfloorService.SetMachineTag("輸送帶-A", "動作交握", (ushort)2);
+                            if(!a2.IsSuccess)
+                            {
+                                WriteLog("write tag 動作交握 to 2 fail"+a2.Msg);
+                            }
+                        }
+                        else
+                        {
+                            var a99 = await tmWebShopfloorService.SetMachineTag("輸送帶-A", "動作交握", (ushort)99);
+                            if(!a99.IsSuccess)
+                            {
+                                WriteLog("write tag 動作交握 to 2 fail");
+                            }
+                        }
+                        bool tmp = false;
+                        int count = 0;
+                        while(!tmp && count < 10)
+                        {
+                            Tag? passRes = await tmWebShopfloorService.GetMachineTag("輸送帶-A", "動作交握");
+                            if(passRes is not null)
+                            {
+                                int b = Convert.ToInt32(passRes.Value);
+                                if(b == 3)
+                                {
+                                    WriteLog("ok");
+                                    string s = DateTime.Now.ToString("yyyyMMddHHmmss");
+                                    q.Enqueue(s);
+                                    var stationInRes = await tmWebShopfloorService.StationInByNameAndSerialNo("堆棧站(A)", s);
+                                    tmp = true;
+                                    if(!stationInRes.IsSuccess)
+                                    {
+                                        WriteLog("station in fail");
+                                    }
+                                }
+                                else if(b == 4)
+                                {
+                                    if(p)
+                                    {
+                                        WriteLog("抽檢");
+                                    }
+                                    else
+                                    {
+                                        WriteLog("ng");
+                                    }
+                                    tmp = true;
+                                }
+                            }
+                            await Task.Delay(500);
+                            count ++;
+                        }
+                        await tmWebShopfloorService.SetMachineTag("輸送帶-A", "動作交握", (ushort)0);
+                         
+                    }
+                    else
+                    {
+                         
+                    }
+                }
+                else
+                {
+                    //WriteLog("scan empty");
+                }
+
+
+                Tag? amountTag = await tmWebShopfloorService.GetMachineTag("堆棧手臂(A)", "當前堆棧總數");
+                if(amountTag is not null)
+                {
+                    int current = Convert.ToInt32(amountTag.Value);
+                    //WriteLog(current.ToString());
+                    if(current>amount)
+                    {
+                        Tag? barcodeTag = await tmWebShopfloorService.GetMachineTag("堆棧手臂(A)", "棧板編號");
+                        if(barcodeTag is not null)
+                        {
+                            int a = current - amount;
+                            for(int i = 0; i< a; i++)
+                            {
+                                string ss = q.Dequeue();
+                                var brcodeRes = await tmWebShopfloorService.WriteItemRecord(ss, "棧板編號", barcodeTag.Value.ToString());
+                                if(!brcodeRes.IsSuccess)
+                                {
+                                    WriteLog("write barcode fail"+brcodeRes.Msg);
+                                }
+                                var b = await tmWebShopfloorService.StationOutByFIFO("堆棧站(A)", true);
+                                if(!b.IsSuccess)
+                                {
+                                    WriteLog("station out fail");
+                                }
+                            }
+                        }
+                        else
+                        {
+                            WriteLog("read barcode fail");
+                        }
+                }
+                amount = current;
+            }
+            }
+            else
+            {
+                WriteLog("tag pass null");
+            }
+
+
+
+
+
+
+        }
+        
+        public override void OnStop()
+        {
+            
+        }
+    }
+};

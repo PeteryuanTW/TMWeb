@@ -62,10 +62,17 @@
     protected override async Task OnInitializedAsync()
     {
         shopfloorService.StationChangedAct += UIUpdateFromStation;
+        StationParam.StatusUpdateAct += StatusUpdateFromStation;
         StationParam.UIUpdateAct += UIUpdateFromStation;
     }
 
     private async void UIUpdateFromStation()
+    {
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    private async void StatusUpdateFromStation(Status s)
     {
         await InvokeAsync(StateHasChanged);
 
