@@ -1,0 +1,270 @@
+﻿@using DevExpress.Blazor
+@rendermode RenderMode.InteractiveServer
+@inject IMachineService machineService
+
+<DxGridLayout RowSpacing="1rem" ColumnSpacing="1rem">
+    <Rows>
+        <DxGridLayoutRow></DxGridLayoutRow>
+    </Rows>
+    <Columns>
+        <DxGridLayoutColumn Width="3fr"></DxGridLayoutColumn>
+        <DxGridLayoutColumn Width="8fr"></DxGridLayoutColumn>
+    </Columns>
+    <Items>
+        <DxGridLayoutItem Row="0" Column="0">
+            <Template>
+                <div>
+                    <DxGrid @ref="@catGrid" Data="@errorCodeCategory" DataItemDeleting="DeleteCustomErrorCodeCategory" FocusedRowEnabled="true" FocusedRowChanged="CatSelected" HighlightRowOnHover="true">
+                        <ToolbarTemplate>
+                            <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                <Items>
+                                    <DxToolbarItem IconCssClass="oi oi-plus" Click="NewCatClicked" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowCatPopup" Enabled="@catSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowCatDelete" Enabled="@catSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                </Items>
+                            </DxToolbar>
+                        </ToolbarTemplate>
+                        <Columns>
+                            <DxGridDataColumn FieldName="@nameof(ErrorCodeCategory.Name)"></DxGridDataColumn>
+                            <DxGridDataColumn FieldName="@nameof(ErrorCodeCategory.DataType)">
+                                <CellDisplayTemplate>
+                                    <div>@((DataType)((int)context.Value))</div>
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                        </Columns>
+                    </DxGrid>
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+        <DxGridLayoutItem Row="0" Column="1">
+            <Template>
+                <div>
+                    <DxGrid @ref="@errorcodeGrid" Data="@errorCodeMapping" DataItemDeleting="DeleteMapping" FocusedRowEnabled="true" FocusedRowChanged="ErrorCodeSelected" HighlightRowOnHover="true">
+                        <ToolbarTemplate>
+                            <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                <Items>
+                                    <DxToolbarItem IconCssClass="oi oi-plus" Click="NewErrorCodeMappingClicked" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowErrorCodeMappingPopup" Enabled="@errorCodeMappingSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowMappingDelete" Enabled="@errorCodeMappingSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                </Items>
+                            </DxToolbar>
+                        </ToolbarTemplate>
+                        <Columns>
+                            <DxGridDataColumn FieldName="@nameof(ErrorCodeMapping.ConditionString)"></DxGridDataColumn>
+                            <DxGridDataColumn FieldName="@nameof(ErrorCodeMapping.Description)"></DxGridDataColumn>
+                        </Columns>
+                    </DxGrid>
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+    </Items>
+</DxGridLayout>
+
+<DxPopup @bind-Visible="@catPopupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="CloseCatPopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <EditForm Model="@targetCat" Context="EditFormContext" OnValidSubmit="UpsertCustomErrorCodeCategory">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" BeginRow="true">
+                    <DxTextBox @bind-Text="@targetCat.Name" ShowValidationIcon="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Data Type"]}")" ColSpanLg="6">
+                    <DxComboBox Data="@DataTypes" @bind-Value="@targetCat.DataType" ValueFieldName="@(nameof(DataTypeWrapperClass.Index))" TextFieldName="@(nameof(DataTypeWrapperClass.DisplayName))" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                        </Items>
+                    </DxToolbar>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
+    </BodyContentTemplate>
+</DxPopup>
+
+<DxPopup @bind-Visible="@errorCodeMappingPopupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="CloseErrorCodeMappingPopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <EditForm Model="@targetErrorCodeMapping" Context="EditFormContext" OnValidSubmit="UpsertMapping">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" BeginRow="true">
+                    <DxTextBox @bind-Text="@targetErrorCodeMapping.ConditionString" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Description"]}")">
+                    <DxTextBox @bind-Text="@targetErrorCodeMapping.Description" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <Template>
+                        <DxToolbar>
+                            <Items>
+                                <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                            </Items>
+                        </DxToolbar>
+                    </Template>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
+    </BodyContentTemplate>
+</DxPopup>
+
+
+@code {
+    [Parameter]
+    public EventCallback<RequestResult> ActionCallback { get; set; }
+
+
+    private IEnumerable<DataTypeWrapperClass> DataTypes => MachineTypeEnumHelper.GetDataTypesWrapperClass();
+
+    IGrid? catGrid { get; set; }
+    private IEnumerable<ErrorCodeCategory>? errorCodeCategory;
+    private ErrorCodeCategory? targetCat;
+    private bool catSelected => targetCat != null;
+
+
+    IGrid? errorcodeGrid { get; set; }
+    private List<ErrorCodeMapping> errorCodeMapping => catSelected ? targetCat.ErrorCodeMappings.ToList() : new();
+    private ErrorCodeMapping? targetErrorCodeMapping;
+    private bool errorCodeMappingSelected => targetErrorCodeMapping != null;
+
+
+    private bool catPopupVisible;
+    private bool errorCodeMappingPopupVisible;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitParameter();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task InitParameter()
+    {
+        errorCodeCategory = await machineService.GetErrorCodeTables();
+    }
+
+    #region UI
+
+    private void CatSelected(GridFocusedRowChangedEventArgs args)
+    {
+        targetCat = args.DataItem as ErrorCodeCategory;
+    }
+
+    private void ErrorCodeSelected(GridFocusedRowChangedEventArgs args)
+    {
+        targetErrorCodeMapping = args.DataItem as ErrorCodeMapping;
+    }
+
+    private void ShowCatPopup()
+    {
+        catPopupVisible = true;
+    }
+
+    private async void CloseCatPopup()
+    {
+        catPopupVisible = false;
+        await InitParameter();
+    }
+
+    private void ShowErrorCodeMappingPopup()
+    {
+        errorCodeMappingPopupVisible = true;
+    }
+
+    private async void CloseErrorCodeMappingPopup()
+    {
+        errorCodeMappingPopupVisible = false;
+        await InitParameter();
+    }
+
+    private void NewCatClicked()
+    {
+        GenrateNewCat();
+        ShowCatPopup();
+    }
+
+    private void NewErrorCodeMappingClicked()
+    {
+        GenrateNewMapping();
+        ShowErrorCodeMappingPopup();
+    }
+
+    private void ShowCatDelete()
+    {
+        catGrid?.ShowDataItemDeleteConfirmation(targetCat);
+    }
+
+    private void ShowMappingDelete()
+    {
+        errorcodeGrid?.ShowDataItemDeleteConfirmation(targetErrorCodeMapping);
+    }
+
+    #endregion
+
+    #region category
+
+    private void GenrateNewCat()
+    {
+        targetCat = new ErrorCodeCategory(Guid.NewGuid());
+    }
+
+    private async Task UpsertCustomErrorCodeCategory()
+    {
+        var res = await machineService.UpsertErrorCodeCategory(targetCat);
+        CloseCatPopup();
+        await ActionCallback.InvokeAsync(res);
+        //uiService.ShowToast(res);
+    }
+
+    private async Task DeleteCustomErrorCodeCategory()
+    {
+        var res = await machineService.DeleteErrorCodeCategory(targetCat);
+        await InitParameter();
+        await ActionCallback.InvokeAsync(res);
+        //uiService.ShowToast(res);
+    }
+
+    #endregion
+
+    #region error code mapping
+
+    private void GenrateNewMapping()
+    {
+        targetErrorCodeMapping = new ErrorCodeMapping(targetCat.Id);
+    }
+
+    private async Task UpsertMapping()
+    {
+        var res = await machineService.UpsertErrorCodeMapping(targetErrorCodeMapping);
+        CloseErrorCodeMappingPopup();
+        await ActionCallback.InvokeAsync(res);
+        //uiService.ShowToast(res);
+    }
+
+    private async Task DeleteMapping()
+    {
+        var res = await machineService.DeleteErrorCodeMapping(targetErrorCodeMapping);
+        await InitParameter();
+        await ActionCallback.InvokeAsync(res);
+        //uiService.ShowToast(res);
+    }
+
+    #endregion
+}

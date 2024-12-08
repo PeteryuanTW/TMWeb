@@ -1,45 +1,133 @@
 ﻿@page "/Scripts"
 @rendermode InteractiveServer
 
-<DxGrid Data="@scripts" FocusedRowEnabled="true" FocusedRowChanged="OnFocusedRowChanged">
+<DxGrid @ref="grid" Data="@scripts" FocusedRowEnabled="true" DataItemDeleting="DeleteScript" FocusedRowChanged="OnFocusedRowChanged"  HighlightRowOnHover="true">
     <ToolbarTemplate>
         <DxToolbar SizeMode="SizeMode.Large" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
-            <DxToolbarItem IconCssClass="oi oi-plus" BeginGroup="true" />
-            <DxToolbarItem IconCssClass="oi oi-trash" Enabled="@scriptSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
-            <DxToolbarItem IconCssClass="oi oi-pencil" Enabled="@scriptSelected" Click="NavToEditor" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+            <DxToolbarItem IconCssClass="oi oi-plus" Click="NewScriptClicked" BeginGroup="true" />
+            <DxToolbarItem IconCssClass="oi oi-pencil" Enabled="@scriptSelected" Click="ShowPopup" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+            <DxToolbarItem IconCssClass="oi oi-code" Enabled="@scriptSelected" Click="NavToEditor" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
             <DxToolbarItem IconCssClass="oi oi-terminal" Enabled="@scriptSelected" Click="NavToDashboard" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+            <DxToolbarItem IconCssClass="oi oi-trash" Enabled="@scriptSelected" Click="ShowDelete" Alignment="ToolbarItemAlignment.Right" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
         </DxToolbar>
     </ToolbarTemplate>
     <Columns>
         <DxGridDataColumn Caption="@($"{localizer["ID"]}")" FieldName="@nameof(ScriptConfig.Id)" />
         <DxGridDataColumn Caption="@($"{localizer["Name"]}")" FieldName="@nameof(ScriptConfig.ScriptName)" />
-        <DxGridDataColumn Caption="@($"{localizer["AutoCompile"]}")" FieldName="@nameof(ScriptConfig.AutoCompile)" />
-        <DxGridDataColumn Caption="@($"{localizer["AutoRun"]}")" FieldName="@nameof(ScriptConfig.AutoRun)" />
+        <DxGridDataColumn Caption="@($"{localizer["AutoCompile"]}")" FieldName="@nameof(ScriptConfig.AutoCompile)">
+            <CellDisplayTemplate>
+                <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
+        <DxGridDataColumn Caption="@($"{localizer["AutoRun"]}")" FieldName="@nameof(ScriptConfig.AutoRun)">
+            <CellDisplayTemplate>
+                <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
     </Columns>
 </DxGrid>
 
+<DxPopup @bind-Visible="@popupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" Width="50rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="ClosePopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <EditForm Model="@targetScript" Context="EditFormContext" OnValidSubmit="UpsertScriptConfig">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" BeginRow="true">
+                    <DxTextBox @bind-Text="@targetScript.ScriptName" ShowValidationIcon="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["AutoCompile"]}")" ColSpanLg="6">
+                    <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@targetScript.AutoCompile" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["AutoRun"]}")" ColSpanLg="6">
+                    <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@targetScript.AutoRun" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                        </Items>
+                    </DxToolbar>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
+    </BodyContentTemplate>
+</DxPopup>
+
 @code {
-    private List<ScriptConfig> scripts = new();
-    private ScriptConfig? script;
-    private bool scriptSelected => script != null;
+    IGrid? grid { get; set; }
+    private IEnumerable<ScriptConfig> scripts;
+    private ScriptConfig? targetScript;
+    private bool scriptSelected => targetScript != null;
+
+    private bool popupVisible;
 
     protected override async Task OnInitializedAsync()
     {
-        scripts = scriptService.GetAllScripts();
+        await InitParam();
         await base.OnInitializedAsync();
     }
 
-    private void OnFocusedRowChanged(GridFocusedRowChangedEventArgs e)
+    private async Task InitParam()
     {
-        var selectedScript = e.DataItem as ScriptConfig;
-        script = selectedScript != null ? selectedScript : null;
+        scripts = await scriptService.GetAllScriptsConfig();
+    }
+
+    private void OnFocusedRowChanged(GridFocusedRowChangedEventArgs args)
+    {
+        targetScript = args.DataItem as ScriptConfig;
+    }
+
+    private void NewScriptClicked()
+    {
+        targetScript = new(Guid.NewGuid());
+        ShowPopup();
+    }
+
+    private void ShowPopup()
+    {
+        popupVisible = true;
+    }
+
+    private async void ClosePopup()
+    {
+        popupVisible = false;
+        await InitParam();
+    }
+
+    private async Task UpsertScriptConfig()
+    {
+        var res = await scriptService.UpsertScript(targetScript);
+        ClosePopup();
+        uiService.ShowToast(res);
+    }
+
+    private void ShowDelete()
+    {
+        grid.ShowDataItemDeleteConfirmation(targetScript);
+    }
+
+    private async Task DeleteScript()
+    {
+        var res = await scriptService.DeleteScript(targetScript);
+        //CloseMachinePopup();
+        await InitParam();
+        uiService.ShowToast(new(3, "Script delete isn't implement yet"));
     }
 
     private void NavToEditor()
     {
         if (scriptSelected)
         {
-            nav.NavigateTo($"/ScriptEditor/{script?.Id}");
+            nav.NavigateTo($"/ScriptEditor/{targetScript?.Id}");
         }
     }
 
@@ -47,7 +135,7 @@
     {
         if (scriptSelected)
         {
-            nav.NavigateTo($"/ScriptDashboard/{script?.Id}");
+            nav.NavigateTo($"/ScriptDashboard/{targetScript?.Id}");
         }
     }
 }

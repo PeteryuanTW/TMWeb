@@ -1,4 +1,5 @@
 ﻿using TMWeb.EFModels;
+using CommonLibrary.MachinePKG;
 
 namespace TMWeb.Data
 {
@@ -22,7 +23,7 @@ namespace TMWeb.Data
 
 		public override bool SetWorkorder(Workorder wo)
 		{
-			if (!HasWorkorder && Status== Status.Init)
+			if (!HasWorkorder && this.StationStatus == Status.Init)
 			{
                 workorder = wo;
                 UIUpdate();

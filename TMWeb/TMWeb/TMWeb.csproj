@@ -13,12 +13,30 @@
 		<Optimize>False</Optimize>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="BitzArt.Blazor.Cookies.Server" Version="1.0.4" />
+	  <Compile Remove="Data\ModbusTCPMachine.cs" />
+	  <Compile Remove="Data\TMRobotModbusTCP.cs" />
+	  <Compile Remove="EFModels\ErrorCodeCategory.cs" />
+	  <Compile Remove="EFModels\ErrorCodeMapping.cs" />
+	  <Compile Remove="EFModels\LogicStatusCategory.cs" />
+	  <Compile Remove="EFModels\LogicStatusCondition.cs" />
+	  <Compile Remove="EFModels\Machine.cs" />
+	  <Compile Remove="EFModels\Tag.cs" />
+	  <Compile Remove="EFModels\TagCategory.cs" />
+	  <Compile Remove="EFPartialModels\ErrorCodeCategory.partial.cs" />
+	  <Compile Remove="EFPartialModels\ErrorCodeMapping.partial.cs" />
+	  <Compile Remove="EFPartialModels\LogicStatusCategory.partial.cs" />
+	  <Compile Remove="EFPartialModels\LogicStatusCondition.cs" />
+	  <Compile Remove="EFPartialModels\Machine.partial.cs" />
+	  <Compile Remove="EFPartialModels\Tag.partial.cs" />
+	  <Compile Remove="EFPartialModels\TagCategory.partial.cs" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="BitzArt.Blazor.Cookies.Server" Version="1.1.2" />
 		<PackageReference Include="BlazorMonaco" Version="3.2.0" />
 		<PackageReference Include="DevExpress.Blazor" Version="24.1.7" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.*-*" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.7" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Localization" Version="8.0.7" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
@@ -52,7 +70,28 @@
 		</Compile>
 	</ItemGroup>
 	<ItemGroup>
+		<Folder Include="Data\TagHelper\" />
 		<Folder Include="wwwroot\map\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Include="Data\ModbusTCPMachine.cs" />
+	  <None Include="Data\TMRobotModbusTCP.cs" />
+	  <None Include="EFModels\ErrorCodeCategory.cs" />
+	  <None Include="EFModels\ErrorCodeMapping.cs" />
+	  <None Include="EFModels\LogicStatusCategory.cs" />
+	  <None Include="EFModels\LogicStatusCondition.cs" />
+	  <None Include="EFModels\Machine.cs" />
+	  <None Include="EFModels\Tag.cs" />
+	  <None Include="EFModels\TagCategory.cs" />
+	  <None Include="EFPartialModels\ErrorCodeCategory.partial.cs" />
+	  <None Include="EFPartialModels\ErrorCodeMapping.partial.cs" />
+	  <None Include="EFPartialModels\LogicStatusCategory.partial.cs" />
+	  <None Include="EFPartialModels\Machine.partial.cs" />
+	  <None Include="EFPartialModels\Tag.partial.cs" />
+	  <None Include="EFPartialModels\TagCategory.partial.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <None Include="EFPartialModels\LogicStatusCondition.cs" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Content Update="Components\Pages\Setting\TagCategoriesPage.razor">

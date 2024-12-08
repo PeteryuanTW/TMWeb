@@ -1,0 +1,149 @@
+﻿@page "/CustomTagStatus"
+@rendermode InteractiveServer
+
+<CustomTagStatusSetting ActionCallback="@GetActionCallback"></CustomTagStatusSetting>
+
+@code {
+
+    // private IEnumerable<DataTypeWrapperClass> DataTypes => MachineTypeEnumHelper.GetDataTypesWrapperClass();
+    // private IEnumerable<StatusWrapperClass> StatusTypes => MachineTypeEnumHelper.GetStatusWrapperClass();
+
+    // IGrid? catGrid { get; set; }
+    // private IEnumerable<LogicStatusCategory>? logicStatusCategories;
+    // private LogicStatusCategory? targetCat;
+    // private bool catSelected => targetCat != null;
+
+
+    // IGrid? conditionGrid { get; set; }
+    // private List<LogicStatusCondition> LogicStatusCondictions => catSelected ? targetCat.LogicStatusConditions.ToList() : new();
+    // private LogicStatusCondition? targetCondition;
+    // private bool conditionSelected => targetCondition != null;
+
+
+    // private bool catPopupVisible;
+    // private bool conditionPopupVisible;
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     await InitParameter();
+    //     await base.OnInitializedAsync();
+    // }
+
+    // private async Task InitParameter()
+    // {
+    //     logicStatusCategories = await shopfloorService.GetCustomStatusAndConditions();
+    // }
+    
+    // #region UI
+
+
+    // private void CatSelected(GridFocusedRowChangedEventArgs args)
+    // {
+    //     targetCat = args.DataItem as LogicStatusCategory;
+    // }
+
+    // private void ConditionSelected(GridFocusedRowChangedEventArgs args)
+    // {
+    //     targetCondition = args.DataItem as LogicStatusCondition;
+    // }
+
+    // private void ShowCatPopup()
+    // {
+    //     catPopupVisible = true;
+    // }
+
+    // private async void CloseCatPopup()
+    // {
+    //     catPopupVisible = false;
+    //     await InitParameter();
+    // }
+
+    // private void NewCatClicked()
+    // {
+    //     GenrateNewCat();
+    //     ShowCatPopup();
+    // }
+
+    // private void NewConditionClicked()
+    // {
+    //     GenrateNewCondition();
+    //     ShowConditionPopup();
+    // }
+
+    // private void ShowCatDelete()
+    // {
+    //     catGrid?.ShowDataItemDeleteConfirmation(targetCat);
+    // }
+
+    // private void ShowConditionDelete()
+    // {
+    //     conditionGrid.ShowDataItemDeleteConfirmation(targetCondition);
+    // }
+
+    // private void ShowConditionPopup()
+    // {
+    //     conditionPopupVisible = true;
+    // }
+
+    // private async void CloseConditionPopup()
+    // {
+    //     conditionPopupVisible = false;
+    //     await InitParameter();
+    // }
+
+    // #endregion
+
+    // #region category
+
+    // private void GenrateNewCat()
+    // {
+    //     targetCat = new LogicStatusCategory(Guid.NewGuid());
+    // }
+
+    // private async Task UpsertCustomStatusCategory()
+    // {
+    //     var res = await shopfloorService.UpsertCustomStatusCategory(targetCat);
+    //     CloseCatPopup();
+    //     uiService.ShowToast(res);
+    // }
+
+
+
+    // private async Task DeleteCustomStatusCategory()
+    // {
+    //     var res = await shopfloorService.DeleteCustomStatusCategory(targetCat);
+    //     await InitParameter();
+    //     uiService.ShowToast(res);
+    // }
+
+
+
+    // #endregion
+
+    // #region condition
+
+    // private void GenrateNewCondition()
+    // {
+    //     targetCondition = new LogicStatusCondition(targetCat.Id);
+    // }
+
+    // private async Task UpsertCustomStatusCondition()
+    // {
+    //     var res = await shopfloorService.UpsertCustomStatusCondition(targetCondition);
+    //     CloseConditionPopup();
+    //     uiService.ShowToast(res);
+    // }
+
+    // private async Task DeleteCondition()
+    // {
+    //     var res = await shopfloorService.DeleteCustomStatusCondition(targetCondition);
+    //     await InitParameter();
+    //     uiService.ShowToast(res);
+    // }
+
+    // #endregion
+    private void GetActionCallback(RequestResult res)
+    {
+        uiService.ShowToast(res);
+    }
+}

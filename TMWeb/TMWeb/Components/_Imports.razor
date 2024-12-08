@@ -13,16 +13,9 @@
 @using Microsoft.Extensions.Localization
 @using System.Globalization
 
-@using TMWeb.Resource
+@using Newtonsoft.Json;
 
-@* @using Blazor.Diagrams
-@using Blazor.Diagrams.Core
-@using Blazor.Diagrams.Core.Models
-@using Blazor.Diagrams.Core.Extensions
-@using Blazor.Diagrams.Core.Geometry
-@using Blazor.Diagrams.Core.Options
-@using Blazor.Diagrams.Core.PathGenerators
-@using Blazor.Diagrams.Core.Routers *@
+@using TMWeb.Resource
 
 @using TMWeb
 @using TMWeb.Components
@@ -30,7 +23,6 @@
 @using TMWeb.Components.EventLog
 @using TMWeb.Components.NavComponent
 @using TMWeb.Components.StationComponent
-@using TMWeb.Components.MachineComponent
 @using TMWeb.Components.MapComponent
 @using TMWeb.Components.Message
 @using TMWeb.Components.Pages.Action
@@ -39,14 +31,17 @@
 
 @using CommonLibrary.API.Message
 @using CommonLibrary.Auth
+@using CommonLibrary.Data
+@using CommonLibrary.MachinePKG
+@using CommonLibrary.MachinePKG.EFModel
 
 @using RazorCommonLibrary.Auth
+@using RazorCommonLibrary.Machine
 
 @using TMWeb.EFModels
 @using TMWeb.Services
 @using TMWeb.Data
 @using TMWeb.Data.DTO
-@using TMWeb.Data.Style
 @using TMWeb.Data.Developer
 @using TMWeb.Data.CustomAttribute
 @using TMWeb.Data.Map
@@ -61,6 +56,7 @@
 @inject IStringLocalizer<Language> localizer
 @inject NavigationManager nav
 @inject TMWebShopfloorService shopfloorService
+@inject IMachineService machineService
 @inject EventLogService eventLogService
 @inject ScriptService scriptService
 @inject UIService uiService

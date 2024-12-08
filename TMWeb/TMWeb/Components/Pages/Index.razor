@@ -64,7 +64,7 @@
     protected override async Task OnInitializedAsync()
     {
         //var a = await shopfloorService.Test();
-        machines = shopfloorService.Machines;
+        machines = machineService.Machines;
 
         await base.OnInitializedAsync();
     }

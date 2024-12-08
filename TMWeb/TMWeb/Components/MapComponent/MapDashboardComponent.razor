@@ -2,7 +2,7 @@
 
 @if (componentAssigned)
 {
-    <div class="@($"icon rounded d-flex position-absolute {GetPanelStatusStyle()}")" data-toggle="tooltip" data-placement="top" title="@($"{name}")" style="@shapeCss">
+    <div class="@($"icon rounded d-flex position-absolute")" data-toggle="tooltip" data-placement="top" title="@($"{name}")" style="@($"{shapeCss} {StatusColorCss}")">
     </div>
 }
 
@@ -18,6 +18,7 @@
     private string shapeCss => componentAssigned ? $"left:{MapComponentConfig.PositionX}%; top:{MapComponentConfig.PositionY}%; width:{MapComponentConfig.Width}%; height:{MapComponentConfig.Height}%;" : string.Empty;
     private string name = string.Empty;
     private Status status = Status.Init;
+    private string StatusColorCss => GetPanelStatusStyle();
 
 
     protected override async Task OnInitializedAsync()
@@ -38,16 +39,16 @@
                     {
                         name = station.Name;
                         station.StatusUpdateAct += StatusUpdate;
-                        status = station.Status;
+                        status = station.StationStatus;
                     }
                     break;
                 case 1:
-                    Machine? machine = await shopfloorService.GetMachineByID(MapComponentConfig.TargetId);
+                    Machine? machine = await machineService.GetMachineByID(MapComponentConfig.TargetId);
                     if (machine != null)
                     {
                         name = machine.Name;
                         machine.MachineStatechangedAct += StatusUpdate;
-                        status = machine.Status;
+                        status = machine.MachineStatus;
                     }
                     break;
                 default:
@@ -58,18 +59,10 @@
 
     protected string GetPanelStatusStyle()
     {
-        switch (status)
-        {
-            case Status.Running:
-                return "running";
-            // case Status.Pause:
-            //     return "pause";
-            case Status.Stop:
-            case Status.Error:
-                return "stop";
-            default:
-                return "uninit";
-        }
+        var style = MachineTypeEnumHelper.GetStatusStyle((int)status);
+        //var aa = style is null;
+        //var a = style is not null ? $"background-color: {style.ColorHTMLString}" : string.Empty;
+        return style is not null ? $"background-color: {style.ColorHTMLString}" : string.Empty;
     }
 
     private void StatusUpdate(Status status)

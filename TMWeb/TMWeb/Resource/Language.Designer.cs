@@ -106,6 +106,15 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Disconnect 的當地語系化字串。
+        /// </summary>
+        public static string Disconnect {
+            get {
+                return ResourceManager.GetString("Disconnect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Enable 的當地語系化字串。
         /// </summary>
         public static string Enable {
@@ -124,11 +133,11 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
-        ///   查詢類似 Idel 的當地語系化字串。
+        ///   查詢類似 Idle 的當地語系化字串。
         /// </summary>
-        public static string Idel {
+        public static string Idle {
             get {
-                return ResourceManager.GetString("Idel", resourceCulture);
+                return ResourceManager.GetString("Idle", resourceCulture);
             }
         }
         
@@ -156,15 +165,6 @@ namespace TMWeb.Resource {
         public static string Init {
             get {
                 return ResourceManager.GetString("Init", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查詢類似 IP 的當地語系化字串。
-        /// </summary>
-        public static string IP {
-            get {
-                return ResourceManager.GetString("IP", resourceCulture);
             }
         }
         
@@ -268,11 +268,11 @@ namespace TMWeb.Resource {
         }
         
         /// <summary>
-        ///   查詢類似 Port 的當地語系化字串。
+        ///   查詢類似 Pause 的當地語系化字串。
         /// </summary>
-        public static string Port {
+        public static string Pause {
             get {
-                return ResourceManager.GetString("Port", resourceCulture);
+                return ResourceManager.GetString("Pause", resourceCulture);
             }
         }
         
@@ -282,6 +282,15 @@ namespace TMWeb.Resource {
         public static string Process {
             get {
                 return ResourceManager.GetString("Process", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Query 的當地語系化字串。
+        /// </summary>
+        public static string Query {
+            get {
+                return ResourceManager.GetString("Query", resourceCulture);
             }
         }
         

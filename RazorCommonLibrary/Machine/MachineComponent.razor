@@ -1,8 +1,9 @@
-﻿@rendermode InteractiveServer
+﻿@using DevExpress.Blazor
+@rendermode RenderMode.InteractiveServer
 @implements IDisposable
 
-<div class="card shadow text-center background-card p-3 panel " style="background-color:@(TypeEnumHelper.GetStatusStyle((int)MachineParam.Status)?.ColorHTMLString)" @onclick="@Nav">
-    <DxGridLayout >
+<div class="card shadow text-center background-card p-3 panel " style="@($"{GetStatusBackgroundColor()}; {GetCustomStatusBorderColor()}")" @onclick="@Nav">
+    <DxGridLayout>
         <Rows>
             <DxGridLayoutRow Height="2fr" />
             <DxGridLayoutRow Height="1fr" />
@@ -33,7 +34,7 @@
                 <Template>
                     <div>
                         <h5 class="card-subtitle">
-                            @($"{MachineParam.Status.ToString()}")
+                            @($"{MachineParam.MachineStatus.ToString()}/{MachineParam.CustomStatus.ToString()}")
                         </h5>
                     </div>
                 </Template>
@@ -41,12 +42,13 @@
             <DxGridLayoutItem Row="3" Column="0">
                 <Template>
                     <div class="w-100 h-100">
-                        <img src=@($"images/MyIcon/{GetImageString()}.svg") class="h-100 w-100"/>
+                        <img src=@($"images/MyIcon/{GetImageString()}.svg") class="h-100 w-100" />
                     </div>
                 </Template>
             </DxGridLayoutItem>
         </Items>
     </DxGridLayout>
+    <DxButton IconCssClass="oi oi-info" RenderStyle="ButtonRenderStyle.Danger" CssClass="position-absolute top-0 end-0" Attributes="@(new Dictionary<string, object> {  ["title"] = MachineParam.ErrorCodeDescription })"></DxButton>
 </div>
 
 @code {
@@ -59,6 +61,8 @@
         if (hasNachine)
         {
             MachineParam.MachineStatechangedAct += StatusUpdate;
+            MachineParam.CustomStatusChangedAct += StatusUpdate;
+            MachineParam.ErrorCodeDescriptionChangedAct += StatusUpdate;
         }
 
     }
@@ -68,11 +72,17 @@
         if (hasNachine)
         {
             MachineParam.MachineStatechangedAct -= StatusUpdate;
+            MachineParam.CustomStatusChangedAct -= StatusUpdate;
         }
 
     }
 
     private async void StatusUpdate(Status status)
+    {
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void StatusUpdate()
     {
         await InvokeAsync(StateHasChanged);
     }
@@ -92,9 +102,14 @@
         }
     }
 
-    private string GetStatusCssClass()
+    private string GetStatusBackgroundColor()
     {
-        return MachineParam?.StatusStr.ToLower();
+        return $"background-color:{MachineTypeEnumHelper.GetStatusStyle((int)MachineParam.MachineStatus)?.ColorHTMLString}";
+    }
+
+    private string GetCustomStatusBorderColor()
+    {
+        return MachineParam.hasCustomStatusCondition ? $"border: 0.5rem solid {MachineTypeEnumHelper.GetStatusStyle((int)MachineParam.CustomStatus)?.ColorHTMLString}" : string.Empty;
     }
 
     private void Nav()

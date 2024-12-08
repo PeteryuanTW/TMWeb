@@ -1,4 +1,5 @@
 ﻿using TMWeb.Data;
+using CommonLibrary.MachinePKG;
 
 namespace TMWeb.EFModels
 {
@@ -27,7 +28,7 @@ namespace TMWeb.EFModels
 
 
         private Status stationStatus = Status.Init;
-        public Status Status => stationStatus;
+        public Status StationStatus => stationStatus;
 
         protected void UIUpdate()
         {
@@ -38,7 +39,7 @@ namespace TMWeb.EFModels
 
         protected void StatusUpdate()
         {
-            StatusUpdateAct?.Invoke(Status);
+            StatusUpdateAct?.Invoke(stationStatus);
         }
 
         public Action<Status>? StatusUpdateAct;

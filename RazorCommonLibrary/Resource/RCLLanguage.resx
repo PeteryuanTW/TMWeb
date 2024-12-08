@@ -115,4 +115,97 @@
   <data name="Hi" xml:space="preserve">
     <value>Hi</value>
   </data>
+  <data name="Init" xml:space="preserve">
+    <value>Init</value>
+  </data>
+  <data name="TryConnecting" xml:space="preserve">
+    <value>TryConnecting</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
+  <data name="Idle" xml:space="preserve">
+    <value>Idle</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>Running</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>Stop</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>Error</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="IP" xml:space="preserve">
+    <value>IP</value>
+  </data>
+  <data name="Port" xml:space="preserve">
+    <value>Port</value>
+  </data>
+  <data name="Connection Type" xml:space="preserve">
+    <value>Connection Type</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>Enable</value>
+  </data>
+  <data name="UpdateDelay" xml:space="preserve">
+    <value>UpdateDelay</value>
+  </data>
+  <data name="ms" xml:space="preserve">
+    <value>ms</value>
+  </data>
+  <data name="Tag" xml:space="preserve">
+    <value>Tag</value>
+  </data>
+  <data name="Tag Category" xml:space="preserve">
+    <value>TagCategory</value>
+  </data>
+  <data name="MaxRetryCount" xml:space="preserve">
+    <value>MaxRetryCount</value>
+  </data>
+  <data name="Custom Status Category" xml:space="preserve">
+    <value>Custom Status Category</value>
+  </data>
+  <data name="Error Code Category" xml:space="preserve">
+    <value>Error Code Category</value>
+  </data>
+  <data name="Tag Count" xml:space="preserve">
+    <value>Tag Count</value>
+  </data>
+  <data name="Data Type" xml:space="preserve">
+    <value>Data Type</value>
+  </data>
+  <data name="Update By Time" xml:space="preserve">
+    <value>Update By Time</value>
+  </data>
+  <data name="Special Type" xml:space="preserve">
+    <value>Special Type</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="Condition String" xml:space="preserve">
+    <value>Condition String</value>
+  </data>
+  <data name="Input/Output" xml:space="preserve">
+    <value>Input/Output</value>
+  </data>
+  <data name="Station No" xml:space="preserve">
+    <value>Station No</value>
+  </data>
+  <data name="Start Index" xml:space="preserve">
+    <value>Start Index</value>
+  </data>
+  <data name="Offset" xml:space="preserve">
+    <value>Offset</value>
+  </data>
+  <data name="Not Defined" xml:space="preserve">
+    <value>Not Defined</value>
+  </data>
 </root>

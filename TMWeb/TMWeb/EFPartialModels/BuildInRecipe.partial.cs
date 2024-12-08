@@ -1,6 +1,7 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CommonLibrary.MachinePKG;
+using System.ComponentModel.DataAnnotations;
 using TMWeb.Data;
-using DT = TMWeb.Data.DataType;
+using DT = CommonLibrary.MachinePKG.DataType;
 
 namespace TMWeb.EFModels
 {
@@ -45,7 +46,7 @@ namespace TMWeb.EFModels
             }
             else
             {
-                if (!TypeEnumHelper.TypeMatch(DataType, propertyType))
+                if (!MachineTypeEnumHelper.TypeMatch(DataType, propertyType))
                 {
                     yield return new ValidationResult($"Property {TargetProp} type {propertyType.Name} and tag type {(DT)DataType} not match", new List<string> { "TargetProp", "DataType" });
                 }

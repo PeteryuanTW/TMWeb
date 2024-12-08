@@ -134,7 +134,7 @@
     private WorkorderRecordContent? targetContent;
     private bool contentSelected => targetContent != null;
     private bool contentPopupVisible;
-    private IEnumerable<DataTypeWrapperClass> DataTypes => TypeEnumHelper.GetDataTypesWrapperClass();
+    private IEnumerable<DataTypeWrapperClass> DataTypes => MachineTypeEnumHelper.GetDataTypesWrapperClass();
 
 
     protected override async Task OnInitializedAsync()

@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using DT = TMWeb.Data.DataType;
+using DT = CommonLibrary.MachinePKG.DataType;
 
 namespace TMWeb.EFModels
 {

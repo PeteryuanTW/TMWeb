@@ -1,5 +1,6 @@
 ﻿@page "/MapEditorPage/{Id}"
 @rendermode InteractiveServer
+@inject IMachineService machineService
 @inject IJSRuntime js
 
 <div class="w-100 h-100">
@@ -229,7 +230,7 @@
         mapConfig = await shopfloorService.GetMapConfigAndComponentById(new Guid(Id));
         mapComponents = mapConfig?.MapComponents.ToList();
         stations = await shopfloorService.GetAllStationsConfig();
-        machines = await shopfloorService.GetAllMachinesConfig();
+        machines = await machineService.GetAllMachinesConfig();
         //InitDiagram();
         //InitNode();
     }

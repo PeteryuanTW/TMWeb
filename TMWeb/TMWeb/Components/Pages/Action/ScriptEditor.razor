@@ -36,7 +36,7 @@
                                                    Alignment="ToolbarItemAlignment.Left"
                                                    RenderStyle="ButtonRenderStyle.Info"
                                                    IconUrl="images\MyIcon\save.svg"
-                                                   Click="SaveFile"
+                                                   Click="SaveCode"
                                                    BeginGroup="true" />
                                     <DxToolbarItem Tooltip="Compile"
                                                    Alignment="ToolbarItemAlignment.Left"
@@ -141,11 +141,11 @@
 
     private async Task EditorDidInit()
     {
-        await ReadFile();
+        await ReadCode();
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task ReadFile()
+    private async Task ReadCode()
     {
         if (hasScriptConfig)
         {
@@ -172,16 +172,16 @@
         {
             if (kbEvent.KeyCode == BlazorMonaco.KeyCode.KeyS)
             {
-                await SaveFile();
+                await SaveCode();
             }
         }
     }
 
-    private async Task SaveFile()
+    private async Task SaveCode()
     {
         await GetCodeFromEditor();
         //await File.WriteAllTextAsync($"{scriptService.Root}\\{scriptConfig.ScriptName}.script", code);
-        var res = await scriptService.UpsertScript(scriptConfig);
+        var res = await scriptService.UpdateScriptCode(scriptConfig);
         uiService.ShowToast(res);
 
     }
@@ -235,7 +235,6 @@
 
     private async Task Compile()
     {
-        //loadingPanel.ShowPanle("start compiling...");
         await GetCodeFromEditor();
         try
         {
@@ -246,13 +245,12 @@
         {
             diagnoseResultString = $"[{DateTime.Now}]:{e.Message}";
         }
-        //loadingPanel.ClosePanle();
     }
 
     private async Task Deploy()
     {
-        await SaveFile();
-        var mytype = assembly.GetType($"TMWeb.Scripts.Source.{scriptConfig.ClassName}");
+        await SaveCode();
+        var mytype = assembly.GetType($"TMWeb.Scripts.Source.{scriptConfig.ScriptName}");
         var instance = (ScriptBaseClass)Activator.CreateInstance(mytype, shopfloorService);
         scriptService.DeployScriptByID(scriptConfig.Id, instance);
     }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CommonLibrary.Machine.EFModel;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
@@ -23,11 +24,27 @@ public partial class Machine
     [Required]
     public int ConnectionType { get; set; }
 
+    [Required]
+    [Range(-1, 10)]
+    public int MaxRetryCount { get; set; }
+
     public Guid? TagCategoryId { get; set; }
 
+    public Guid? LogicStatusCategoryId { get; set; }
+
+    public Guid? ErrorCodeCategoryId { get; set; }
+
     public bool Enabled { get; set; }
+
+    [Required]
+    [Range(100, 65535)]
+    public int UpdateDelay { get; set; }
 
     public virtual Process? Process { get; set; }
 
     public virtual TagCategory? TagCategory { get; set; }
+
+    public virtual LogicStatusCategory? LogicStatusCategory { get; set; }
+
+    public virtual ErrorCodeCategory? ErrorCodeCategory { get; set; }
 }

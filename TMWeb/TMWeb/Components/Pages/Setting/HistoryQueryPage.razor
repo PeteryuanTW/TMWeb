@@ -3,13 +3,14 @@
 
 <DxGrid @ref="@Grid" Data="@workorders">
     <ToolbarTemplate>
-        <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+        <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained" >
             <Items>
                 <DxToolbarItem BeginGroup="true">
                     <Template Context="con">
-                        <DxDateRangePicker @bind-StartDate="@startTime"
+                        @* <DxDateRangePicker @bind-StartDate="@startTime"
                                            @bind-EndDate="@endTime"
-                                           DisplayFormat="G" CssClass="cw-320" />
+                                           DisplayFormat="G" CssClass="cw-320" /> *@
+                        <DxDateEdit @bind-Date="@startTime" DisplayFormat="G" TimeSectionVisible="true"></DxDateEdit>
                     </Template>
                 </DxToolbarItem>
                 <DxToolbarItem Click="QueryInInterval" BeginGroup="true" IconCssClass="oi oi-magnifying-glass" />

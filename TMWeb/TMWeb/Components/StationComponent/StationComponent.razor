@@ -10,20 +10,20 @@
 
     protected IEnumerable<Workorder> workOrderCandidates;
 
-    protected bool canedit => hasStation ? StationParam.Status == Status.Init : false;
-    protected bool canrun => hasStation ? StationParam.Status == Status.Init : false;
-    protected bool canoperate => hasStation ? StationParam.Status == Status.Running : false;
-    protected bool canpause => hasStation ? StationParam.Status == Status.Running : false;
-    protected bool canstop => hasStation ? StationParam.Status == Status.Running : false;
-    protected bool canretry => hasStation ? (StationParam.Status == Status.Stop || StationParam.Status == Status.Error) : false;
-    protected bool iserror => hasStation ? StationParam.Status == Status.Error : false;
+    protected bool canedit => hasStation ? StationParam.StationStatus == Status.Init : false;
+    protected bool canrun => hasStation ? StationParam.StationStatus == Status.Init : false;
+    protected bool canoperate => hasStation ? StationParam.StationStatus == Status.Running : false;
+    protected bool canpause => hasStation ? StationParam.StationStatus == Status.Running : false;
+    protected bool canstop => hasStation ? StationParam.StationStatus == Status.Running : false;
+    protected bool canretry => hasStation ? (StationParam.StationStatus == Status.Stop || StationParam.StationStatus == Status.Error) : false;
+    protected bool iserror => hasStation ? StationParam.StationStatus == Status.Error : false;
 
     public bool showErrorMsg = false;
     public bool showOperation = false;
 
     protected ButtonRenderStyle GetStatusStyle()
     {
-        switch (StationParam?.Status)
+        switch (StationParam?.StationStatus)
         {
             case Status.Init:
                 return ButtonRenderStyle.Secondary;
@@ -40,7 +40,7 @@
     }
     protected string GetPanelStatusStyle()
     {
-        switch (StationParam?.Status)
+        switch (StationParam?.StationStatus)
         {
             case Status.Running:
                 return "running";

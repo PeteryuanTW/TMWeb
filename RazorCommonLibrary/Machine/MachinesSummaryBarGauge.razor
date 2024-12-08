@@ -1,4 +1,5 @@
-﻿@rendermode InteractiveServer
+﻿@using DevExpress.Blazor
+@rendermode RenderMode.InteractiveServer
 @implements IDisposable
 
 
@@ -47,7 +48,7 @@
     public List<Machine> Machines { get; set; } = new();
     private bool hasMachines => Machines.Any();
 
-    private IEnumerable<StatusStyle> statusStyles() => TypeEnumHelper.StatusStyles;
+    private IEnumerable<StatusStyle> statusStyles() => MachineTypeEnumHelper.StatusStyles;
 
     protected override Task OnInitializedAsync()
     {
@@ -70,7 +71,7 @@
     {
         foreach (var s in Enum.GetValues(typeof(Status)).Cast<Status>().Order())
         {
-            yield return Machines.Where(x => x.Status == s).Count();
+            yield return Machines.Where(x => x.MachineStatus == s).Count();
         }
         // return new double[]
         // {

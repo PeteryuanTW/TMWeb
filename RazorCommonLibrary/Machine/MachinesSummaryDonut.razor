@@ -1,4 +1,6 @@
-﻿@rendermode InteractiveServer
+﻿@using DevExpress.Blazor
+@using System.Drawing
+@rendermode RenderMode.InteractiveServer
 @implements IDisposable
 
 <DxPieChart @ref="@machinesDonut"
@@ -10,8 +12,8 @@
     <DxPieChartSeries T="@Machine"
                       TArgument="Status"
                       TValue="int"
-                      ArgumentField="x => x.Status"
-                      ValueField="x => (int)(x.Status)"
+                      ArgumentField="x => x.MachineStatus"
+                      ValueField="x => (int)(x.MachineStatus)"
                       SummaryMethod="Enumerable.Count">
         <DxChartSeriesLabel Visible="true"
                             Position="RelativePosition.Outside">
@@ -68,7 +70,7 @@
     protected void SetPointColor(ChartSeriesPointCustomizationSettings pointSettings)
     {
         int statusCode = (int)pointSettings.Point.Argument;
-        var targetStyle = TypeEnumHelper.GetStatusStyle(statusCode);
+        var targetStyle = MachineTypeEnumHelper.GetStatusStyle(statusCode);
         if (targetStyle is not null)
         {
             pointSettings.PointAppearance.Color = targetStyle.StyleColor;

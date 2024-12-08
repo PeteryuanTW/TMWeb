@@ -187,11 +187,8 @@
   <data name="Uninit" xml:space="preserve">
     <value>Uninit</value>
   </data>
-  <data name="Init" xml:space="preserve">
-    <value>Init</value>
-  </data>
-  <data name="Idel" xml:space="preserve">
-    <value>Idel</value>
+  <data name="Idle" xml:space="preserve">
+    <value>Idle</value>
   </data>
   <data name="Running" xml:space="preserve">
     <value>Running</value>
@@ -235,13 +232,19 @@
   <data name="Connection" xml:space="preserve">
     <value>Connection</value>
   </data>
-  <data name="IP" xml:space="preserve">
-    <value>IP</value>
-  </data>
-  <data name="Port" xml:space="preserve">
-    <value>Port</value>
-  </data>
   <data name="Item" xml:space="preserve">
     <value>Item</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>Pause</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Disconnect</value>
+  </data>
+  <data name="Query" xml:space="preserve">
+    <value>Query</value>
+  </data>
+  <data name="Init" xml:space="preserve">
+    <value>Init</value>
   </data>
 </root>

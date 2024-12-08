@@ -61,11 +61,119 @@ namespace RazorCommonLibrary.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Condition String 的當地語系化字串。
+        /// </summary>
+        public static string Condition_String {
+            get {
+                return ResourceManager.GetString("Condition String", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Connection Type 的當地語系化字串。
+        /// </summary>
+        public static string Connection_Type {
+            get {
+                return ResourceManager.GetString("Connection Type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Custom Status Category 的當地語系化字串。
+        /// </summary>
+        public static string Custom_Status_Category {
+            get {
+                return ResourceManager.GetString("Custom Status Category", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Data Type 的當地語系化字串。
+        /// </summary>
+        public static string Data_Type {
+            get {
+                return ResourceManager.GetString("Data Type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Disconnect 的當地語系化字串。
+        /// </summary>
+        public static string Disconnect {
+            get {
+                return ResourceManager.GetString("Disconnect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Enable 的當地語系化字串。
+        /// </summary>
+        public static string Enable {
+            get {
+                return ResourceManager.GetString("Enable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Error 的當地語系化字串。
+        /// </summary>
+        public static string Error {
+            get {
+                return ResourceManager.GetString("Error", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Error Code Category 的當地語系化字串。
+        /// </summary>
+        public static string Error_Code_Category {
+            get {
+                return ResourceManager.GetString("Error Code Category", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Hi 的當地語系化字串。
         /// </summary>
         public static string Hi {
             get {
                 return ResourceManager.GetString("Hi", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Idle 的當地語系化字串。
+        /// </summary>
+        public static string Idle {
+            get {
+                return ResourceManager.GetString("Idle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Init 的當地語系化字串。
+        /// </summary>
+        public static string Init {
+            get {
+                return ResourceManager.GetString("Init", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Input/Output 的當地語系化字串。
+        /// </summary>
+        public static string Input_Output {
+            get {
+                return ResourceManager.GetString("Input/Output", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 IP 的當地語系化字串。
+        /// </summary>
+        public static string IP {
+            get {
+                return ResourceManager.GetString("IP", resourceCulture);
             }
         }
         
@@ -88,6 +196,51 @@ namespace RazorCommonLibrary.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 MaxRetryCount 的當地語系化字串。
+        /// </summary>
+        public static string MaxRetryCount {
+            get {
+                return ResourceManager.GetString("MaxRetryCount", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 ms 的當地語系化字串。
+        /// </summary>
+        public static string ms {
+            get {
+                return ResourceManager.GetString("ms", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Name 的當地語系化字串。
+        /// </summary>
+        public static string Name {
+            get {
+                return ResourceManager.GetString("Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Not Defined 的當地語系化字串。
+        /// </summary>
+        public static string Not_Defined {
+            get {
+                return ResourceManager.GetString("Not Defined", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Offset 的當地語系化字串。
+        /// </summary>
+        public static string Offset {
+            get {
+                return ResourceManager.GetString("Offset", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Password 的當地語系化字串。
         /// </summary>
         public static string Password {
@@ -97,11 +250,137 @@ namespace RazorCommonLibrary.Resource {
         }
         
         /// <summary>
+        ///   查詢類似 Pause 的當地語系化字串。
+        /// </summary>
+        public static string Pause {
+            get {
+                return ResourceManager.GetString("Pause", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Port 的當地語系化字串。
+        /// </summary>
+        public static string Port {
+            get {
+                return ResourceManager.GetString("Port", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查詢類似 Role 的當地語系化字串。
         /// </summary>
         public static string Role {
             get {
                 return ResourceManager.GetString("Role", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Running 的當地語系化字串。
+        /// </summary>
+        public static string Running {
+            get {
+                return ResourceManager.GetString("Running", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Special Type 的當地語系化字串。
+        /// </summary>
+        public static string Special_Type {
+            get {
+                return ResourceManager.GetString("Special Type", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Start Index 的當地語系化字串。
+        /// </summary>
+        public static string Start_Index {
+            get {
+                return ResourceManager.GetString("Start Index", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Station No 的當地語系化字串。
+        /// </summary>
+        public static string Station_No {
+            get {
+                return ResourceManager.GetString("Station No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Status 的當地語系化字串。
+        /// </summary>
+        public static string Status {
+            get {
+                return ResourceManager.GetString("Status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Stop 的當地語系化字串。
+        /// </summary>
+        public static string Stop {
+            get {
+                return ResourceManager.GetString("Stop", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Tag 的當地語系化字串。
+        /// </summary>
+        public static string Tag {
+            get {
+                return ResourceManager.GetString("Tag", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 TagCategory 的當地語系化字串。
+        /// </summary>
+        public static string Tag_Category {
+            get {
+                return ResourceManager.GetString("Tag Category", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Tag Count 的當地語系化字串。
+        /// </summary>
+        public static string Tag_Count {
+            get {
+                return ResourceManager.GetString("Tag Count", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 TryConnecting 的當地語系化字串。
+        /// </summary>
+        public static string TryConnecting {
+            get {
+                return ResourceManager.GetString("TryConnecting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 Update By Time 的當地語系化字串。
+        /// </summary>
+        public static string Update_By_Time {
+            get {
+                return ResourceManager.GetString("Update By Time", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查詢類似 UpdateDelay 的當地語系化字串。
+        /// </summary>
+        public static string UpdateDelay {
+            get {
+                return ResourceManager.GetString("UpdateDelay", resourceCulture);
             }
         }
         

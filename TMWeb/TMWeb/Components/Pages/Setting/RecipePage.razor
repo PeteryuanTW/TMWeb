@@ -199,13 +199,13 @@
     private bool recipePopupVisible;
     private bool recipeItemPopupVisible;
 
-    private IEnumerable<DataTypeWrapperClass> DataTypes => TypeEnumHelper.GetDataTypesWrapperClass().Where(x => x.Index == targetTagTypeCode);
+    private IEnumerable<DataTypeWrapperClass> DataTypes => MachineTypeEnumHelper.GetDataTypesWrapperClass().Where(x => x.Index == targetTagTypeCode);
     private IEnumerable<RecipeTriggerTimingWrapperClass> triggerTimingWrapperClasses => TypeEnumHelper.GetRecipeTriggerTimingWrapperClass();
 
     private IEnumerable<TagCategory>? tagCategories;
     private TagCategory? targetTagCat;
     private bool targetTagCatSelected => targetTagCat != null;
-    private IEnumerable<Tag> tagCandidates => shopfloorService.GetTagsByCatId(targetRecipeItem?.TargetTagCatId);
+    private IEnumerable<Tag> tagCandidates => machineService.GetTagsByCatId(targetRecipeItem?.TargetTagCatId);
 
     private bool boolVal;
     private ushort ushortVal;
@@ -219,13 +219,13 @@
     private IEnumerable<WorkorderRecordContent> workorderRecordContents => GetWorkorderRecordContentByID();
     private IEnumerable<WorkorderRecordContent> workorderRecordContentsWithFilter => targetRecipeItem.hasTarget ? workorderRecordContents.Where(x => x.DataType == targetRecipeItem.DataType) : new List<WorkorderRecordContent>();
 
-    private int? targetTagTypeCode => shopfloorService.GetTagTypeCodeByIds(targetRecipeItem?.TargetTagCatId, targetRecipeItem?.TargetTagId);
+    private int? targetTagTypeCode => machineService.GetTagTypeCodeByIds(targetRecipeItem?.TargetTagCatId, targetRecipeItem?.TargetTagId);
     private string TargetTagTypeString => targetTagTypeCode is null || targetTagTypeCode == 0 ? string.Empty : ((DataType)targetTagTypeCode).ToString();
 
     protected override async Task OnInitializedAsync()
     {
         await InitParameter();
-        tagCategories = await shopfloorService.GetAllTagCategoriesWithTags();
+        tagCategories = await machineService.GetAllTagCategoriesWithTags();
         await base.OnInitializedAsync();
     }
 

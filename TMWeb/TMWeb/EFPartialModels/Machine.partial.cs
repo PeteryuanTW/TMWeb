@@ -1,6 +1,10 @@
 ﻿using CommonLibrary.API.Message;
+using CommonLibrary.Machine;
+using CommonLibrary.Machine.EFModel;
 using NModbus;
 using System.Net.Sockets;
+using System.Reflection.Metadata.Ecma335;
+using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
 using TMWeb.Data;
 
@@ -8,15 +12,66 @@ namespace TMWeb.EFModels
 {
 
 
-    public partial class Machine : IDisposable
+    public partial class Machine: IDisposable
     {
-        public int MaxRetryCount => 5;
 
         protected int retryCount = 0;
 
         public int RetryCount => retryCount;
 
+        public bool isAutoRetry => retryCount < MaxRetryCount;
+
         public Machine() { }
+
+        public Machine(Machine machine)
+        {
+            Id = machine.Id;
+            ProcessId = machine.ProcessId;
+            Name = machine.Name;
+            Ip = machine.Ip;
+            Port = machine.Port;
+            ConnectionType = machine.ConnectionType;
+            MaxRetryCount = machine.MaxRetryCount;
+            Enabled = machine.Enabled;
+            TagCategoryId = machine.TagCategoryId;
+            UpdateDelay = machine.UpdateDelay;
+
+            if (machine.hasCategory)
+            {
+                TagCategory = new TagCategory
+                {
+                    Id = machine.TagCategory.Id,
+                    Name = machine.TagCategory.Name,
+                    ConnectionType = machine.ConnectionType,
+
+                    Tags = machine.TagCategory.Tags,
+                };
+            }
+
+            if (machine.hasCustomStatusCategory)
+            {
+                LogicStatusCategory = new LogicStatusCategory
+                {
+                    Id = machine.LogicStatusCategoryId,
+                    Name = machine.LogicStatusCategory.Name,
+                    DataType = machine.LogicStatusCategory.DataType,
+
+                    LogicStatusConditions = machine.LogicStatusCategory.LogicStatusConditions,
+                };
+            }
+
+            if (machine.hasErrorCodeCategory)
+            {
+                ErrorCodeCategory = new ErrorCodeCategory
+                {
+                    Id = machine.ErrorCodeCategoryId,
+                    Name = machine.ErrorCodeCategory.Name,
+                    DataType = machine.ErrorCodeCategory.DataType,
+
+                    ErrorCodeMappings = machine.ErrorCodeCategory.ErrorCodeMappings,
+                };
+            }
+        }
 
         public Machine(Guid id)
         {
@@ -26,26 +81,50 @@ namespace TMWeb.EFModels
         public bool hasTags => hasCategory && TagCategory?.Tags.Count > 0;
         public bool hasTagsUpdateByTime => hasTags && TagCategory.Tags.Any(x => x.UpdateByTime);
 
+        public bool hasCustomStatusCategory => LogicStatusCategory != null;
+
+        public bool hasCustomStatusCondition => hasCustomStatusCategory && LogicStatusCategory?.LogicStatusConditions.Count > 0;
+
+        public bool hasErrorCodeCategory => ErrorCodeCategory != null;
+
+        public bool hasErrorCodeMapping => hasErrorCodeCategory && ErrorCodeCategory?.ErrorCodeMappings.Count > 0;
+
         protected Status status;
         public Status Status => status;
         public string StatusStr => status.ToString();
 
         public bool tagUsable => status != Status.Init && status != Status.Disconnect && status != Status.TryConnecting && status != Status.Error;
 
-        //public bool 
+        protected Status customStatus;
+        public Status CustomStatus => customStatus;
+        public string CustomStatusStr => customStatus.ToString();
 
-        private DateTime initTime;
-        private DateTime lastStatusChangedTime;
-        private DateTime lastTagUpdateTime;
+        //private DateTime initTime;
+        //private DateTime lastStatusChangedTime;
+        //private DateTime lastTagUpdateTime;
 
         private bool runFlag => status != Status.Init && status != Status.Disconnect && status != Status.TryConnecting;
         public bool RunFlag => runFlag;
 
+        public bool canManualRetryFlag => isAutoRetry?false:status is Status.Disconnect || status is Status.Error;
+
         private string errorMsg = string.Empty;
         public string ErrorMsg => errorMsg;
 
+        private string errorCodeDescription = string.Empty;
+
+        public string ErrorCodeDescription => errorCodeDescription;
+
+
         public Action<Status>? MachineStatechangedAct;
         private void MachineStatechanged() => MachineStatechangedAct?.Invoke(status);
+
+        public Action? CustomStatusChangedAct;
+        private void CustomStatusChange() => CustomStatusChangedAct?.Invoke();
+
+        public Action? ErrorCodeDescriptionChangedAct;
+        private void ErrorCodeDescriptionChange() => ErrorCodeDescriptionChangedAct?.Invoke();
+
 
         public Action? TagsStatechangedAct;
         protected void TagsStatechange() => TagsStatechangedAct?.Invoke();
@@ -97,6 +176,57 @@ namespace TMWeb.EFModels
         {
             return Task.CompletedTask;
         }
+
+        private Task UpdateCustomStatus()
+        {
+            if (hasTags && hasCustomStatusCondition)
+            {
+                var customStatusTag = TagCategory?.Tags.FirstOrDefault(x => (SpecialTagType)x.SpecialType == SpecialTagType.CustomStatus && x.DataType == LogicStatusCategory?.DataType);
+                if (customStatusTag is not null)
+                {
+                    var connditionStatus = LogicStatusCategory?.LogicStatusConditions.FirstOrDefault(x => x.ConditionString == customStatusTag.ValueString);
+                    if (connditionStatus is not null)
+                    {
+                        SetCustomStatus((Status)connditionStatus.Status);
+                    }
+                    else
+                    {
+                        SetCustomStatus(Status.Init);
+                    }
+                }
+            }
+            else
+            {
+                SetCustomStatus(Status.Init);
+            }
+            return Task.CompletedTask;
+        }
+
+        private Task UpdateErrorCode()
+        {
+            if (hasTags && hasErrorCodeMapping)
+            {
+                var customErrorCodeTag = TagCategory?.Tags.FirstOrDefault(x => (SpecialTagType)x.SpecialType == SpecialTagType.DetailCode && x.DataType == LogicStatusCategory?.DataType);
+                if (customErrorCodeTag is not null)
+                {
+                    var errorCodeMapping = ErrorCodeCategory?.ErrorCodeMappings.FirstOrDefault(x => x.ConditionString == customErrorCodeTag.ValueString);
+                    if (errorCodeMapping is not null)
+                    {
+                        SetErrorDescription(errorCodeMapping.Description);
+                    }
+                    else
+                    {
+                        SetErrorDescription(string.Empty);
+                    }
+                }
+            }
+            else
+            {
+                SetErrorDescription(string.Empty);
+            }
+            return Task.CompletedTask;
+        }
+
         public void StartUpdating()
         {
             try
@@ -107,6 +237,7 @@ namespace TMWeb.EFModels
                     {
                         try
                         {
+                            var a = UpdateDelay;
                             if (runFlag)
                             {
                                 await UpdateStatus();
@@ -115,16 +246,26 @@ namespace TMWeb.EFModels
                                     await UpdateTags();
                                     TagsStatechange();
                                 }
-
+                                await UpdateCustomStatus();
+                                await UpdateErrorCode();
                             }
                             else
                             {
                                 if (status == Status.Disconnect || status == Status.Init)
                                 {
-                                    if (retryCount < MaxRetryCount)
+                                    if (MaxRetryCount == -1)
                                     {
                                         await ConnectAsync();
+
                                     }
+                                    else
+                                    {
+                                        if (retryCount < MaxRetryCount)
+                                        {
+                                            await ConnectAsync();
+                                        }
+                                    }
+                                    
                                 }
                                 else if (status == Status.TryConnecting)
                                 {
@@ -146,7 +287,7 @@ namespace TMWeb.EFModels
                         }
                         finally
                         {
-                            await Task.Delay(200);
+                            await Task.Delay(UpdateDelay);
                         }
                     }
                 }
@@ -158,7 +299,6 @@ namespace TMWeb.EFModels
                 Error(e.Message);
             }
         }
-
         protected void Init()
         {
             if (status != Status.Init)
@@ -171,9 +311,9 @@ namespace TMWeb.EFModels
         }
         protected void Idel()
         {
-            if (status != Status.Idel)
+            if (status != Status.Idle)
             {
-                status = Status.Idel;
+                status = Status.Idle;
                 errorMsg = string.Empty;
                 lastStatusChangedTime = DateTime.Now;
                 MachineStatechanged();
@@ -246,9 +386,23 @@ namespace TMWeb.EFModels
             }
         }
 
+        protected void SetCustomStatus(Status status)
+        {
+            if (customStatus != status)
+            {
+                customStatus = status;
+                CustomStatusChange();
+            }
+        }
 
-
-
+        protected void SetErrorDescription(string description)
+        {
+            if (errorCodeDescription != description)
+            {
+                errorCodeDescription = description;
+                ErrorCodeDescriptionChange();
+            }
+        }
         //dispose
         public void Dispose()
         {

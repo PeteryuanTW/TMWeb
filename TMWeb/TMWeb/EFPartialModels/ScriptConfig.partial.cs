@@ -2,8 +2,18 @@
 
 namespace TMWeb.EFModels
 {
-    public partial class ScriptConfig
+    public partial class ScriptConfig : IDisposable
     {
+        public ScriptConfig()
+        {
+
+        }
+
+        public ScriptConfig(Guid id)
+        {
+            this.Id = id;
+        }
+
         public ScriptBaseClass? script;
 
         public bool HasScript => script != null;
@@ -22,6 +32,14 @@ namespace TMWeb.EFModels
         {
             script = null;
             ScriptChanged();
+        }
+
+        public void Dispose()
+        {
+            if (HasScript)
+            {
+                script?.Stop();
+            }
         }
     }
 }

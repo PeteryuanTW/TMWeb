@@ -19,7 +19,7 @@
                             <DxToolbar SizeMode="SizeMode.Large" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
                                 <DxToolbarItem IconCssClass="oi oi-plus" Click="NewWorkorderClicked" BeginGroup="true" />
                                 <DxToolbarItem IconCssClass="oi oi-pencil" Enabled="@canEditOrDelete" Click="ShowPopup" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
-                                <DxToolbarItem Enabled="@canEditOrDelete" Click="ShowDelete" IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                <DxToolbarItem Enabled="@canEditOrDelete" Click="ShowDelete" IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"/>
                                 <DxToolbarItem Enabled="@workorderSelected" Click="NavToWorkorderDetail" IconCssClass="oi oi-magnifying-glass" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
                                 @if (authService.IsRole("SuperUser"))
                                 {

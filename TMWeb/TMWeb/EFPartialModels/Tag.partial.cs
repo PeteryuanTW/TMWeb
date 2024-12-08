@@ -1,4 +1,5 @@
 ﻿using CommonLibrary.API.Message;
+using CommonLibrary.Machine;
 using System.Collections;
 using TMWeb.Data;
 using TMWeb.Data.TagHelper;
@@ -73,7 +74,7 @@ namespace TMWeb.EFModels
         public RequestResult SetValue(Object obj)
         {
             lastUpdateTime = DateTime.Now;
-            if (TypeEnumHelper.TypeMatch((int)DataType, obj.GetType()))
+            if (MachineTypeEnumHelper.TypeMatch((int)DataType, obj.GetType()))
             {
                 if (obj.GetType().IsArray)
                 {

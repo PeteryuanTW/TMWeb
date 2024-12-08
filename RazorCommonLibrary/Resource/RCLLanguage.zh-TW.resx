@@ -135,4 +135,97 @@
   <data name="Hi" xml:space="preserve">
     <value>嗨</value>
   </data>
+  <data name="Init" xml:space="preserve">
+    <value>初始化</value>
+  </data>
+  <data name="TryConnecting" xml:space="preserve">
+    <value>嘗試連線中</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>斷線</value>
+  </data>
+  <data name="Idle" xml:space="preserve">
+    <value>閒置</value>
+  </data>
+  <data name="Running" xml:space="preserve">
+    <value>運作中</value>
+  </data>
+  <data name="Pause" xml:space="preserve">
+    <value>暫停</value>
+  </data>
+  <data name="Stop" xml:space="preserve">
+    <value>停止</value>
+  </data>
+  <data name="Error" xml:space="preserve">
+    <value>異常</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>名稱</value>
+  </data>
+  <data name="IP" xml:space="preserve">
+    <value>網際網路協定位址</value>
+  </data>
+  <data name="Port" xml:space="preserve">
+    <value>埠號</value>
+  </data>
+  <data name="Connection Type" xml:space="preserve">
+    <value>通訊協定模式</value>
+  </data>
+  <data name="Enable" xml:space="preserve">
+    <value>啟用</value>
+  </data>
+  <data name="UpdateDelay" xml:space="preserve">
+    <value>更新延遲</value>
+  </data>
+  <data name="ms" xml:space="preserve">
+    <value>毫秒</value>
+  </data>
+  <data name="Tag" xml:space="preserve">
+    <value>訊號</value>
+  </data>
+  <data name="Tag Category" xml:space="preserve">
+    <value>訊號類別</value>
+  </data>
+  <data name="MaxRetryCount" xml:space="preserve">
+    <value>最高嘗試次數</value>
+  </data>
+  <data name="Custom Status Category" xml:space="preserve">
+    <value>客製狀態類別</value>
+  </data>
+  <data name="Error Code Category" xml:space="preserve">
+    <value>錯誤代碼類別</value>
+  </data>
+  <data name="Tag Count" xml:space="preserve">
+    <value>訊號數量</value>
+  </data>
+  <data name="Data Type" xml:space="preserve">
+    <value>資料型別</value>
+  </data>
+  <data name="Update By Time" xml:space="preserve">
+    <value>即時更新</value>
+  </data>
+  <data name="Special Type" xml:space="preserve">
+    <value>特殊類別</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>狀態</value>
+  </data>
+  <data name="Condition String" xml:space="preserve">
+    <value>條件字串</value>
+  </data>
+  <data name="Input/Output" xml:space="preserve">
+    <value>輸入/輸出</value>
+  </data>
+  <data name="Station No" xml:space="preserve">
+    <value>站號</value>
+  </data>
+  <data name="Start Index" xml:space="preserve">
+    <value>起始位置</value>
+  </data>
+  <data name="Offset" xml:space="preserve">
+    <value>偏移</value>
+  </data>
+  <data name="Not Defined" xml:space="preserve">
+    <value>未定義</value>
+  </data>
 </root>

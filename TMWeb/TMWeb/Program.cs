@@ -11,6 +11,10 @@ using CommonLibrary.Auth.EFModels;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using BitzArt.Blazor.Cookies;
 using Microsoft.Extensions.Hosting;
+using System.Runtime.CompilerServices;
+using System.Data.Common;
+using CommonLibrary.MachinePKG;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,8 +29,7 @@ builder.Services.AddDevExpressBlazor(options =>
     options.SizeMode = DevExpress.Blazor.SizeMode.Large;
 });
 
-builder.AddBlazorCookies();
-
+//builder.AddBlazorCookies();
 
 
 //https://github.com/nethawkChen/dotnet8-Serilog
@@ -59,10 +62,14 @@ builder.Services.AddDbContextFactory<TmwebContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection")/*, o =>o.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery)*/);
 });
-builder.Services.AddDbContextFactory<UserDbContext>(options =>
-{
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection"));
-});
+//builder.Services.AddDbContextFactory<UserDbContext>(options =>
+//{
+//    options.UseSqlServer(builder.Configuration.GetConnectionString("DbConnection"));
+//});
+
+builder.AddUserCookieService("TMWeb", "DbConnection");
+builder.AddMachineService("DbConnection");
+
 
 builder.Services.AddSingleton<ApplicationLifetimeService>();
 builder.Services.AddSingleton<TMWebShopfloorService>();
@@ -70,10 +77,10 @@ builder.Services.AddSingleton<EventLogService>();
 builder.Services.AddSingleton<ScriptService>();
 builder.Services.AddScoped<UIService>();
 builder.Services.AddScoped<ScriptLoaderService>();
-builder.Services.AddScoped<AuthService>(p =>
-{
-    return new AuthService("TMWeb", p.GetRequiredService<IServiceScopeFactory>(), p.GetRequiredService<ICookieService>());
-});
+//builder.Services.AddScoped<AuthService>(p =>
+//{
+//    return new AuthService("TMWeb", p.GetRequiredService<IServiceScopeFactory>(), p.GetRequiredService<ICookieService>());
+//});
 
 builder.Services.AddHostedService<HostedService>();
 
@@ -108,6 +115,8 @@ else
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.RunMachineService();
 
 app.UseStaticFiles();
 app.UseAntiforgery();

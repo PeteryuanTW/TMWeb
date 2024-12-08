@@ -1,1 +1,1 @@
-﻿Scaffold-DbContext "Server=localhost;Database=TMWeb; User ID=sa;Password=p@ssw0rd; Trusted_Connection=True; trustServerCertificate=true; Integrated Security=False;" Microsoft.EntityFrameworkCore.SqlServer -NoOnConfiguring -OutputDir Auth/EFModels -Context UserDbContext -Table UserInfo, Roles, RoleActions, ActionDetails -force
+﻿

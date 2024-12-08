@@ -1,0 +1,279 @@
+﻿@using DevExpress.Blazor
+@rendermode RenderMode.InteractiveServer
+@inject IMachineService machineService
+
+<DxGridLayout RowSpacing="1rem" ColumnSpacing="1rem">
+    <Rows>
+        <DxGridLayoutRow></DxGridLayoutRow>
+    </Rows>
+    <Columns>
+        <DxGridLayoutColumn Width="3fr"></DxGridLayoutColumn>
+        <DxGridLayoutColumn Width="8fr"></DxGridLayoutColumn>
+    </Columns>
+    <Items>
+        <DxGridLayoutItem Row="0" Column="0">
+            <Template>
+                <div>
+                    <DxGrid @ref="@catGrid" Data="@logicStatusCategories" DataItemDeleting="DeleteCustomStatusCategory" FocusedRowEnabled="true" FocusedRowChanged="CatSelected" HighlightRowOnHover="true">
+                        <ToolbarTemplate>
+                            <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                <Items>
+                                    <DxToolbarItem IconCssClass="oi oi-plus" Click="NewCatClicked" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowCatPopup" Enabled="@catSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowCatDelete" Enabled="@catSelected" RenderStyle="ButtonRenderStyle.Danger" Alignment="ToolbarItemAlignment.Right" BeginGroup="true" />
+                                </Items>
+                            </DxToolbar>
+                        </ToolbarTemplate>
+                        <Columns>
+                            <DxGridDataColumn Caption="@($"{localizer["Name"]}")" FieldName="@nameof(LogicStatusCategory.Name)"></DxGridDataColumn>
+                            <DxGridDataColumn Caption="@($"{localizer["Data Type"]}")" FieldName="@nameof(LogicStatusCategory.DataType)">
+                                <CellDisplayTemplate>
+                                    <div>@((DataType)((int)context.Value))</div>
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                        </Columns>
+                    </DxGrid>
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+        <DxGridLayoutItem Row="0" Column="1">
+            <Template>
+                <div>
+                    <DxGrid @ref="@conditionGrid" Data="@LogicStatusCondictions" DataItemDeleting="DeleteCondition" FocusedRowEnabled="true" FocusedRowChanged="ConditionSelected" HighlightRowOnHover="true">
+                        <ToolbarTemplate>
+                            <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                <Items>
+                                    <DxToolbarItem IconCssClass="oi oi-plus" Click="NewConditionClicked" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowConditionPopup" Enabled="@conditionSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowConditionDelete" Enabled="@conditionSelected" RenderStyle="ButtonRenderStyle.Danger" Alignment="ToolbarItemAlignment.Right" BeginGroup="true" />
+                                </Items>
+                            </DxToolbar>
+                        </ToolbarTemplate>
+                        <Columns>
+                            <DxGridDataColumn Caption="@($"{localizer["Condition String"]}")" FieldName="@nameof(LogicStatusCondition.ConditionString)"></DxGridDataColumn>
+                            <DxGridDataColumn Caption="@($"{localizer["Status"]}")" FieldName="@nameof(LogicStatusCondition.Status)">
+                                <CellDisplayTemplate>
+                                    <div>@((Status)((int)context.Value))</div>
+                                </CellDisplayTemplate>
+                            </DxGridDataColumn>
+                        </Columns>
+                    </DxGrid>
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+    </Items>
+</DxGridLayout>
+
+<DxPopup @bind-Visible="@catPopupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" >
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="CloseCatPopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <EditForm Model="@targetCat" Context="EditFormContext" OnValidSubmit="UpsertCustomStatusCategory">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" BeginRow="true">
+                    <DxTextBox @bind-Text="@targetCat.Name" ShowValidationIcon="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Data Type"]}")" ColSpanLg="6">
+                    <DxComboBox Data="@DataTypes" @bind-Value="@targetCat.DataType" ValueFieldName="@(nameof(DataTypeWrapperClass.Index))" TextFieldName="@(nameof(DataTypeWrapperClass.DisplayName))" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                        </Items>
+                    </DxToolbar>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
+    </BodyContentTemplate>
+</DxPopup>
+
+<DxPopup @bind-Visible="@conditionPopupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" >
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="CloseConditionPopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <EditForm Model="@targetCondition" Context="EditFormContext" OnValidSubmit="UpsertCustomStatusCondition">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")"  BeginRow="true">
+                    <DxTextBox @bind-Text="@targetCondition.ConditionString" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Data Type"]}")" >
+                    <DxComboBox Data="@StatusTypes" @bind-Value="@targetCondition.Status" ValueFieldName="@(nameof(StatusWrapperClass.Index))" TextFieldName="@(nameof(StatusWrapperClass.DisplayName))"></DxComboBox>
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <Template>
+                        <DxToolbar>
+                            <Items>
+                                <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                            </Items>
+                        </DxToolbar>
+                    </Template>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
+    </BodyContentTemplate>
+</DxPopup>
+
+@code {
+    [Parameter]
+    public EventCallback<RequestResult> ActionCallback { get; set; }
+
+
+    private IEnumerable<DataTypeWrapperClass> DataTypes => MachineTypeEnumHelper.GetDataTypesWrapperClass();
+    private IEnumerable<StatusWrapperClass> StatusTypes => MachineTypeEnumHelper.GetStatusWrapperClass();
+
+    IGrid? catGrid { get; set; }
+    private IEnumerable<LogicStatusCategory>? logicStatusCategories;
+    private LogicStatusCategory? targetCat;
+    private bool catSelected => targetCat != null;
+
+
+    IGrid? conditionGrid { get; set; }
+    private List<LogicStatusCondition> LogicStatusCondictions => catSelected ? targetCat.LogicStatusConditions.ToList() : new();
+    private LogicStatusCondition? targetCondition;
+    private bool conditionSelected => targetCondition != null;
+
+
+    private bool catPopupVisible;
+    private bool conditionPopupVisible;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitParameter();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task InitParameter()
+    {
+        logicStatusCategories = await machineService.GetCustomStatusAndConditions();
+    }
+
+    #region UI
+
+
+    private void CatSelected(GridFocusedRowChangedEventArgs args)
+    {
+        targetCat = args.DataItem as LogicStatusCategory;
+    }
+
+    private void ConditionSelected(GridFocusedRowChangedEventArgs args)
+    {
+        targetCondition = args.DataItem as LogicStatusCondition;
+    }
+
+    private void ShowCatPopup()
+    {
+        catPopupVisible = true;
+    }
+
+    private async void CloseCatPopup()
+    {
+        catPopupVisible = false;
+        await InitParameter();
+    }
+
+    private void NewCatClicked()
+    {
+        GenrateNewCat();
+        ShowCatPopup();
+    }
+
+    private void NewConditionClicked()
+    {
+        GenrateNewCondition();
+        ShowConditionPopup();
+    }
+
+    private void ShowCatDelete()
+    {
+        catGrid?.ShowDataItemDeleteConfirmation(targetCat);
+    }
+
+    private void ShowConditionDelete()
+    {
+        conditionGrid.ShowDataItemDeleteConfirmation(targetCondition);
+    }
+
+    private void ShowConditionPopup()
+    {
+        conditionPopupVisible = true;
+    }
+
+    private async void CloseConditionPopup()
+    {
+        conditionPopupVisible = false;
+        await InitParameter();
+    }
+
+    #endregion
+
+    #region category
+
+    private void GenrateNewCat()
+    {
+        targetCat = new LogicStatusCategory(Guid.NewGuid());
+    }
+
+    private async Task UpsertCustomStatusCategory()
+    {
+        var res = await machineService.UpsertCustomStatusCategory(targetCat);
+        CloseCatPopup();
+        await ActionCallback.InvokeAsync(res);
+        //uiService.ShowToast(res);
+    }
+
+
+
+    private async Task DeleteCustomStatusCategory()
+    {
+        var res = await machineService.DeleteCustomStatusCategory(targetCat);
+        await InitParameter();
+        await ActionCallback.InvokeAsync(res);
+        //uiService.ShowToast(res);
+    }
+
+
+
+    #endregion
+
+    #region condition
+
+    private void GenrateNewCondition()
+    {
+        targetCondition = new LogicStatusCondition(targetCat.Id);
+    }
+
+    private async Task UpsertCustomStatusCondition()
+    {
+        var res = await machineService.UpsertCustomStatusCondition(targetCondition);
+        CloseConditionPopup();
+        await ActionCallback.InvokeAsync(res);
+        //uiService.ShowToast(res);
+    }
+
+    private async Task DeleteCondition()
+    {
+        var res = await machineService.DeleteCustomStatusCondition(targetCondition);
+        await InitParameter();
+        await ActionCallback.InvokeAsync(res);
+        //uiService.ShowToast(res);
+    }
+
+    #endregion
+}

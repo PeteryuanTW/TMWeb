@@ -3,6 +3,10 @@ using CommonLibrary.API.Message;
 using TMWeb.Data;
 using TMWeb.EFModels;
 using TMWeb.Data.DTO;
+using CommonLibrary.MachinePKG;
+using CommonLibrary.MachinePKG.EFModel;
+using CommonLibrary.MachinePKG.MachineData;
+using Serilog.Filters;
 
 namespace TMWeb.Services
 {
@@ -20,7 +24,7 @@ namespace TMWeb.Services
         public async Task InitAll()
         {
             InitAllStations();
-            await InitAllMachinesFromDB();
+            //await InitAllMachinesFromDB();
         }
 
 
@@ -278,7 +282,7 @@ namespace TMWeb.Services
             Station? targetStation = await GetStationsByName(stationName);
             if (targetStation != null)
             {
-                if (targetStation.Status == Status.Running)
+                if (targetStation.StationStatus == Status.Running)
                 {
                     switch (targetStation.StationType)
                     {
@@ -436,7 +440,7 @@ namespace TMWeb.Services
             Station? targetStation = await GetStationsByName(stationName);
             if (targetStation != null)
             {
-                if (targetStation.Status == Status.Running)
+                if (targetStation.StationStatus == Status.Running)
                 {
                     switch (targetStation.StationType)
                     {
@@ -651,421 +655,765 @@ namespace TMWeb.Services
 
         #region machine
 
-        public Task<List<Machine>> GetAllMachinesConfig()
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Machines.AsNoTracking().ToList());
-            }
-        }
-        private List<Machine> machines = new();
-        public List<Machine> Machines => machines;
-        private async Task InitAllMachinesFromDB()
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                var tmp = dbContext.Machines.Include(x => x.TagCategory).ThenInclude(x => x.Tags).AsNoTracking().ToList();
-                machines = tmp.Select(x => InitMachineToDerivesClass(x)).ToList();
-                List<Task> tasks = new();
-                foreach (Machine machine in machines)
-                {
-                    tasks.Add(Task.Run(async () =>
-                    {
-                        machine.InitMachine();
-                        if (machine.Enabled)
-                        {
-                            machine.StartUpdating();
-                        }
-                    }));
-
-                }
-                await Task.WhenAll(tasks);
-            }
-        }
-        private Machine? InitMachineFromDBById(Guid id)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                var tmp = dbContext.Machines.Include(x => x.TagCategory).ThenInclude(x => x.Tags).AsNoTracking().FirstOrDefault(x => x.Id == id);
-                tmp = InitMachineToDerivesClass(tmp);
-                tmp.InitMachine();
-                if (tmp.Enabled)
-                {
-                    tmp.StartUpdating();
-                    //tmp.Running();
-                }
-                return tmp;
-            }
-        }
-        private Machine InitMachineToDerivesClass(Machine machine)
-        {
-            switch (machine.ConnectionType)
-            {
-                case 0:
-                    return new ModbusTCPMachine(machine);
-                case 1:
-                    var a = new TMRobotModbusTCP(machine);
-
-                    return new TMRobotModbusTCP(machine);
-                case 2:
-                case 10:
-                default:
-                    return machine;
-            }
-        }
-        public async Task<RequestResult> UpsertMachineConfig(Machine machine)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                try
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                    var target = dbContext.Machines.FirstOrDefault(x => x.Id == machine.Id);
-                    if (target != null)
-                    {
-                        target.Name = machine.Name;
-                        target.ProcessId = machine.ProcessId;
-                        target.Ip = machine.Ip;
-                        target.Port = machine.Port;
-                        target.ConnectionType = machine.ConnectionType;
-                        target.TagCategoryId = machine.TagCategoryId;
-                        target.Enabled = machine.Enabled;
-                    }
-                    else
-                    {
-                        await dbContext.Machines.AddAsync(machine);
-                    }
-                    await dbContext.SaveChangesAsync();
-                    await RefreshMachine(machine, true);
-                    return new(2, $"upsert machine {machine.Name} success");
-                }
-                catch (Exception e)
-                {
-                    return new(4, $"upsert machine {machine.Name} fail({e.Message})");
-                }
-
-            }
-        }
-        public async Task<RequestResult> DeleteMachine(Machine machine)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                try
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                    var target = dbContext.Machines.FirstOrDefault(x => x.Id == machine.Id);
-                    if (target != null)
-                    {
-                        dbContext.Remove(target);
-                        await dbContext.SaveChangesAsync();
-                        await RefreshMachine(target, false);
-                        return new(2, $"Delete machine {machine.Name} success");
-                    }
-                    else
-                    {
-                        return new(4, $"Machine {machine.Name} not found");
-                    }
-
-                }
-                catch (Exception e)
-                {
-                    return new(4, $"Delete machine {machine.Name} fail({e.Message})");
-                }
-
-            }
-        }
-        private async Task RefreshMachine(Machine machine, bool reInit)
-        {
-            Machine target = await GetMachineByID(machine.Id);
-            if (target != null)
-            {
-                machines.Remove(target);
-                target.Dispose();
-            }
-
-            if (reInit)
-            {
-                machines.Add(InitMachineFromDBById(machine.Id));
-            }
-        }
-        public async Task<List<Machine>> GetMachineByProcessName(string processName)
-        {
-            Process? target = await GetProcessByName(processName);
-            return machines.Where(x => x.ProcessId == target.Id).ToList();
-        }
-        public Task<List<Machine>> GetMachineByProcessID(Guid? id)
-        {
-            return Task.FromResult(machines.Where(x => x.ProcessId == id).ToList());
-        }
-
-        //public async Task<RecipeCheckTable> GetRecipeCheckTableInProcess(string processName, WorkorderRecipeContent workorderRecipeContent)
+        //private List<Machine> machines = new();
+        //Task<List<MachineBase>> IMachineService.GetAllMachinesConfig()
         //{
-        //    RecipeCheckTable res = new(workorderRecipeContent);
-        //    var machineInProcess = await GetMachineByProcessName(processName);
-        //    var targetMachine = machineInProcess.Where(x => x.TagCategoryId == workorderRecipeContent.TagCategoryId).ToList();
-        //    foreach (var machine in targetMachine)
+        //    using (var scope = scopeFactory.CreateScope())
         //    {
-        //        var targetTag = machine.TagCategory.Tags.FirstOrDefault(x => x.Id == workorderRecipeContent.TagId);
-        //        if (targetTag != null)
-        //        {
-        //            await machine.UpdateTag(targetTag);
-        //            res.AddCheckItem(new(machine, targetTag));
-        //        }
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        return Task.FromResult(dbContext.Machines.AsNoTracking().ToList());
         //    }
-        //    return res;
         //}
 
-        public Task<Machine?> GetMachineByID(Guid? id)
+        //public Task<List<Machine>> GetAllMachinesConfig()
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        return Task.FromResult(dbContext.Machines.AsNoTracking().ToList());
+        //    }
+        //}
+
+        //Task<List<MachineBase>> IMachineService.GetAllMachinesConfig()
+        //{
+        //    throw new NotImplementedException();
+        //}
+        //public List<Machine> Machines => machines;
+
+        //public async Task InitAllMachinesFromDB()
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        var tmp = dbContext.Machines.Include(x => x.TagCategory).ThenInclude(x => x.Tags)
+        //            .Include(x=>x.LogicStatusCategory).ThenInclude(x=>x.LogicStatusConditions)
+        //            .Include(x=>x.ErrorCodeCategory).ThenInclude(x=>x.ErrorCodeMappings)
+        //            .AsSplitQuery()
+        //            .AsNoTracking()
+        //            .ToList();
+        //        machines = tmp.Select(x => InitMachineToDerivesClass(x)).ToList();
+        //        List<Task> tasks = new();
+        //        foreach (Machine machine in machines)
+        //        {
+        //            tasks.Add(Task.Run(() =>
+        //            {
+        //                machine.InitMachine();
+        //                if (machine.Enabled)
+        //                {
+        //                    machine.StartUpdating();
+        //                }
+        //            }));
+
+        //        }
+        //        await Task.WhenAll(tasks);
+        //    }
+        //}
+        //public Machine? InitMachineFromDBById(Guid id)
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        var tmp = dbContext.Machines.Include(x => x.TagCategory).ThenInclude(x => x.Tags)
+        //            .Include(x=>x.LogicStatusCategory).ThenInclude(x=>x.LogicStatusConditions)
+        //            .Include(x => x.ErrorCodeCategory).ThenInclude(x => x.ErrorCodeMappings)
+        //            .AsSplitQuery()
+        //            .AsNoTracking()
+        //            .FirstOrDefault(x => x.Id == id);
+        //        tmp = InitMachineToDerivesClass(tmp);
+        //        tmp.InitMachine();
+        //        if (tmp.Enabled)
+        //        {
+        //            tmp.StartUpdating();
+        //        }
+        //        return tmp;
+        //    }
+        //}
+        //public Machine InitMachineToDerivesClass(Machine machine)
+        //{
+        //    switch (machine.ConnectionType)
+        //    {
+        //        case 0:
+        //            return new ModbusTCPMachine(machine);
+        //        case 1:
+        //            return new TMRobotModbusTCP(machine);
+        //        case 2:
+        //        case 10:
+        //        default:
+        //            return machine;
+        //    }
+        //}
+        //public async Task<RequestResult> UpsertMachineConfig(Machine machine)
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        try
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var target = dbContext.Machines.FirstOrDefault(x => x.Id == machine.Id);
+        //            bool exist = target is not null;
+        //            if (exist)
+        //            {
+        //                target.Name = machine.Name;
+        //                //target.ProcessId = machine.ProcessId;
+        //                target.Ip = machine.Ip;
+        //                target.Port = machine.Port;
+        //                target.ConnectionType = machine.ConnectionType;
+        //                target.MaxRetryCount = machine.MaxRetryCount;
+        //                target.TagCategoryId = machine.TagCategoryId;
+        //                target.LogicStatusCategoryId = machine.LogicStatusCategoryId;
+        //                target.ErrorCodeCategoryId = machine.ErrorCodeCategoryId;
+        //                target.Enabled = machine.Enabled;
+        //                target.UpdateDelay = machine.UpdateDelay;
+        //            }
+        //            else
+        //            {
+        //                await dbContext.Machines.AddAsync(machine);
+        //            }
+        //            await dbContext.SaveChangesAsync();
+        //            DataEditMode dataEditMode = exist ? DataEditMode.Update : DataEditMode.Insert;
+        //            await RefreshMachine(machine, dataEditMode);
+        //            return new(2, $"upsert machine {machine.Name} success");
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            return new(4, $"upsert machine {machine.Name} fail({e.Message})");
+        //        }
+
+        //    }
+        //}
+        //public async Task<RequestResult> DeleteMachine(Machine machine)
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        try
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var target = dbContext.Machines.FirstOrDefault(x => x.Id == machine.Id);
+        //            if (target != null)
+        //            {
+        //                dbContext.Remove(target);
+        //                await dbContext.SaveChangesAsync();
+        //                await RefreshMachine(target, DataEditMode.Delete);
+        //                return new(2, $"Delete machine {machine.Name} success");
+        //            }
+        //            else
+        //            {
+        //                return new(4, $"Machine {machine.Name} not found");
+        //            }
+
+        //        }
+        //        catch (Exception e)
+        //        {
+        //            return new(4, $"Delete machine {machine.Name} fail({e.Message})");
+        //        }
+
+        //    }
+        //}
+        //public async Task RefreshMachine(Machine machine, DataEditMode dataEditMode)
+        //{
+        //    var target = await GetMachineByID(machine.Id);
+        //    if (target != null)
+        //    {
+        //        //update or delete
+        //        machines.Remove(target);
+        //        target.Dispose();
+        //        if (dataEditMode != DataEditMode.Delete)
+        //        {
+        //            machines.Add(InitMachineFromDBById(machine.Id));
+        //        }
+        //        else
+        //        {
+        //        }
+        //    }
+        //    else
+        //    {
+        //        machines.Add(InitMachineFromDBById(machine.Id));
+        //    }
+        //    MachineConfigChanged(machine.Id, dataEditMode);
+        //}
+
+        //public Action<Guid, DataEditMode>? MachineConfigChangedAct;
+        //public void MachineConfigChanged(Guid id, DataEditMode mode)
+        //{
+        //    MachineConfigChangedAct?.Invoke(id, mode);
+        //}
+        //public async Task<List<Machine>> GetMachineByProcessName(string processName)
+        //{
+        //    Process? target = await GetProcessByName(processName);
+        //    return machines.Where(x => x.ProcessId == target.Id).ToList();
+        //}
+
+        public Task<List<Machine>> GetMachinesWithoutRelationAndCerrent(Guid? currentId)
         {
-            return Task.FromResult(machines.FirstOrDefault(x => x.Id == id));
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var existRelationMachinesId = dbContext.ProcessMachineRelations.Select(x=>x.MachineId).ToList();
+                var machineService = scope.ServiceProvider.GetRequiredService<IMachineService>();
+                return Task.FromResult(machineService.Machines.Where(x => !existRelationMachinesId.Contains(x.Id) || x.Id == currentId).ToList());
+            }
         }
-        public Task<Machine?> GetMachineByName(string name)
+
+        public async Task<List<Machine>> GetMachineByProcessID(Guid? id)
         {
-            return Task.FromResult(machines.FirstOrDefault(x => x.Name == name));
+            var targetMachineIDs = await GetProcessMachineRelationByID(id);
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var machineService = scope.ServiceProvider.GetRequiredService<IMachineService>();
+                return machineService.Machines.Where(x => targetMachineIDs.Select(x => x.MachineId).Contains(x.Id)).ToList();
+            }   
         }
+        public Task<List<ProcessMachineRelation>> GetProcessMachineRelationByID(Guid? id)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var targetMachinesId = dbContext.ProcessMachineRelations.Where(x => x.ProcessId == id);
+                return Task.FromResult(targetMachinesId.ToList());
+            }
+        }
+        public async Task<RequestResult> UpsertProcessMachineRelation(ProcessMachineRelation processMachineRelation)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var targetRelation = dbContext.ProcessMachineRelations.FirstOrDefault(x => x.Id == processMachineRelation.Id);
+                    if (targetRelation != null)
+                    {
+                        targetRelation.MachineId = processMachineRelation.MachineId;
+                    }
+                    else
+                    {
+                        await dbContext.ProcessMachineRelations.AddAsync(processMachineRelation);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    return new RequestResult(2, $"Upsert process station relation success");
+                }
+            }
+            catch (Exception ex)
+            {
+                return new RequestResult(4, $"Upsert process station relation fail({ex.Message})");
+            }
+        }
+
+        public async Task<RequestResult> DeleteProcessMachineRelation(ProcessMachineRelation processMachineRelation)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var targetRelation = dbContext.ProcessMachineRelations.FirstOrDefault(x => x.Id == processMachineRelation.Id);
+                    if (targetRelation != null)
+                    {
+                        dbContext.Remove(targetRelation);
+                        await dbContext.SaveChangesAsync();
+                        return new RequestResult(2, $"Delete process staion relation success");
+                    }
+                    else
+                    {
+                        return new RequestResult(4, $"Process staion relation not found");
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return new RequestResult(4, $"Delete process staion relation fail({ex.Message})");
+            }
+        }
+        //public Task<Machine?> GetMachineByID(Guid? id)
+        //{
+        //    return Task.FromResult(machines.FirstOrDefault(x => x.Id == id));
+        //}
+        //public Task<Machine?> GetMachineByName(string name)
+        //{
+        //    return Task.FromResult(machines.FirstOrDefault(x => x.Name == name));
+        //}
         #endregion
 
         #region tag
 
-        public Task<List<TagCategory>> GetAllTagCategories()
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.TagCategories.AsNoTracking().ToList());
-            }
-        }
+        //public Task<List<TagCategory>> GetAllTagCategories()
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        return Task.FromResult(dbContext.TagCategories.AsNoTracking().ToList());
+        //    }
+        //}
 
-        public Task<List<TagCategory>> GetAllTagCategoriesWithTags()
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.TagCategories.Include(x => x.Tags).AsNoTracking().ToList());
-            }
-        }
+        //public Task<List<TagCategory>> GetAllTagCategoriesWithTags()
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        return Task.FromResult(dbContext.TagCategories.Include(x => x.Tags).AsNoTracking().ToList());
+        //    }
+        //}
 
-        public List<Tag> GetTagsByCatId(Guid? catID)
-        {
-            if (catID is null)
-            {
-                return new List<Tag>();
-            }
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                var targetCat = dbContext.TagCategories.Include(x => x.Tags).AsNoTracking().FirstOrDefault(x=>x.Id == catID);
-                if (targetCat is not null)
-                {
-                    return targetCat.Tags.ToList();
-                }
-                else
-                {
-                    return new List<Tag>();
-                }
-            }
-        }
+        //public List<Tag> GetTagsByCatId(Guid? catID)
+        //{
+        //    if (catID is null)
+        //    {
+        //        return new List<Tag>();
+        //    }
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        var targetCat = dbContext.TagCategories.Include(x => x.Tags).AsNoTracking().FirstOrDefault(x=>x.Id == catID);
+        //        if (targetCat is not null)
+        //        {
+        //            return targetCat.Tags.ToList();
+        //        }
+        //        else
+        //        {
+        //            return new List<Tag>();
+        //        }
+        //    }
+        //}
 
-        public int GetTagTypeCodeByIds(Guid? catID, Guid? tagID)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                var targetTag = dbContext.Tags.FirstOrDefault(x => x.CategoryId == catID && x.Id == tagID);
-                return targetTag is null ? 0 : targetTag.DataType;
-            }
-        }
+        //public int GetTagTypeCodeByIds(Guid? catID, Guid? tagID)
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        var targetTag = dbContext.Tags.FirstOrDefault(x => x.CategoryId == catID && x.Id == tagID);
+        //        return targetTag is null ? 0 : targetTag.DataType;
+        //    }
+        //}
 
-        public Task<List<TagCategory>> GetCategoryByConnectionType(int connectionType)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.TagCategories.Where(x => x.ConnectionType == connectionType).ToList());
-            }
-        }
+        //public Task<List<TagCategory>> GetCategoryByConnectionType(int connectionType)
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        return Task.FromResult(dbContext.TagCategories.Where(x => x.ConnectionType == connectionType).ToList());
+        //    }
+        //}
 
-        public async Task<RequestResult> UpsertTagCategory(TagCategory tagCategory)
-        {
-            try
-            {
-                using (var scope = scopeFactory.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                    var targetTagCat = dbContext.TagCategories.FirstOrDefault(x => x.Id == tagCategory.Id);
-                    if (targetTagCat != null)
-                    {
-                        targetTagCat.Name = tagCategory.Name;
-                        targetTagCat.ConnectionType = tagCategory.ConnectionType;
-                    }
-                    else
-                    {
-                        await dbContext.TagCategories.AddAsync(tagCategory);
-                    }
-                    await dbContext.SaveChangesAsync();
-                    return new(2, $"Upsert tag category {tagCategory.Name} success");
-                }
-            }
-            catch (Exception ex)
-            {
-                return new(4, ex.Message);
-            }
-        }
+        //public async Task<RequestResult> UpsertTagCategory(TagCategory tagCategory)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targetTagCat = dbContext.TagCategories.FirstOrDefault(x => x.Id == tagCategory.Id);
+        //            if (targetTagCat != null)
+        //            {
+        //                targetTagCat.Name = tagCategory.Name;
+        //                targetTagCat.ConnectionType = tagCategory.ConnectionType;
+        //            }
+        //            else
+        //            {
+        //                await dbContext.TagCategories.AddAsync(tagCategory);
+        //            }
+        //            await dbContext.SaveChangesAsync();
+        //            return new(2, $"Upsert tag category {tagCategory.Name} success");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
+        //}
 
-        public async Task<RequestResult> DeleteTagCategory(TagCategory tagCategory)
-        {
-            try
-            {
-                using (var scope = scopeFactory.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                    var targetTagCat = dbContext.TagCategories.Include(x => x.Tags).FirstOrDefault(x => x.Id == tagCategory.Id);
-                    if (targetTagCat != null)
-                    {
-                        dbContext.TagCategories.Remove(targetTagCat);
-                        await dbContext.SaveChangesAsync();
-                        return new(2, $"Delete tag category {targetTagCat.Name} success");
-                    }
-                    else
-                    {
-                        return new(4, $"Tag category {targetTagCat.Name} not found");
-                    }
+        //public async Task<RequestResult> DeleteTagCategory(TagCategory tagCategory)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targetTagCat = dbContext.TagCategories.Include(x => x.Tags).FirstOrDefault(x => x.Id == tagCategory.Id);
+        //            if (targetTagCat != null)
+        //            {
+        //                dbContext.TagCategories.Remove(targetTagCat);
+        //                await dbContext.SaveChangesAsync();
+        //                return new(2, $"Delete tag category {targetTagCat.Name} success");
+        //            }
+        //            else
+        //            {
+        //                return new(4, $"Tag category {targetTagCat.Name} not found");
+        //            }
 
-                }
-            }
-            catch (Exception ex)
-            {
-                return new(4, ex.Message);
-            }
-        }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
+        //}
 
-        public async Task<RequestResult> UpsertTag(Tag tag)
-        {
-            try
-            {
-                using (var scope = scopeFactory.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                    var targetTag = dbContext.Tags.FirstOrDefault(x => x.Id == tag.Id);
-                    if (targetTag != null)
-                    {
-                        targetTag.Name = tag.Name;
-                        targetTag.DataType = tag.DataType;
-                        targetTag.UpdateByTime = tag.UpdateByTime;
-                        targetTag.IsHeartBeat = tag.IsHeartBeat;
+        //public async Task<RequestResult> UpsertTag(Tag tag)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targetTag = dbContext.Tags.FirstOrDefault(x => x.Id == tag.Id);
+        //            if (targetTag != null)
+        //            {
+        //                targetTag.Name = tag.Name;
+        //                targetTag.DataType = tag.DataType;
+        //                targetTag.UpdateByTime = tag.UpdateByTime;
+        //                targetTag.SpecialType = tag.SpecialType;
 
-                        targetTag.Bool1 = tag.Bool1;
-                        targetTag.Bool2 = tag.Bool2;
-                        targetTag.Bool3 = tag.Bool3;
-                        targetTag.Bool4 = tag.Bool4;
-                        targetTag.Bool5 = tag.Bool5;
+        //                targetTag.Bool1 = tag.Bool1;
+        //                targetTag.Bool2 = tag.Bool2;
+        //                targetTag.Bool3 = tag.Bool3;
+        //                targetTag.Bool4 = tag.Bool4;
+        //                targetTag.Bool5 = tag.Bool5;
 
-                        targetTag.Int1 = tag.Int1;
-                        targetTag.Int2 = tag.Int2;
-                        targetTag.Int3 = tag.Int3;
-                        targetTag.Int4 = tag.Int4;
-                        targetTag.Int5 = tag.Int5;
+        //                targetTag.Int1 = tag.Int1;
+        //                targetTag.Int2 = tag.Int2;
+        //                targetTag.Int3 = tag.Int3;
+        //                targetTag.Int4 = tag.Int4;
+        //                targetTag.Int5 = tag.Int5;
 
-                        targetTag.String1 = tag.String1;
-                        targetTag.String2 = tag.String2;
-                        targetTag.String3 = tag.String3;
-                        targetTag.String4 = tag.String4;
-                        targetTag.String5 = tag.String5;
-                    }
-                    else
-                    {
-                        await dbContext.Tags.AddAsync(tag);
-                    }
-                    await dbContext.SaveChangesAsync();
-                    return new(2, $"Upsert tag {tag.Name} success");
-                }
-            }
-            catch (Exception ex)
-            {
-                return new(4, ex.Message);
-            }
+        //                targetTag.String1 = tag.String1;
+        //                targetTag.String2 = tag.String2;
+        //                targetTag.String3 = tag.String3;
+        //                targetTag.String4 = tag.String4;
+        //                targetTag.String5 = tag.String5;
+        //            }
+        //            else
+        //            {
+        //                await dbContext.Tags.AddAsync(tag);
+        //            }
+        //            await dbContext.SaveChangesAsync();
+        //            return new(2, $"Upsert tag {tag.Name} success");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
 
-        }
+        //}
 
-        public async Task<RequestResult> DeleteTag(Tag tag)
-        {
-            try
-            {
-                using (var scope = scopeFactory.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                    var targetTag = dbContext.Tags.FirstOrDefault(x => x.Id == tag.Id);
-                    if (targetTag != null)
-                    {
-                        dbContext.Tags.Remove(targetTag);
-                        await dbContext.SaveChangesAsync();
-                        return new(2, $"Delete tag {tag.Name} success");
-                    }
-                    else
-                    {
-                        return new(4, $"Tag {tag.Name} not found");
-                    }
+        //public async Task<RequestResult> DeleteTag(Tag tag)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targetTag = dbContext.Tags.FirstOrDefault(x => x.Id == tag.Id);
+        //            if (targetTag != null)
+        //            {
+        //                dbContext.Tags.Remove(targetTag);
+        //                await dbContext.SaveChangesAsync();
+        //                return new(2, $"Delete tag {tag.Name} success");
+        //            }
+        //            else
+        //            {
+        //                return new(4, $"Tag {tag.Name} not found");
+        //            }
 
-                }
-            }
-            catch (Exception ex)
-            {
-                return new(4, ex.Message);
-            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
 
-        }
+        //}
 
-        public async Task<Tag?> GetMachineTag(string machineName, string tagName)
-        {
-            Machine? targetMachine = await GetMachineByName(machineName);
-            if (targetMachine != null)
-            {
-                if (targetMachine.hasCategory)
-                {
-                    Tag? targetTag = targetMachine.TagCategory.Tags.FirstOrDefault(x => x.Name == tagName);
-                    if (targetTag != null)
-                    {
-                        if (!targetTag.UpdateByTime)
-                        {
-                            await targetMachine.UpdateTag(targetTag);
-                        }
-                        return targetTag;
-                    }
-                }
-            }
-            return null;
-        }
+        //public async Task<Tag?> GetMachineTag(string machineName, string tagName)
+        //{
+        //    Machine? targetMachine = await GetMachineByName(machineName);
+        //    if (targetMachine != null)
+        //    {
+        //        if (targetMachine.hasCategory)
+        //        {
+        //            Tag? targetTag = targetMachine.TagCategory.Tags.FirstOrDefault(x => x.Name == tagName);
+        //            if (targetTag != null)
+        //            {
+        //                if (!targetTag.UpdateByTime)
+        //                {
+        //                    await targetMachine.UpdateTag(targetTag);
+        //                }
+        //                return targetTag;
+        //            }
+        //        }
+        //    }
+        //    return null;
+        //}
 
-        public async Task<RequestResult> SetMachineTag(string machineName, string tagName, Object val)
-        {
-            Machine? targetMachine = await GetMachineByName(machineName);
-            if (targetMachine != null)
-            {
-                if (targetMachine.hasCategory)
-                {
-                    Tag? targetTag = targetMachine.TagCategory.Tags.FirstOrDefault(x => x.Name == tagName);
-                    if (targetTag != null)
-                    {
-                        return await targetMachine.SetTag(targetTag.Name, val);
-                    }
-                    else
-                    {
-                        return new(4, $"Tag {tagName} not found in machine {machineName}");
-                    }
-                }
-                else
-                {
-                    return new(4, $"Machine tag category not set");
-                }
-            }
-            else
-            {
-                return new(4, $"Machine {machineName} not found");
-            }
-        }
+        //public async Task<RequestResult> SetMachineTag(string machineName, string tagName, Object val)
+        //{
+        //    Machine? targetMachine = await GetMachineByName(machineName);
+        //    if (targetMachine != null)
+        //    {
+        //        if (targetMachine.hasCategory)
+        //        {
+        //            Tag? targetTag = targetMachine.TagCategory.Tags.FirstOrDefault(x => x.Name == tagName);
+        //            if (targetTag != null)
+        //            {
+        //                return await targetMachine.SetTag(targetTag.Name, val);
+        //            }
+        //            else
+        //            {
+        //                return new(4, $"Tag {tagName} not found in machine {machineName}");
+        //            }
+        //        }
+        //        else
+        //        {
+        //            return new(4, $"Machine tag category not set");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        return new(4, $"Machine {machineName} not found");
+        //    }
+        //}
+
+        #endregion
+
+        #region StatusCondition
+
+        //public Task<List<LogicStatusCategory>> GetCustomStatusAndConditions()
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        return Task.FromResult(dbContext.LogicStatusCategories.Include(x => x.LogicStatusConditions).AsNoTracking().ToList());
+        //    }
+        //}
+
+        //public async Task<RequestResult> UpsertCustomStatusCategory(LogicStatusCategory tagCategory)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targetTagCat = dbContext.LogicStatusCategories.FirstOrDefault(x => x.Id == tagCategory.Id);
+        //            if (targetTagCat != null)
+        //            {
+        //                targetTagCat.Name = tagCategory.Name;
+        //                targetTagCat.DataType = tagCategory.DataType;
+        //            }
+        //            else
+        //            {
+        //                await dbContext.LogicStatusCategories.AddAsync(tagCategory);
+        //            }
+        //            await dbContext.SaveChangesAsync();
+        //            return new(2, $"Upsert custom status category {tagCategory.Name} success");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
+        //}
+
+        //public async Task<RequestResult> DeleteCustomStatusCategory(LogicStatusCategory tagCategory)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targeLogicStatusCat = dbContext.LogicStatusCategories.FirstOrDefault(x => x.Id == tagCategory.Id);
+        //            if (targeLogicStatusCat != null)
+        //            {
+        //                dbContext.LogicStatusCategories.Remove(targeLogicStatusCat);
+        //                await dbContext.SaveChangesAsync();
+        //                return new(2, $"Delete tag category {targeLogicStatusCat.Name} success");
+        //            }
+        //            else
+        //            {
+        //                return new(4, $"Tag category {tagCategory.Name} not found");
+        //            }
+
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
+        //}
+
+        //public async Task<RequestResult> UpsertCustomStatusCondition(LogicStatusCondition condition)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targetCondition = dbContext.LogicStatusCondictions.FirstOrDefault(x => x.Id == condition.Id);
+        //            if (targetCondition != null)
+        //            {
+        //                targetCondition.ConditionString = condition.ConditionString;
+        //                targetCondition.Status = condition.Status;
+        //            }
+        //            else
+        //            {
+        //                await dbContext.LogicStatusCondictions.AddAsync(condition);
+        //            }
+        //            await dbContext.SaveChangesAsync();
+        //            return new(2, $"Upsert custom status condition {condition.ConditionString} as {(Status)condition.Status} success");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
+        //}
+
+        //public async Task<RequestResult> DeleteCustomStatusCondition(LogicStatusCondition condition)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targetCondition = dbContext.LogicStatusCondictions.FirstOrDefault(x => x.Id == condition.Id);
+        //            if (targetCondition != null)
+        //            {
+        //                dbContext.LogicStatusCondictions.Remove(targetCondition);
+        //                await dbContext.SaveChangesAsync();
+        //                return new(2, $"Delete tag category {targetCondition.ConditionString} as {(Status)targetCondition.Status} success");
+        //            }
+        //            else
+        //            {
+        //                return new(4, $"Custom condition {condition.ConditionString} as {(Status)condition.Status} not found");
+        //            }
+
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
+        //}
+
+        #endregion
+
+        #region Error code
+
+        //public Task<List<ErrorCodeCategory>> GetErrorCodeTables()
+        //{
+        //    using (var scope = scopeFactory.CreateScope())
+        //    {
+        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //        return Task.FromResult(dbContext.ErrorCodeCategories.Include(x => x.ErrorCodeMappings).AsNoTracking().ToList());
+        //    }
+        //}
+
+        //public async Task<RequestResult> UpsertErrorCodeCategory(ErrorCodeCategory errorCodeCategory)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targetErrorCodeCat = dbContext.ErrorCodeCategories.FirstOrDefault(x => x.Id == errorCodeCategory.Id);
+        //            if (targetErrorCodeCat != null)
+        //            {
+        //                targetErrorCodeCat.Name = errorCodeCategory.Name;
+        //                targetErrorCodeCat.DataType = errorCodeCategory.DataType;
+        //            }
+        //            else
+        //            {
+        //                await dbContext.ErrorCodeCategories.AddAsync(errorCodeCategory);
+        //            }
+        //            await dbContext.SaveChangesAsync();
+        //            return new(2, $"Upsert Error Code category {errorCodeCategory.Name} success");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
+        //}
+
+        //public async Task<RequestResult> DeleteErrorCodeCategory(ErrorCodeCategory errorCodeCategory)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targeErrorCodeCat = dbContext.ErrorCodeCategories.FirstOrDefault(x => x.Id == errorCodeCategory.Id);
+        //            if (targeErrorCodeCat != null)
+        //            {
+        //                dbContext.ErrorCodeCategories.Remove(targeErrorCodeCat);
+        //                await dbContext.SaveChangesAsync();
+        //                return new(2, $"Delete error code category {targeErrorCodeCat.Name} success");
+        //            }
+        //            else
+        //            {
+        //                return new(4, $"Error code category {errorCodeCategory.Name} not found");
+        //            }
+
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
+        //}
+
+        //public async Task<RequestResult> UpsertErrorCodeMapping(ErrorCodeMapping errorCodeMapping)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targetCodeMapping = dbContext.ErrorCodeMappings.FirstOrDefault(x => x.Id == errorCodeMapping.Id);
+        //            if (targetCodeMapping != null)
+        //            {
+        //                targetCodeMapping.ConditionString = errorCodeMapping.ConditionString;
+        //                targetCodeMapping.Description = errorCodeMapping.Description;
+        //            }
+        //            else
+        //            {
+        //                await dbContext.ErrorCodeMappings.AddAsync(errorCodeMapping);
+        //            }
+        //            await dbContext.SaveChangesAsync();
+        //            return new(2, $"Upsert error code {errorCodeMapping.ConditionString} : {errorCodeMapping.Description} success");
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
+        //}
+
+        //public async Task<RequestResult> DeleteErrorCodeMapping(ErrorCodeMapping errorCodeMapping)
+        //{
+        //    try
+        //    {
+        //        using (var scope = scopeFactory.CreateScope())
+        //        {
+        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+        //            var targetErrorCodeMapping = dbContext.ErrorCodeMappings.FirstOrDefault(x => x.Id == errorCodeMapping.Id);
+        //            if (targetErrorCodeMapping != null)
+        //            {
+        //                dbContext.ErrorCodeMappings.Remove(targetErrorCodeMapping);
+        //                await dbContext.SaveChangesAsync();
+        //                return new(2, $"Delete error code mapping {targetErrorCodeMapping.ConditionString}: {targetErrorCodeMapping.Description} success");
+        //            }
+        //            else
+        //            {
+        //                return new(4, $"Error code mapping {errorCodeMapping.ConditionString}: {errorCodeMapping.Description} not found");
+        //            }
+
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new(4, ex.Message);
+        //    }
+        //}
 
         #endregion
 
@@ -1271,7 +1619,7 @@ namespace TMWeb.Services
                 else
                 {
                     var stations = await GetStationsByProcessID(wo.ProcessId);
-                    bool stationsNotReady = stations.Any(x => x.Status != (int)WorkorderStatus.Init);
+                    bool stationsNotReady = stations.Any(x => x.StationStatus != (int)WorkorderStatus.Init);
                     if (stationsNotReady)
                     {
                         return new(4, $"Not all stations ready");
@@ -1498,7 +1846,7 @@ namespace TMWeb.Services
             if (targetProcess is not null)
             {
                 var machines = await GetMachineByProcessID(targetProcess.Id);
-                if (!machines.Exists(x => x.Status != Status.Idel && x.Status != Status.Running))
+                if (!machines.Exists(x => x.MachineStatus != Status.Idle && x.MachineStatus != Status.Running))
                 {
                     if (wo.HasRecipe)
                     {
@@ -1513,11 +1861,16 @@ namespace TMWeb.Services
                                     var targetTag = machine.TagCategory.Tags.FirstOrDefault(x => x.Id == recipe.TargetTagId);
                                     if (targetTag is not null)
                                     {
-                                        var res = await SetMachineTag(machine.Name, targetTag.Name, recipeRes.Item2);
-                                        if (!res.IsSuccess)
+                                        using (var scope = scopeFactory.CreateScope())
                                         {
-                                            return res;
+                                            var machineService = scope.ServiceProvider.GetRequiredService<IMachineService>();
+                                            var res = await machineService.SetMachineTag(machine.Name, targetTag.Name, recipeRes.Item2);
+                                            if (!res.IsSuccess)
+                                            {
+                                                return res;
+                                            }
                                         }
+                                        
                                     }
                                     else
                                     {
@@ -2446,6 +2799,10 @@ namespace TMWeb.Services
             }
 
         }
+
+        
+
+
 
 
         #endregion

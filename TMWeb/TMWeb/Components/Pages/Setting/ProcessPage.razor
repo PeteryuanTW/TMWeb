@@ -13,14 +13,15 @@
         <DxGridLayoutItem Row="0" Column="0">
             <Template>
                 <div>
+
                     <DxGrid @ref="@processGrid" Data="@processes" FocusedRowChanged="ProcessSelected" DataItemDeleting="DeleteProcess" FocusedRowEnabled="true" HighlightRowOnHover="true">
                         <ToolbarTemplate>
                             <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
                                 <Items>
                                     <DxToolbarItem IconCssClass="oi oi-plus" Click="NewProcess" BeginGroup="true" />
                                     <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowProcessPopup" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
-                                    <DxToolbarItem IconCssClass="oi oi-share" Click="NavToProcessRouting" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
-                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowProcessDelete" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"/>
+                                    <DxToolbarItem IconCssClass="oi oi-magnifying-glass" Click="NavToProcessRouting" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowProcessDelete" Enabled="@processSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" />
                                 </Items>
                             </DxToolbar>
                         </ToolbarTemplate>
@@ -28,38 +29,63 @@
                             <DxGridDataColumn FieldName="@nameof(Process.Name)"></DxGridDataColumn>
                         </Columns>
                     </DxGrid>
+
                 </div>
             </Template>
         </DxGridLayoutItem>
         <DxGridLayoutItem Row="0" Column="1">
             <Template>
                 <div>
-                    <DxGrid @ref="@stationGrid" Data="@stations" DataItemDeleting="DeleteStation" FocusedRowEnabled="true" FocusedRowChanged="StationSelected" HighlightRowOnHover="true">
-                        <ToolbarTemplate>
-                            <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
-                                <Items>
-                                    <DxToolbarItem IconCssClass="oi oi-plus" Click="NewStation" BeginGroup="true" />
-                                    <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowStationPopup"  Enabled="@stationSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
-                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowStationDelete" Enabled="@stationSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
-                                </Items>
-                            </DxToolbar>
-                        </ToolbarTemplate>
-                        <Columns>
-                            <DxGridDataColumn FieldName="@nameof(Station.Name)"></DxGridDataColumn>
-                            <DxGridDataColumn FieldName="@nameof(Station.ProcessIndex)">
-                            </DxGridDataColumn>
-                            <DxGridDataColumn FieldName="@nameof(Station.StationType)">
-                                @* <CellDisplayTemplate>
-                                    <div>@((DataType)((int)context.Value))</div>
-                                </CellDisplayTemplate> *@
-                            </DxGridDataColumn>
-                            <DxGridDataColumn FieldName="@nameof(Station.Enable)">
-                                <CellDisplayTemplate>
-                                    <DxCheckBox Checked="@((bool)context.Value)" CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
-                                </CellDisplayTemplate>
-                            </DxGridDataColumn>
-                        </Columns>
-                    </DxGrid>
+                    <DxTabs>
+                        <DxTabPage Text="@($"{localizer["Station"]}")">
+                            <DxGrid @ref="@stationGrid" Data="@stations" DataItemDeleting="DeleteStation" FocusedRowEnabled="true" FocusedRowChanged="StationSelected" HighlightRowOnHover="true">
+                                <ToolbarTemplate>
+                                    <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                        <Items>
+                                            <DxToolbarItem IconCssClass="oi oi-plus" Click="NewStation" BeginGroup="true" />
+                                            <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowStationPopup" Enabled="@stationSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                            <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowStationDelete" Alignment="ToolbarItemAlignment.Right" Enabled="@stationSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                        </Items>
+                                    </DxToolbar>
+                                </ToolbarTemplate>
+                                <Columns>
+                                    <DxGridDataColumn FieldName="@nameof(Station.Name)"></DxGridDataColumn>
+                                    <DxGridDataColumn FieldName="@nameof(Station.ProcessIndex)">
+                                    </DxGridDataColumn>
+                                    <DxGridDataColumn FieldName="@nameof(Station.StationType)">
+                                        <CellDisplayTemplate>
+                                            <div>@((StationType)((int)context.Value))</div>
+                                        </CellDisplayTemplate>
+                                    </DxGridDataColumn>
+                                    <DxGridDataColumn FieldName="@nameof(Station.Enable)">
+                                        <CellDisplayTemplate>
+                                            <DxCheckBox Checked="@((bool)context.Value)" CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
+                                        </CellDisplayTemplate>
+                                    </DxGridDataColumn>
+                                </Columns>
+                            </DxGrid>
+                        </DxTabPage>
+                        <DxTabPage Text="@($"{localizer["Machine"]}")" TabIconCssClass="oi oi-monitor">
+                            <DxGrid @ref="@machineRealtionGrid" Data="@ProcessMachineRelations" DataItemDeleting="DeleteProcessMachineRelation" FocusedRowEnabled="true" FocusedRowChanged="RelationSelected" HighlightRowOnHover="true">
+                                <ToolbarTemplate>
+                                    <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
+                                        <Items>
+                                            <DxToolbarItem IconCssClass="oi oi-plus" Click="NewMachineRelation" BeginGroup="true" />
+                                            <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowMachineRelationPopup" Enabled="@processMachineRelationSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                            <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowProcessMachineRelationDelete" Alignment="ToolbarItemAlignment.Right" Enabled="@processMachineRelationSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                        </Items>
+                                    </DxToolbar>
+                                </ToolbarTemplate>
+                                <Columns>
+                                    <DxGridDataColumn FieldName="@nameof(ProcessMachineRelation.MachineId)">
+                                        <CellDisplayTemplate>
+                                            <div>@GetMachineNameByRelation((Guid)(context.Value))</div>
+                                        </CellDisplayTemplate>
+                                    </DxGridDataColumn>
+                                </Columns>
+                            </DxGrid>
+                        </DxTabPage>
+                    </DxTabs>
                 </div>
             </Template>
         </DxGridLayoutItem>
@@ -80,20 +106,20 @@
     </HeaderTemplate>
     <BodyContentTemplate Context="bodycontext">
         <EditForm Model="@targetProcess" Context="EditFormContext" OnValidSubmit="UpsertProcess">
-                <DataAnnotationsValidator />
-                <DxFormLayout>
-                    <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" BeginRow="true">
-                        <DxTextBox @bind-Text="@targetProcess.Name" ShowValidationIcon="true" />
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
-                        <DxToolbar>
-                            <Items>
-                                <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
-                            </Items>
-                        </DxToolbar>
-                    </DxFormLayoutItem>
-                </DxFormLayout>
-            </EditForm>
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" BeginRow="true">
+                    <DxTextBox @bind-Text="@targetProcess.Name" ShowValidationIcon="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                        </Items>
+                    </DxToolbar>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
     </BodyContentTemplate>
 </DxPopup>
 
@@ -111,17 +137,46 @@
         <EditForm Model="@targetStation" Context="EditFormContext" OnValidSubmit="UpsertStation">
             <DataAnnotationsValidator />
             <DxFormLayout>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" >
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6">
                     <DxTextBox @bind-Text="@targetStation.Name" ShowValidationIcon="true" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Station Type"]}")" ColSpanLg="6" >
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Station Type"]}")" ColSpanLg="6">
                     <DxComboBox Data="@stationTypes" @bind-Value="targetStation.StationType" ValueFieldName="@(nameof(StationTypeWrapperClass.Index))" TextFieldName="@(nameof(StationTypeWrapperClass.DisplayName))" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Index"]}")" ColSpanLg="6" >
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Index"]}")" ColSpanLg="6">
                     <DxSpinEdit @bind-Value="@targetStation.ProcessIndex" MinValue="0" MaxValue="maxIndex" ShowValidationIcon="true" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Enable"]}")" ColSpanLg="6">
-                    <DxCheckBox @bind-Checked="@targetStation.Enable" CheckType="CheckType.Switch"/>
+                    <DxCheckBox @bind-Checked="@targetStation.Enable" CheckType="CheckType.Switch" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                        </Items>
+                    </DxToolbar>
+                </DxFormLayoutItem>
+            </DxFormLayout>
+        </EditForm>
+    </BodyContentTemplate>
+</DxPopup>
+
+<DxPopup @bind-Visible="@processMachineRelationPopupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" Width="50rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="CloseMachineRelationPopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                </Items>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+        <EditForm Model="@targetProcessMachineRelation" Context="EditFormContext" OnValidSubmit="UpsertProcessMachineRelation">
+            <DataAnnotationsValidator />
+            <DxFormLayout>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" BeginRow="true">
+                    <DxComboBox Data="@machineWithoutRelation" @bind-Value="@targetProcessMachineRelation.MachineId" ValueFieldName="@nameof(Machine.Id)" TextFieldName="@nameof(Machine.Name)"></DxComboBox>
                 </DxFormLayoutItem>
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                     <DxToolbar>
@@ -145,18 +200,44 @@
 
 
     private IEnumerable<StationTypeWrapperClass> stationTypes => TypeEnumHelper.GetStationTypesWrapperClass();
-    IGrid? stationGrid{ get; set; }
+    IGrid? stationGrid { get; set; }
     IEnumerable<Station>? stations => processSelected ? targetProcess.Stations : null;
     Station? targetStation;
     private bool stationSelected => targetStation != null;
     private bool stationPopupVisible = false;
+
+    private IEnumerable<Machine>? machines;
+    private IEnumerable<Machine>? machineWithoutRelation;
+    private IEnumerable<ProcessMachineRelation>? ProcessMachineRelations;
+    IGrid? machineRealtionGrid { get; set; }
+    ProcessMachineRelation? targetProcessMachineRelation;
+    private bool processMachineRelationSelected => targetProcessMachineRelation != null;
+    private bool processMachineRelationPopupVisible = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitParam();
+    }
+
+    private async Task InitParam()
+    {
+        processes = await shopfloorService.GetAllProcessAndStations();
+        // machineWithoutRelation = await shopfloorService.GetMachinesWithoutRelationAndCerrent(targetProcessMachineRelation?.Id);
+        machines = await machineService.GetAllMachinesConfig();
+    }
+
+
+
+    #region ui
+
 
     private void ShowProcessPopup() => processPopupVisible = true;
     private async void CloseProcessPopup()
     {
         await InitParam();
         processPopupVisible = false;
-    } 
+    }
 
     private void ShowStationPopup() => stationPopupVisible = true;
     private async void CloseStationPopup()
@@ -167,25 +248,43 @@
 
     private int maxIndex => targetProcess.Stations.Any() ? targetProcess.Stations.Max(x => x.ProcessIndex) + 1 : 0;
 
-    protected override async Task OnInitializedAsync()
+    private void ShowMachineRelationPopup() => processMachineRelationPopupVisible = true;
+    private async void CloseMachineRelationPopup()
     {
         await InitParam();
+        processMachineRelationPopupVisible = false;
     }
 
-    private async Task InitParam()
-    {
-        processes = await shopfloorService.GetAllProcessAndStations();
-    }
-
-    private void ProcessSelected(GridFocusedRowChangedEventArgs args)
+    private async void ProcessSelected(GridFocusedRowChangedEventArgs args)
     {
         targetProcess = args.DataItem as Process;
+        ProcessMachineRelations = await shopfloorService.GetProcessMachineRelationByID(targetProcess?.Id);
     }
 
     private void StationSelected(GridFocusedRowChangedEventArgs args)
     {
         targetStation = args.DataItem as Station;
     }
+
+    private async void RelationSelected(GridFocusedRowChangedEventArgs args)
+    {
+        targetProcessMachineRelation = args.DataItem as ProcessMachineRelation;
+        machineWithoutRelation = await shopfloorService.GetMachinesWithoutRelationAndCerrent(targetProcessMachineRelation?.MachineId);
+
+    }
+
+    private string GetMachineNameByRelation(Guid id)
+    {
+        var target = machines.FirstOrDefault(x => x.Id == id);
+        return target is not null ? target.Name : string.Empty;
+    }
+
+
+    #endregion
+
+
+
+
 
     private void NewProcess()
     {
@@ -199,21 +298,18 @@
         ShowStationPopup();
     }
 
+    private async void NewMachineRelation()
+    {
+        targetProcessMachineRelation = new(targetProcess.Id);
+        machineWithoutRelation = await shopfloorService.GetMachinesWithoutRelationAndCerrent(targetProcessMachineRelation?.MachineId);
+        ShowMachineRelationPopup();
+    }
+
     private async Task UpsertProcess()
     {
         var res = await shopfloorService.UpsertProcess(targetProcess);
         uiService.ShowToast(res);
         CloseProcessPopup();
-    }
-
-    private void ShowProcessDelete()
-    {
-        processGrid?.ShowDataItemDeleteConfirmation(targetProcess);
-    }
-
-    private void ShowStationDelete()
-    {
-        stationGrid?.ShowDataItemDeleteConfirmation(targetStation);
     }
 
     private async Task DeleteProcess()
@@ -235,6 +331,35 @@
         var res = await shopfloorService.DeleteStation(targetStation);
         await InitParam();
         uiService.ShowToast(res);
+    }
+
+    private async Task UpsertProcessMachineRelation()
+    {
+        var res = await shopfloorService.UpsertProcessMachineRelation(targetProcessMachineRelation);
+        uiService.ShowToast(res);
+        CloseMachineRelationPopup();
+    }
+
+    private async Task DeleteProcessMachineRelation()
+    {
+        var res = await shopfloorService.DeleteProcessMachineRelation(targetProcessMachineRelation);
+        await InitParam();
+        uiService.ShowToast(res);
+    }
+
+    private void ShowProcessDelete()
+    {
+        processGrid?.ShowDataItemDeleteConfirmation(targetProcess);
+    }
+
+    private void ShowStationDelete()
+    {
+        stationGrid?.ShowDataItemDeleteConfirmation(targetStation);
+    }
+
+    private void ShowProcessMachineRelationDelete()
+    {
+        machineRealtionGrid?.ShowDataItemDeleteConfirmation(targetProcessMachineRelation);
     }
 
     private void NavToProcessRouting()

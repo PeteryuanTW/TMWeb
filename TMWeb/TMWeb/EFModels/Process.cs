@@ -11,7 +11,7 @@ public partial class Process
     [Required]
     public string Name { get; set; }
 
-    public virtual ICollection<Machine> Machines { get; set; } = new List<Machine>();
+    //public virtual ICollection<Machine> Machines { get; set; } = new List<Machine>();
 
     public virtual ICollection<Station> Stations { get; set; } = new List<Station>();
 

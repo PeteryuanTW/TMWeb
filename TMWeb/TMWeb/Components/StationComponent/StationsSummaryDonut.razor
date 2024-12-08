@@ -10,8 +10,8 @@
     <DxPieChartSeries T="@Station"
                       TArgument="Status"
                       TValue="int"
-                      ArgumentField="x => x.Status"
-                      ValueField="x => (int)(x.Status)"
+                      ArgumentField="x => x.StationStatus"
+                      ValueField="x => (int)(x.StationStatus)"
                       SummaryMethod="Enumerable.Count">
         <DxChartSeriesLabel Visible="true"
                             Position="RelativePosition.Outside">
@@ -68,7 +68,7 @@
     protected void SetPointColor(ChartSeriesPointCustomizationSettings pointSettings)
     {
         int statusCode = (int)pointSettings.Point.Argument;
-        var targetStyle = TypeEnumHelper.GetStatusStyle(statusCode);
+        var targetStyle = MachineTypeEnumHelper.GetStatusStyle(statusCode);
         if (targetStyle is not null)
         {
             pointSettings.PointAppearance.Color = targetStyle.StyleColor;

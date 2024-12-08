@@ -24,10 +24,17 @@
                     </DxMenuItem>
                 </Items>
             </DxMenuItem>
+            <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Query"]}")" IconUrl="images\MyIcon\data-center.svg" NavigateUrl="/HistoryQuery" />
             <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Connection"]}")" IconCssClass="oi oi-rss">
                 <Items>
                     <DxMenuItem Text="@($"{localizer["Machine"]}")" IconCssClass="oi oi-monitor" NavigateUrl="/MachinesSetting" />
-                    <DxMenuItem Text="@($"{localizer["Tag"]}")" IconCssClass="oi oi-tags" NavigateUrl="/TagCategoriesPage" />
+                    <DxMenuItem Text="@($"{localizer["Tag"]}")" IconCssClass="oi oi-tags" NavigateUrl="/TagCategories" />
+                    <DxMenuItem Text="@($"{localizer["Custom"]}")" IconUrl="images\MyIcon\custom-tag.svg">
+                        <Items>
+                            <DxMenuItem Text="@($"{localizer["Status"]}")" IconUrl="images\MyIcon\condition.svg" NavigateUrl="/CustomTagStatus" />
+                            <DxMenuItem Text="@($"{localizer["Error Code"]}")" IconUrl="images\MyIcon\error-code.svg" NavigateUrl="/CustomTagErrorCode" />
+                        </Items>
+                    </DxMenuItem>
                 </Items>
             </DxMenuItem>
             <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Script"]}")" IconCssClass="oi oi-script" NavigateUrl="/Scripts" />

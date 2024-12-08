@@ -1,4 +1,5 @@
 ﻿using TMWeb.Services;
+using Newtonsoft.Json;
 
 namespace TMWeb.Scripts.Template
 {
@@ -98,6 +99,7 @@ namespace TMWeb.Scripts.Template
 
         public void Stop()
         {
+            OnStop();
             status = ScriptStatus.Stop;
             StatusChanged();
             WriteLog($"Script stop");

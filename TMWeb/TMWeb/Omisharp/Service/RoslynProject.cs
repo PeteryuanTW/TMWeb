@@ -21,7 +21,7 @@ namespace TMWeb.Omisharp.Service
 
             List<Assembly> appAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
             var references = new List<MetadataReference>();
-
+            var a = appAssemblies.OrderBy(x => x.ManifestModule.Name);
             foreach (var assembly in appAssemblies)
             {
                 MetadataReference? ret = null;
@@ -30,6 +30,7 @@ namespace TMWeb.Omisharp.Service
                 try
                 {
                     ret = MetadataReference.CreateFromFile(assembly.Location);
+                    
                     references.Add(ret);
                 }
                 catch (Exception ex)

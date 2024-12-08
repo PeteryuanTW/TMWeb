@@ -9,7 +9,9 @@ using System.Buffers.Binary;
 using DevExpress.Blazor.Internal;
 using NModbus.Extensions.Enron;
 using CommonLibrary.API.Message;
+using CommonLibrary.Machine.EFModel;
 using Microsoft.AspNetCore.Authorization;
+using CommonLibrary.Machine;
 
 namespace TMWeb.Data
 {
@@ -18,29 +20,9 @@ namespace TMWeb.Data
         private TcpClient tcpClient;
         private IModbusFactory modbusFactory;
         public IModbusMaster? master;
-        public ModbusTCPMachine(Machine machine)//: base(machine)
+        public ModbusTCPMachine(Machine machine): base(machine)
         {
-            Id = machine.Id;
-            ProcessId = machine.ProcessId;
-            Name = machine.Name;
-            Ip = machine.Ip;
-            Port = machine.Port;
-            ConnectionType = machine.ConnectionType;
-            Enabled = machine.Enabled;
-            TagCategoryId = machine.TagCategoryId;
-
-            if (machine.TagCategory != null)
-            {
-                TagCategory = new TagCategory
-                {
-                    Id = machine.TagCategory.Id,
-                    Name = machine.TagCategory.Name,
-                    ConnectionType = machine.ConnectionType,
-
-                    Tags = machine.TagCategory.Tags,
-                };
-            }
-
+            //base(machine);
             tcpClient = new();
             modbusFactory = new ModbusFactory();
         }
@@ -71,7 +53,7 @@ namespace TMWeb.Data
         {
             try
             {
-                if (Status != Status.Disconnect || Status != Status.TryConnecting)
+                if (MachineStatus != Status.Disconnect || MachineStatus != Status.TryConnecting)
                 {
                     int station = tag.Int1;
                     int startIndex = tag.Int2;

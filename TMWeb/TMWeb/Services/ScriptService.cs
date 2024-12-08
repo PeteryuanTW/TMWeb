@@ -1,5 +1,7 @@
 ﻿using CommonLibrary.API.Message;
+using CommonLibrary.MachinePKG;
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.PortableExecutable;
 using TMWeb.Data;
 using TMWeb.EFModels;
 using TMWeb.Scripts.Template;
@@ -8,8 +10,6 @@ namespace TMWeb.Services
 {
     public class ScriptService
     {
-        public string Root => ".\\Scripts\\Source";
-
         private readonly IServiceScopeFactory scopeFactory;
         private List<ScriptConfig> scriptConfigs;
 
@@ -17,20 +17,122 @@ namespace TMWeb.Services
         {
             this.scopeFactory = scopeFactory;
             scriptConfigs = new();
-            //InitAllScripts();
         }
 
-        public List<ScriptConfig> GetAllScripts()
+        public Task<List<ScriptConfig>> GetAllScripts()
         {
-            return scriptConfigs;
+            return Task.FromResult(scriptConfigs);
+        }
+
+        public Task<List<ScriptConfig>> GetAllScriptsConfig()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return Task.FromResult(dbContext.ScriptConfigs.AsNoTracking().ToList());
+            }
         }
 
         public ScriptConfig? GetScriptByID(Guid id)
         {
             return scriptConfigs.FirstOrDefault(x => x.Id == id);
         }
-
         public async Task<RequestResult> UpsertScript(ScriptConfig scriptConfig)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.ScriptConfigs.FirstOrDefault(x => x.Id == scriptConfig.Id);
+                    bool exist = target is not null;
+                    if (exist)
+                    {
+                        target.ScriptName = scriptConfig.ScriptName;
+                        target.AutoCompile = scriptConfig.AutoCompile;
+                        target.AutoRun = scriptConfig.AutoRun;
+                        target.SuorceCode = scriptConfig.SuorceCode;
+                    }
+                    else
+                    {
+                        scriptConfig.SuorceCode = ScriptTemplate.GetCSharpTemplate(scriptConfig.ScriptName);
+                        await dbContext.ScriptConfigs.AddAsync(scriptConfig);
+                    }
+                    await dbContext.SaveChangesAsync();
+                    DataEditMode dataEditMode = exist ? DataEditMode.Update : DataEditMode.Insert;
+                    await RefreshScript(scriptConfig, dataEditMode);
+                    return new(2, $"Upsert script {scriptConfig.ScriptName} success");
+                }
+            }
+            catch (Exception e)
+            {
+                return new(4, e.Message);
+            }
+        }
+        public async Task<RequestResult> DeleteScript(ScriptConfig script)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var target = dbContext.ScriptConfigs.FirstOrDefault(x => x.Id == script.Id);
+                    if (target != null)
+                    {
+                        dbContext.Remove(target);
+                        await dbContext.SaveChangesAsync();
+                        await RefreshScript(target, DataEditMode.Delete);
+                        return new(2, $"Delete machine {target.ScriptName} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Machine {script.ScriptName} not found");
+                    }
+
+                }
+                catch (Exception e)
+                {
+                    return new(4, $"Delete machine {script.ScriptName} fail({e.Message})");
+                }
+
+            }
+        }
+        private async Task RefreshScript(ScriptConfig script, DataEditMode dataEditMode)
+        {
+            var target = GetScriptByID(script.Id);
+            if (target != null)
+            {
+                scriptConfigs.Remove(target);
+                target.Dispose();
+                if (dataEditMode != DataEditMode.Delete)
+                {
+                    await InitScript(script);
+                    scriptConfigs.Add(script);
+                }
+                else
+                {
+                }
+            }
+            else
+            {
+                await InitScript(script);
+                scriptConfigs.Add(script);
+            }
+            ScriptConfigChanged(script.Id, dataEditMode);
+        }
+
+        public Action<Guid, DataEditMode>? ScriptConfigChangedAct;
+        private void ScriptConfigChanged(Guid id, DataEditMode mode)
+        {
+            ScriptConfigChangedAct?.Invoke(id, mode);
+        }
+
+
+
+
+
+
+        public async Task<RequestResult> UpdateScriptCode(ScriptConfig scriptConfig)
         {
             try
             {
@@ -40,18 +142,15 @@ namespace TMWeb.Services
                     var target = dbContext.ScriptConfigs.FirstOrDefault(x => x.Id == scriptConfig.Id);
                     if (target is not null)
                     {
-                        target.ScriptName = scriptConfig.ScriptName;
-                        target.ClassName = scriptConfig.ClassName;
-                        target.AutoCompile = scriptConfig.AutoCompile;
-                        target.AutoRun = scriptConfig.AutoRun;
                         target.SuorceCode = scriptConfig.SuorceCode;
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Update script code {scriptConfig.ScriptName} success");
                     }
                     else
                     {
-                        await dbContext.ScriptConfigs.AddAsync(scriptConfig);
+                        return new(2, $"Script code {scriptConfig.ScriptName} not found");
                     }
-                    await dbContext.SaveChangesAsync();
-                    return new(2, $"Upsert script {scriptConfig.ScriptName} success");
+                    
                 }
             }
             catch (Exception e)
@@ -59,8 +158,6 @@ namespace TMWeb.Services
                 return new(4, e.Message);
             }
         }
-
-
         public async Task InitAllScripts()
         {
             scriptConfigs = new();
@@ -70,11 +167,16 @@ namespace TMWeb.Services
                 scriptConfigs = dbContext.ScriptConfigs.AsNoTracking().ToList();
                 foreach (var scriptConfig in scriptConfigs)
                 {
-                    if (scriptConfig.AutoCompile)
-                    {
-                        await ReadScriptAndCompile(scriptConfig);
-                    }
+                    await InitScript(scriptConfig);
                 }
+            }
+        }
+
+        public async Task InitScript(ScriptConfig scriptConfig)
+        {
+            if (scriptConfig.AutoCompile)
+            {
+                await ReadScriptAndCompile(scriptConfig);
             }
         }
 
@@ -82,12 +184,12 @@ namespace TMWeb.Services
         {
             try
             {
-                var code = await File.ReadAllTextAsync($"{Root}\\{scriptConfig.ScriptName}.script");
+                var code = scriptConfig.SuorceCode;//await File.ReadAllTextAsync($"{Root}\\{scriptConfig.ScriptName}.script");
                 using (var scope = scopeFactory.CreateScope())
                 {
                     var loaderService = scope.ServiceProvider.GetRequiredService<ScriptLoaderService>();
                     var assembly = await loaderService.CompileToDLLAssembly(code, release: true);
-                    var mytype = assembly.GetType($"TMWeb.Scripts.Source.{scriptConfig.ClassName}");
+                    var mytype = assembly.GetType($"TMWeb.Scripts.Source.{scriptConfig.ScriptName}");
                     var sfcService = scope.ServiceProvider.GetRequiredService<TMWebShopfloorService>();
                     var instance = (ScriptBaseClass)Activator.CreateInstance(mytype, sfcService);
                     DeployScriptByID(scriptConfig.Id, instance);

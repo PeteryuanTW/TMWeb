@@ -1,4 +1,5 @@
 ﻿using TMWeb.EFModels;
+using CommonLibrary.MachinePKG.EFModel;
 namespace TMWeb.Data
 {
     public class RecipeCheckItem

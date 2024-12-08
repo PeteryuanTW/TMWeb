@@ -17,7 +17,7 @@ public partial class Tag
 
     public bool UpdateByTime { get; set; }
 
-    public bool IsHeartBeat { get; set; }
+    public int SpecialType { get; set; }
 
     public bool Bool1 { get; set; }
 

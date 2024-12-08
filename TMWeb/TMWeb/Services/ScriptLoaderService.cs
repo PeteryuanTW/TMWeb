@@ -1,5 +1,4 @@
-﻿using DevExpress.Printing.ExportHelpers;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
@@ -14,6 +13,7 @@ using OmniSharp.Options;
 using OmniSharp.Models.v1.Completion;
 using TMWeb.Omisharp.Service;
 using OmniSharp.Models.SignatureHelp;
+using Newtonsoft.Json;
 
 namespace TMWeb.Services
 {
@@ -26,7 +26,7 @@ namespace TMWeb.Services
         OmniSharpSignatureHelpService signatureService;
         OmniSharpQuickInfoProvider quickInfoProvider;
 
-        public ScriptLoaderService(NavigationManager navigationManager)
+        public ScriptLoaderService()
         {
             completionProject = new();
             diagnosticProject = new();
@@ -34,7 +34,27 @@ namespace TMWeb.Services
             var formattingOptions = new FormattingOptions();
 
             completionService = new(completionProject.Workspace, formattingOptions);
+            signatureService = new(completionProject.Workspace);
             quickInfoProvider = new(completionProject.Workspace, formattingOptions);
+        }
+
+        private async Task<List<MetadataReference>> GetMetadataReference()
+        {
+            List<MetadataReference> res = new();
+            var appAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            appAssemblies.Add(typeof(object).Assembly);
+            appAssemblies.Add(typeof(JsonConvert).Assembly);
+            appAssemblies.Add(typeof(HttpClient).Assembly);
+
+            foreach (var appAssembly in appAssemblies)
+            {
+                var metadataReference = await GetAssemblyMetadataReference(appAssembly);
+                if (metadataReference != null)
+                {
+                    res.Add(metadataReference);
+                }
+            }
+            return res;
         }
 
         Dictionary<string, MetadataReference> MetadataReferenceCache = new Dictionary<string, MetadataReference>();
@@ -85,28 +105,29 @@ namespace TMWeb.Services
             var parsedSyntaxTree = SyntaxFactory.ParseSyntaxTree(codeString, options);
 
             //List<Assembly> appAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies().Select(o => Assembly.Load(o)).ToList();
-            List<Assembly> appAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            //List<Assembly> appAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
             //List<Assembly> appAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(x => Assembly.Load($"{x.GetName()}.dll")).ToList();
-            appAssemblies.Add(typeof(object).Assembly);
+            //appAssemblies.Add(typeof(object).Assembly);
+            //appAssemblies.Add(typeof(JsonConvert).Assembly);
             //var assemblyPath = Path.GetDirectoryName(typeof(ScriptBaseClass).Assembly.Location);
             //Console.WriteLine(assemblyPath);
             //appAssemblies.Add(typeof(ScriptBaseClass).Assembly);
-            var references = new List<MetadataReference>();
-            List<string> loaded = new();
-            List<string> notloaded = new();
-            foreach (var assembly in appAssemblies)
-            {
-                var metadataReference = await GetAssemblyMetadataReference(assembly);
-                if (metadataReference != null)
-                {
-                    references.Add(metadataReference);
-                    loaded.Add(assembly.FullName);
-                }
-                else
-                {
-                    notloaded.Add(assembly.FullName);
-                }
-            }
+            var references = await GetMetadataReference();
+            //List<string> loaded = new();
+            //List<string> notloaded = new();
+            //foreach (var assembly in appAssemblies)
+            //{
+            //    var metadataReference = await GetAssemblyMetadataReference(assembly);
+            //    if (metadataReference != null)
+            //    {
+            //        references.Add(metadataReference);
+            //        loaded.Add(assembly.FullName);
+            //    }
+            //    else
+            //    {
+            //        notloaded.Add(assembly.FullName);
+            //    }
+            //}
             CSharpCompilation compilation;
             if (sourceCodeKind == SourceCodeKind.Script)
             {
@@ -202,9 +223,6 @@ namespace TMWeb.Services
 
             return signatureHelpResponse;
         }
-
-
-
         [JSInvokable]
         public async Task<QuickInfoResponse> GetQuickInfoAsync(QuickInfoRequest quickInfoRequest)
         {
@@ -232,28 +250,29 @@ namespace TMWeb.Services
             var parsedSyntaxTree = SyntaxFactory.ParseSyntaxTree(codeString, options);
 
             //List<Assembly> appAssemblies = Assembly.GetEntryAssembly()!.GetReferencedAssemblies().Select(o => Assembly.Load(o)).ToList();
-            List<Assembly> appAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
+            //List<Assembly> appAssemblies = AppDomain.CurrentDomain.GetAssemblies().ToList();
             //List<Assembly> appAssemblies = AppDomain.CurrentDomain.GetAssemblies().Select(x => Assembly.Load($"{x.GetName()}.dll")).ToList();
-            appAssemblies.Add(typeof(object).Assembly);
-            var assemblyPath = Path.GetDirectoryName(typeof(ScriptBaseClass).Assembly.Location);
+            //appAssemblies.Add(typeof(object).Assembly);
+            //appAssemblies.Add(typeof(JsonConvert).Assembly);
+            //var assemblyPath = Path.GetDirectoryName(typeof(ScriptBaseClass).Assembly.Location);
             //Console.WriteLine(assemblyPath);
             //appAssemblies.Add(typeof(ScriptBaseClass).Assembly);
-            var references = new List<MetadataReference>();
-            List<string> loaded = new();
-            List<string> notloaded = new();
-            foreach (var assembly in appAssemblies)
-            {
-                var metadataReference = await GetAssemblyMetadataReference(assembly);
-                if (metadataReference != null)
-                {
-                    references.Add(metadataReference);
-                    loaded.Add(assembly.FullName);
-                }
-                else
-                {
-                    notloaded.Add(assembly.FullName);
-                }
-            }
+            var references = await GetMetadataReference();
+            //List<string> loaded = new();
+            //List<string> notloaded = new();
+            //foreach (var assembly in appAssemblies)
+            //{
+            //    var metadataReference = await GetAssemblyMetadataReference(assembly);
+            //    if (metadataReference != null)
+            //    {
+            //        references.Add(metadataReference);
+            //        loaded.Add(assembly.FullName);
+            //    }
+            //    else
+            //    {
+            //        notloaded.Add(assembly.FullName);
+            //    }
+            //}
             CSharpCompilation compilation;
             if (sourceCodeKind == SourceCodeKind.Script)
             {

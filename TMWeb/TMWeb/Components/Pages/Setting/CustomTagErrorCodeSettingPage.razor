@@ -1,0 +1,141 @@
+﻿@page "/CustomTagErrorCode"
+
+<CustomTagErrorCodeSetting ActionCallback="@GetActionCallback"></CustomTagErrorCodeSetting>
+
+@code {
+    // private IEnumerable<DataTypeWrapperClass> DataTypes => MachineTypeEnumHelper.GetDataTypesWrapperClass();
+
+    // IGrid? catGrid { get; set; }
+    // private IEnumerable<ErrorCodeCategory>? errorCodeCategory;
+    // private ErrorCodeCategory? targetCat;
+    // private bool catSelected => targetCat != null;
+
+
+    // IGrid? errorcodeGrid { get; set; }
+    // private List<ErrorCodeMapping> errorCodeMapping => catSelected ? targetCat.ErrorCodeMappings.ToList() : new();
+    // private ErrorCodeMapping? targetErrorCodeMapping;
+    // private bool errorCodeMappingSelected => targetErrorCodeMapping != null;
+
+
+    // private bool catPopupVisible;
+    // private bool errorCodeMappingPopupVisible;
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     await InitParameter();
+    //     await base.OnInitializedAsync();
+    // }
+
+    // private async Task InitParameter()
+    // {
+    //     errorCodeCategory = await shopfloorService.GetErrorCodeTables();
+    // }
+
+    // #region UI
+
+    // private void CatSelected(GridFocusedRowChangedEventArgs args)
+    // {
+    //     targetCat = args.DataItem as ErrorCodeCategory;
+    // }
+
+    // private void ErrorCodeSelected(GridFocusedRowChangedEventArgs args)
+    // {
+    //     targetErrorCodeMapping = args.DataItem as ErrorCodeMapping;
+    // }
+
+    // private void ShowCatPopup()
+    // {
+    //     catPopupVisible = true;
+    // }
+
+    // private async void CloseCatPopup()
+    // {
+    //     catPopupVisible = false;
+    //     await InitParameter();
+    // }
+
+    // private void ShowErrorCodeMappingPopup()
+    // {
+    //     errorCodeMappingPopupVisible = true;
+    // }
+
+    // private async void CloseErrorCodeMappingPopup()
+    // {
+    //     errorCodeMappingPopupVisible = false;
+    //     await InitParameter();
+    // }
+
+    // private void NewCatClicked()
+    // {
+    //     GenrateNewCat();
+    //     ShowCatPopup();
+    // }
+
+    // private void NewErrorCodeMappingClicked()
+    // {
+    //     GenrateNewMapping();
+    //     ShowErrorCodeMappingPopup();
+    // }
+
+    // private void ShowCatDelete()
+    // {
+    //     catGrid?.ShowDataItemDeleteConfirmation(targetCat);
+    // }
+
+    // private void ShowMappingDelete()
+    // {
+    //     errorcodeGrid?.ShowDataItemDeleteConfirmation(targetErrorCodeMapping);
+    // }
+
+    // #endregion
+
+    // #region category
+
+    // private void GenrateNewCat()
+    // {
+    //     targetCat = new ErrorCodeCategory(Guid.NewGuid());
+    // }
+
+    // private async Task UpsertCustomErrorCodeCategory()
+    // {
+    //     var res = await shopfloorService.UpsertErrorCodeCategory(targetCat);
+    //     CloseCatPopup();
+    //     uiService.ShowToast(res);
+    // }
+    
+    // private async Task DeleteCustomErrorCodeCategory()
+    // {
+    //     var res = await shopfloorService.DeleteErrorCodeCategory(targetCat);
+    //     await InitParameter();
+    //     uiService.ShowToast(res);
+    // }
+    
+    // #endregion
+
+    // #region error code mapping
+
+    // private void GenrateNewMapping()
+    // {
+    //     targetErrorCodeMapping = new ErrorCodeMapping(targetCat.Id);
+    // }
+
+    // private async Task UpsertMapping()
+    // {
+    //     var res = await shopfloorService.UpsertErrorCodeMapping(targetErrorCodeMapping);
+    //     CloseErrorCodeMappingPopup();
+    //     uiService.ShowToast(res);
+    // }
+
+    // private async Task DeleteMapping()
+    // {
+    //     var res = await shopfloorService.DeleteErrorCodeMapping(targetErrorCodeMapping);
+    //     await InitParameter();
+    //     uiService.ShowToast(res);
+    // }
+
+    // #endregion
+    private void GetActionCallback(RequestResult res)
+    {
+        uiService.ShowToast(res);
+    }
+}

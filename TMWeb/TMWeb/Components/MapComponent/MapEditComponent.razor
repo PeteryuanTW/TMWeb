@@ -82,7 +82,7 @@
                     }
                     break;
                 case 1:
-                    Machine? machine = await shopfloorService.GetMachineByID(MapComponentConfig.TargetId);
+                    Machine? machine = await machineService.GetMachineByID(MapComponentConfig.TargetId);
                     if (machine != null)
                     {
                         name = machine.Name;

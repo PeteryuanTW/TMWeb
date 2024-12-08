@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using CommonLibrary.MachinePKG.EFModel;
 
 namespace TMWeb.EFModels;
 
@@ -20,7 +21,8 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<ItemRecordDetail> ItemRecordDetails { get; set; }
 
-    public virtual DbSet<Machine> Machines { get; set; }
+    //public virtual DbSet<MachineBase> MachineBases { get; set; }
+    //public virtual DbSet<Machine> Machines { get; set; }
 
     public virtual DbSet<MachineStatusLog> MachineStatusLogs { get; set; }
 
@@ -32,17 +34,27 @@ public partial class TmwebContext : DbContext
 
     public virtual DbSet<Process> Processes { get; set; }
 
+    public virtual DbSet<ProcessMachineRelation> ProcessMachineRelations { get; set; }
+
     public virtual DbSet<ScriptConfig> ScriptConfigs { get; set; }
 
     public virtual DbSet<Station> Stations { get; set; }
 
     public virtual DbSet<StationUirecord> StationUirecords { get; set; }
 
-    public virtual DbSet<Tag> Tags { get; set; }
+    //public virtual DbSet<Tag> Tags { get; set; }
 
-    public virtual DbSet<TagCategory> TagCategories { get; set; }
+    //public virtual DbSet<TagCategory> TagCategories { get; set; }
 
     public virtual DbSet<TaskDetail> TaskDetails { get; set; }
+
+    //public virtual DbSet<LogicStatusCategory> LogicStatusCategories { get; set; }
+
+    //public virtual DbSet<LogicStatusCondition> LogicStatusCondictions { get; set; }
+
+    //public virtual DbSet<ErrorCodeCategory> ErrorCodeCategories { get; set; }
+
+    //public virtual DbSet<ErrorCodeMapping> ErrorCodeMappings { get; set; }
 
     public virtual DbSet<TaskRecordConfig> TaskRecordConfigs { get; set; }
 
@@ -133,33 +145,63 @@ public partial class TmwebContext : DbContext
                 .HasConstraintName("FK__ItemRecor__Recor__656C112C");
         });
 
-        modelBuilder.Entity<Machine>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__Machine__3214EC274421D01E");
+        //modelBuilder.Entity<MachineBase>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id).HasName("PK__Machine__3214EC274421D01E");
+        //    entity.Property(e => e.Id)
+        //        .ValueGeneratedNever()
+        //        .HasColumnName("ID");
+        //    entity.HasIndex(e => e.Name, "UQ__Machine__737584F66D3A72BE").IsUnique();
+        //    entity.Property(e => e.Name).HasMaxLength(50);
+        //    entity.Property(e => e.Ip)
+        //        .HasMaxLength(50)
+        //        .HasColumnName("IP");
+        //    entity.Property(e => e.TagCategoryId).HasColumnName("TagCategoryID");
+        //    entity.HasOne(d => d.TagCategory).WithMany(p => p.Machines)
+        //        .HasForeignKey(d => d.TagCategoryId)
+        //        .HasConstraintName("FK__Machine__TagCate__6477ECF3");
 
-            entity.ToTable("Machine");
+        //    entity.Property(e => e.UpdateDelay).HasColumnName("UpdateDelay");
+        //});
 
-            entity.HasIndex(e => e.Name, "UQ__Machine__737584F66D3A72BE").IsUnique();
+        //modelBuilder.Entity<Machine>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id).HasName("PK__Machine__3214EC274421D01E");
+        //    entity.UseTpcMappingStrategy();
+        //    entity.ToTable("Machine");
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("ID");
-            entity.Property(e => e.Ip)
-                .HasMaxLength(50)
-                .HasColumnName("IP");
-            entity.Property(e => e.Name).HasMaxLength(50);
-            entity.Property(e => e.ProcessId).HasColumnName("ProcessID");
-            entity.Property(e => e.TagCategoryId).HasColumnName("TagCategoryID");
+        //    entity.HasIndex(e => e.Name, "UQ__Machine__737584F66D3A72BE").IsUnique();
 
-            entity.HasOne(d => d.Process).WithMany(p => p.Machines)
-                .HasForeignKey(d => d.ProcessId)
-                .HasConstraintName("FK_Machine_Process");
+        //    entity.Property(e => e.Id)
+        //        .ValueGeneratedNever()
+        //        .HasColumnName("ID");
+        //    entity.Property(e => e.Ip)
+        //        .HasMaxLength(50)
+        //        .HasColumnName("IP");
 
-            entity.HasOne(d => d.TagCategory).WithMany(p => p.Machines)
-                .HasForeignKey(d => d.TagCategoryId)
-                .HasConstraintName("FK__Machine__TagCate__6477ECF3");
-        });
+        //    entity.Property(e => e.Name).HasMaxLength(50);
+        //    //entity.Property(e => e.ProcessId).HasColumnName("ProcessID");
+        //    entity.Property(e => e.TagCategoryId).HasColumnName("TagCategoryID");
+        //    entity.Property(e => e.LogicStatusCategoryId).HasColumnName("LogicStatusCategoryID");
 
+        //    //entity.HasOne(d => d.Process).WithMany(p => p.Machines)
+        //    //    .HasForeignKey(d => d.ProcessId)
+        //    //    .HasConstraintName("FK_Machine_Process");
+
+        //    entity.HasOne(d => d.TagCategory).WithMany(p => p.Machines)
+        //        .HasForeignKey(d => d.TagCategoryId)
+        //        .HasConstraintName("FK__Machine__TagCate__6477ECF3");
+
+        //    entity.HasOne(d => d.LogicStatusCategory).WithMany(p => p.Machines)
+        //        .HasForeignKey(d => d.LogicStatusCategoryId);
+
+        //    entity.HasOne(d => d.ErrorCodeCategory).WithMany(p => p.Machines)
+        //        .HasForeignKey(d => d.ErrorCodeCategoryId);
+
+        //    entity.Property(e => e.Enabled).HasColumnName("Enabled");
+        //    entity.Property(e => e.UpdateDelay).HasColumnName("UpdateDelay");
+        //    entity.Property(e => e.MaxRetryCount).HasColumnName("MaxRetryCount");
+        //});
 
         modelBuilder.Entity<MachineStatusLog>(entity =>
         {
@@ -171,8 +213,6 @@ public partial class TmwebContext : DbContext
             entity.Property(e => e.Status).HasColumnName("Status");
             entity.Property(e => e.LogTime).HasColumnName("LogTime");
         });
-
-
 
         modelBuilder.Entity<MapComponent>(entity =>
         {
@@ -232,12 +272,21 @@ public partial class TmwebContext : DbContext
             entity.Property(e => e.Name).HasMaxLength(50);
         });
 
+        modelBuilder.Entity<ProcessMachineRelation>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("ProcessMachineRelations");
+
+            entity.Property(e => e.ProcessId).HasColumnName("ProcessID");
+            entity.Property(e => e.MachineId).HasColumnName("MachineID");
+        });
+
         modelBuilder.Entity<ScriptConfig>(entity =>
         {
             entity.Property(e => e.Id)
                 .ValueGeneratedNever()
                 .HasColumnName("ID");
-            entity.Property(e => e.ClassName).HasMaxLength(50);
             entity.Property(e => e.ScriptName).HasMaxLength(50);
             entity.Property(e => e.AutoCompile).HasColumnName("AutoCompile");
             entity.Property(e => e.AutoRun).HasColumnName("AutoRun");
@@ -283,6 +332,20 @@ public partial class TmwebContext : DbContext
                 .HasConstraintName("FK_StationUIRecord_Stations");
         });
 
+        //modelBuilder.Entity<TagCategory>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id).HasName("PK__TagCateg__3214EC272BE5477F");
+
+        //    entity.ToTable("TagCategory");
+
+        //    entity.HasIndex(e => e.Name, "UQ__TagCateg__737584F667A64B71").IsUnique();
+
+        //    entity.Property(e => e.Id)
+        //        .ValueGeneratedNever()
+        //        .HasColumnName("ID");
+        //    entity.Property(e => e.Name).HasMaxLength(50);
+        //});
+
         modelBuilder.Entity<Tag>(entity =>
         {
             entity.HasKey(e => e.Id).HasName("PK__Tag__3214EC271E77490D");
@@ -324,23 +387,81 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Category).WithMany(p => p.Tags)
                 .HasForeignKey(d => d.CategoryId)
-                .OnDelete(DeleteBehavior.ClientCascade)
-                .HasConstraintName("FK__Tag__CategoryID__68487DD7");
+                .OnDelete(DeleteBehavior.ClientCascade);
+                //.HasConstraintName("FK__Tag__CategoryID__68487DD7");
         });
 
-        modelBuilder.Entity<TagCategory>(entity =>
-        {
-            entity.HasKey(e => e.Id).HasName("PK__TagCateg__3214EC272BE5477F");
+        //modelBuilder.Entity<LogicStatusCategory>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id);
 
-            entity.ToTable("TagCategory");
+        //    entity.ToTable("LogicStatusCategories");
 
-            entity.HasIndex(e => e.Name, "UQ__TagCateg__737584F667A64B71").IsUnique();
+        //    entity.HasIndex(e => e.Name).IsUnique();
 
-            entity.Property(e => e.Id)
-                .ValueGeneratedNever()
-                .HasColumnName("ID");
-            entity.Property(e => e.Name).HasMaxLength(50);
-        });
+        //    entity.Property(e => e.Id)
+        //        .ValueGeneratedNever()
+        //        .HasColumnName("ID");
+
+        //    entity.Property(e => e.Name).HasMaxLength(50);
+        //});
+
+        //modelBuilder.Entity<LogicStatusCondition>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id);
+
+        //    entity.ToTable("LogicStatusConditions");
+
+        //    entity.Property(e => e.Id)
+        //        .ValueGeneratedNever()
+        //        .HasColumnName("ID");
+        //    entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+        //    entity.Property(e => e.ConditionString)
+        //        .HasMaxLength(50)
+        //        .HasColumnName("CondictionString");
+
+        //    entity.Property(e => e.Status).HasColumnName("Status");
+
+        //    entity.HasOne(d => d.Category).WithMany(p => p.LogicStatusConditions)
+        //        .HasForeignKey(d => d.CategoryId)
+        //        .OnDelete(DeleteBehavior.ClientCascade);
+        //});
+
+        //modelBuilder.Entity<ErrorCodeCategory>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id);
+
+        //    entity.ToTable("ErrorCodeCategories");
+
+        //    entity.HasIndex(e => e.Name).IsUnique();
+
+        //    entity.Property(e => e.Id)
+        //        .ValueGeneratedNever()
+        //        .HasColumnName("ID");
+
+        //    entity.Property(e => e.Name).HasMaxLength(50);
+        //});
+
+        //modelBuilder.Entity<ErrorCodeMapping>(entity =>
+        //{
+        //    entity.HasKey(e => e.Id);
+
+        //    entity.ToTable("ErrorCodeMappings");
+
+        //    entity.Property(e => e.Id)
+        //        .ValueGeneratedNever()
+        //        .HasColumnName("ID");
+        //    entity.Property(e => e.CategoryId).HasColumnName("CategoryID");
+        //    entity.Property(e => e.ConditionString)
+        //        .HasMaxLength(50)
+        //        .HasColumnName("ConditionString");
+        //    entity.Property(e => e.Description)
+        //        .HasMaxLength(50)
+        //        .HasColumnName("Description");
+        //    entity.HasOne(d => d.Category).WithMany(p => p.ErrorCodeMappings)
+        //        .HasForeignKey(d => d.CategoryId)
+        //        .OnDelete(DeleteBehavior.ClientCascade);
+        //});
 
         modelBuilder.Entity<TaskDetail>(entity =>
         {
