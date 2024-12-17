@@ -1,4 +1,4 @@
-﻿namespace TMWeb.EFModels
+﻿namespace CommonLibrary.MachinePKG.EFModel
 {
     public partial class MachineStatusLog
     {

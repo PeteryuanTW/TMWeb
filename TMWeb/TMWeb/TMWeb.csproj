@@ -15,25 +15,31 @@
 	<ItemGroup>
 	  <Compile Remove="Data\ModbusTCPMachine.cs" />
 	  <Compile Remove="Data\TMRobotModbusTCP.cs" />
+	  <Compile Remove="EFModels\BuildInRecipe.cs" />
+	  <Compile Remove="EFModels\CustomRecipe.cs" />
 	  <Compile Remove="EFModels\ErrorCodeCategory.cs" />
 	  <Compile Remove="EFModels\ErrorCodeMapping.cs" />
 	  <Compile Remove="EFModels\LogicStatusCategory.cs" />
 	  <Compile Remove="EFModels\LogicStatusCondition.cs" />
 	  <Compile Remove="EFModels\Machine.cs" />
+	  <Compile Remove="EFModels\StaticRecipe.cs" />
 	  <Compile Remove="EFModels\Tag.cs" />
 	  <Compile Remove="EFModels\TagCategory.cs" />
+	  <Compile Remove="EFPartialModels\BuildInRecipe.partial.cs" />
+	  <Compile Remove="EFPartialModels\CustomRecipe.partial.cs" />
 	  <Compile Remove="EFPartialModels\ErrorCodeCategory.partial.cs" />
 	  <Compile Remove="EFPartialModels\ErrorCodeMapping.partial.cs" />
 	  <Compile Remove="EFPartialModels\LogicStatusCategory.partial.cs" />
 	  <Compile Remove="EFPartialModels\LogicStatusCondition.cs" />
 	  <Compile Remove="EFPartialModels\Machine.partial.cs" />
+	  <Compile Remove="EFPartialModels\StaticRecipe.partial.cs" />
 	  <Compile Remove="EFPartialModels\Tag.partial.cs" />
 	  <Compile Remove="EFPartialModels\TagCategory.partial.cs" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="BitzArt.Blazor.Cookies.Server" Version="1.1.2" />
 		<PackageReference Include="BlazorMonaco" Version="3.2.0" />
-		<PackageReference Include="DevExpress.Blazor" Version="24.1.7" />
+		<PackageReference Include="DevExpress.Blazor" Version="24.2.3" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.*-*" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
@@ -76,6 +82,8 @@
 	<ItemGroup>
 	  <None Include="Data\ModbusTCPMachine.cs" />
 	  <None Include="Data\TMRobotModbusTCP.cs" />
+	  <None Include="EFModels\BuildInRecipe.cs" />
+	  <None Include="EFModels\CustomRecipe.cs" />
 	  <None Include="EFModels\ErrorCodeCategory.cs" />
 	  <None Include="EFModels\ErrorCodeMapping.cs" />
 	  <None Include="EFModels\LogicStatusCategory.cs" />
@@ -83,15 +91,21 @@
 	  <None Include="EFModels\Machine.cs" />
 	  <None Include="EFModels\Tag.cs" />
 	  <None Include="EFModels\TagCategory.cs" />
+	  <None Include="EFPartialModels\BuildInRecipe.partial.cs" />
+	  <None Include="EFPartialModels\CustomRecipe.partial.cs" />
 	  <None Include="EFPartialModels\ErrorCodeCategory.partial.cs" />
 	  <None Include="EFPartialModels\ErrorCodeMapping.partial.cs" />
 	  <None Include="EFPartialModels\LogicStatusCategory.partial.cs" />
 	  <None Include="EFPartialModels\Machine.partial.cs" />
+	  <None Include="EFPartialModels\StaticRecipe.partial.cs" />
 	  <None Include="EFPartialModels\Tag.partial.cs" />
 	  <None Include="EFPartialModels\TagCategory.partial.cs" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Include="EFPartialModels\LogicStatusCondition.cs" />
+	</ItemGroup>
+	<ItemGroup>
+	  <XamlAppDef Include="EFModels\StaticRecipe.cs" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Content Update="Components\Pages\Setting\TagCategoriesPage.razor">

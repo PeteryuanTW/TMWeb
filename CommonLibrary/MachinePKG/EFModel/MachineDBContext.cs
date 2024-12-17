@@ -16,7 +16,7 @@ namespace CommonLibrary.MachinePKG.EFModel
         }
 
         public virtual DbSet<Machine> Machines { get; set; }
-
+        public virtual DbSet<MachineStatusLog> MachineStatusLogs { get; set; }
         public virtual DbSet<Tag> Tags { get; set; }
 
         public virtual DbSet<TagCategory> TagCategories { get; set; }
@@ -63,6 +63,17 @@ namespace CommonLibrary.MachinePKG.EFModel
                 entity.Property(e => e.Enabled).HasColumnName("Enabled");
                 entity.Property(e => e.UpdateDelay).HasColumnName("UpdateDelay");
                 entity.Property(e => e.MaxRetryCount).HasColumnName("MaxRetryCount");
+            });
+
+            modelBuilder.Entity<MachineStatusLog>(entity =>
+            {
+
+                entity.ToTable("MachineStatusLogs");
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.MachineID).HasColumnName("MachineID");
+                entity.Property(e => e.Status).HasColumnName("Status");
+                entity.Property(e => e.LogTime).HasColumnName("LogTime");
             });
 
             modelBuilder.Entity<TagCategory>(entity =>

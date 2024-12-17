@@ -11,8 +11,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using CommonLibrary.MachinePKG.Service;
 using CommonLibrary.MachinePKG.EFModel;
-using static System.Formats.Asn1.AsnWriter;
-using DevExpress.XtraPrinting.Shape.Native;
 using Microsoft.AspNetCore.Builder;
 
 namespace CommonLibrary.MachinePKG

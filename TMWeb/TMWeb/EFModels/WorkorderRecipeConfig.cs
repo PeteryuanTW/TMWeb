@@ -10,7 +10,7 @@ public partial class WorkorderRecipeConfig
     [Required]
     public string RecipeCategory { get; set; }
 
-    public virtual ICollection<RecipeItemBase> Recipes { get; set; } = new List<RecipeItemBase>();
+    public virtual ICollection<RecipeItem> Recipes { get; set; } = new List<RecipeItem>();
 
     public virtual ICollection<Workorder> Workorders { get; set; } = new List<Workorder>();
 }

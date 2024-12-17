@@ -1,4 +1,6 @@
-﻿using CommonLibrary.API.Message;
+﻿using Azure;
+using CommonLibrary.API.Message;
+using CommonLibrary.MachinePKG.AnalysisData;
 using CommonLibrary.MachinePKG.EFModel;
 using CommonLibrary.MachinePKG.MachineData;
 using Microsoft.EntityFrameworkCore;
@@ -168,17 +170,36 @@ namespace CommonLibrary.MachinePKG.Service
 
         Machine IMachineService.InitMachineToDerivesClass(Machine machine)
         {
+            Machine res;
             switch (machine.ConnectionType)
             {
                 case 0:
-                    return new ModbusTCPMachine(machine);
+                    res = new ModbusTCPMachine(machine);
+                    break;
                 case 1:
-                    return new TMRobotModbusTCP(machine);
+                    res = new TMRobotModbusTCP(machine);
+                    break;
                 case 2:
+                    res = machine;
+                    break;
                 case 10:
+                    res = new WebAPIMachine(machine);
+                    break;
+                case 20:
+                    res = new ConveyorMachine(machine);
+                    break;
+                case 21:
+                    res = new WrappingMachine(machine);
+                    break;
+                case 78:
+                    res = new RegalscanRFIDMachine(machine);
+                    break;
                 default:
-                    return machine;
+                    res = machine;
+                    break;
             }
+            res.MachineStatechangedRecordAct += ((IMachineService)this).MachineStatusChangedRecord;
+            return res;
         }
 
         void IMachineService.MachineConfigChanged(Guid id, DataEditMode mode)
@@ -192,8 +213,10 @@ namespace CommonLibrary.MachinePKG.Service
             if (target != null)
             {
                 //update or delete
+                target.MachineStatechangedRecordAct += ((IMachineService)this).MachineStatusChangedRecord;
                 machines.Remove(target);
                 target.Dispose();
+
                 if (dataEditMode != DataEditMode.Delete)
                 {
                     machines.Add((this as IMachineService).InitMachineFromDBById(machine.Id));
@@ -208,6 +231,44 @@ namespace CommonLibrary.MachinePKG.Service
             }
             (this as IMachineService).MachineConfigChanged(machine.Id, dataEditMode);
         }
+
+        async void IMachineService.MachineStatusChangedRecord(Machine machine, MachineStatusRecordType machineStatusRecordType)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<MachineDBContext>();
+                    var newRocord = new MachineStatusLog
+                    {
+                        Id = Guid.NewGuid(),
+                        MachineID = machine.Id,
+                        Status = (int)machine.MachineStatus,
+                        LogTime = DateTime.Now,
+                    };
+                    await dbContext.MachineStatusLogs.AddAsync(newRocord);
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+        #endregion
+
+        #region utilization
+
+        Task<List<MachineStatusLog>> IMachineService.GetMachineStatusLogByID(MachineUtilizationDTO machineUtilizationDTO)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<MachineDBContext>();
+                return Task.FromResult(dbContext.MachineStatusLogs.Where(x=>x.MachineID == machineUtilizationDTO.MachineID && x.LogTime>= machineUtilizationDTO.Start && x.LogTime<= machineUtilizationDTO.End).OrderBy(x=>x.LogTime).AsNoTracking().ToList());
+            }
+        }
+
         #endregion
 
         #region tag
@@ -445,6 +506,7 @@ namespace CommonLibrary.MachinePKG.Service
                 return new(4, $"Machine {machineName} not found");
             }
         }
+
 
         #endregion
 
@@ -687,6 +749,8 @@ namespace CommonLibrary.MachinePKG.Service
                 return new(4, ex.Message);
             }
         }
+
+
 
         #endregion
     }

@@ -269,7 +269,7 @@
     private async void RelationSelected(GridFocusedRowChangedEventArgs args)
     {
         targetProcessMachineRelation = args.DataItem as ProcessMachineRelation;
-        machineWithoutRelation = await shopfloorService.GetMachinesWithoutRelationAndCerrent(targetProcessMachineRelation?.MachineId);
+        machineWithoutRelation = await shopfloorService.GetMachinesWithoutRelationAndCurrent(targetProcessMachineRelation?.MachineId);
 
     }
 
@@ -301,7 +301,7 @@
     private async void NewMachineRelation()
     {
         targetProcessMachineRelation = new(targetProcess.Id);
-        machineWithoutRelation = await shopfloorService.GetMachinesWithoutRelationAndCerrent(targetProcessMachineRelation?.MachineId);
+        machineWithoutRelation = await shopfloorService.GetMachinesWithoutRelationAndCurrent(targetProcessMachineRelation?.MachineId);
         ShowMachineRelationPopup();
     }
 

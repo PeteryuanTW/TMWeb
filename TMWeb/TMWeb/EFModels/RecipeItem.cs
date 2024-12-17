@@ -2,7 +2,7 @@
 
 namespace TMWeb.EFModels
 {
-    public abstract partial class RecipeItemBase
+    public partial class RecipeItem
     {
         public Guid Id { get; set; }
 
@@ -18,6 +18,8 @@ namespace TMWeb.EFModels
         [Required(ErrorMessage = "Null is invalid")]
         [Range(1, 44)]
         public int DataType { get; set; }
+        [Required]
+        public string ValueExpString { get; set; } = null!;
         public virtual WorkorderRecipeConfig? Config { get; set; }
     }
 }

@@ -44,13 +44,35 @@ namespace CommonLibrary.MachinePKG
             var target = StatusStyles.FirstOrDefault(x => (int)x.status == statusCode);
             return target;
         }
+
+        public static void SetPointColor(ChartSeriesPointCustomizationSettings pointSettings)
+        {
+            int statusCode = (int)pointSettings.Point.Argument;
+            var targetStyle = MachineTypeEnumHelper.GetStatusStyle(statusCode);
+            if (targetStyle is not null)
+            {
+                pointSettings.PointAppearance.Color = targetStyle.StyleColor;
+            }
+            else
+            {
+                pointSettings.PointAppearance.Color = Color.Black;
+            }
+        }
+
         #endregion
+
         #region data type
         public static IEnumerable<DataTypeWrapperClass> GetDataTypesWrapperClass()
         {
             return Enum.GetValues(typeof(DataType)).OfType<DataType>()
                 .Select(x => new DataTypeWrapperClass(x));
         }
+        public static Type GetTypeByCode(int code)
+        {
+            var target = GetDataTypesWrapperClass().FirstOrDefault(x => x.Index == code);
+            return target is null ? typeof(Object) : target.csType;
+        }
+
         public static Dictionary<DataType, Type> TypeDict = new()
         {
             { DataType.Bool, typeof(bool) },
@@ -118,6 +140,7 @@ namespace CommonLibrary.MachinePKG
         {
             //modbus tcp
             new TagParameter( ConnectType.ModbusTCP, "Bool1", "Input/Output" ),
+            new TagParameter( ConnectType.ModbusTCP, "Bool2", "String Reverse" ),
             
             new TagParameter( ConnectType.ModbusTCP, "Int1", "Station No" ),
             new TagParameter( ConnectType.ModbusTCP, "Int2", "Start Index" ),
@@ -125,10 +148,18 @@ namespace CommonLibrary.MachinePKG
 
             //tm robot
             new TagParameter( ConnectType.TMRobot, "Bool1", "Input/Output" ),
+            new TagParameter( ConnectType.TMRobot, "Bool2", "String Reverse" ),
 
             new TagParameter( ConnectType.TMRobot, "Int1", "Station No" ),
             new TagParameter( ConnectType.TMRobot, "Int2", "Start Index" ),
-            new TagParameter( ConnectType.TMRobot, "Int3", "Offset" ),
+            new TagParameter( ConnectType.TMRobot, "Int3", "Offset"),
+
+            new TagParameter( ConnectType.ConveyorMachine, "Bool1", "Input/Output" ),
+            new TagParameter( ConnectType.ConveyorMachine, "Bool2", "String Reverse" ),
+
+            new TagParameter( ConnectType.ConveyorMachine, "Int1", "Station No" ),
+            new TagParameter( ConnectType.ConveyorMachine, "Int2", "Start Index" ),
+            new TagParameter( ConnectType.ConveyorMachine, "Int3", "Offset" ),
         };
 
         public static string GetTagParameterMeaning(ConnectType connectType, string varName)
@@ -156,6 +187,9 @@ namespace CommonLibrary.MachinePKG
         TMRobot = 1,
         ModbusTCPother = 2,
         WebAPI = 10,
+        ConveyorMachine = 20,
+        WrappingMachine = 21,
+        RegalscanRFID = 78,
     }
     #endregion
     
@@ -200,6 +234,14 @@ namespace CommonLibrary.MachinePKG
         }
     }
 
+    #endregion
+
+    #region status type
+    public enum MachineStatusRecordType
+    {
+        InputStatus = 0,
+        CustomStatus = 1,
+    }
     #endregion
 
     #region data type

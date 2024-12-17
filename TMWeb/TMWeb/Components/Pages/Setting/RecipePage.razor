@@ -38,12 +38,12 @@
                         <ToolbarTemplate>
                             <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
                                 <Items>
-                                    <DxToolbarItem IconCssClass="oi oi-plus" BeginGroup="true">
-                                        <Items>
+                                    <DxToolbarItem IconCssClass="oi oi-plus" Click="NewRecipeItemClicked" BeginGroup="true">
+@*                                         <Items>
                                             <DxToolbarItem Text="Static" Click="(()=>{NewRecipeItemClicked(0);})" />
                                             <DxToolbarItem Text="Build" Click="(()=>{NewRecipeItemClicked(1);})" />
                                             <DxToolbarItem Text="Custom" Click="(()=>{NewRecipeItemClicked(2);})" />
-                                        </Items>
+                                        </Items> *@
                                     </DxToolbarItem>
                                     <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowRecipeItemPopup" Enabled="@recipeItemSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
                                     <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowItemDelete" Enabled="@recipeItemSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
@@ -51,7 +51,7 @@
                             </DxToolbar>
                         </ToolbarTemplate>
                         <Columns>
-                            <DxGridDataColumn FieldName="@nameof(RecipeItemBase.RecipeItemName)"></DxGridDataColumn>
+                            <DxGridDataColumn FieldName="@nameof(RecipeItem.RecipeItemName)"></DxGridDataColumn>
                         </Columns>
                     </DxGrid>
                 </div>
@@ -126,27 +126,9 @@
                 <DxFormLayoutItem ColSpanLg="12">
                     <hr />
                 </DxFormLayoutItem>
-                @if (targetRecipeItem.GetType() == typeof(StaticRecipe))
+                @*                 @if (targetRecipeItem.GetType() == typeof(StaticRecipe))
                 {
                     StaticRecipe staticRecipe = targetRecipeItem as StaticRecipe;
-                    @* @if (targetRecipeItem.DataType == (int)DataType.Bool)
-                {
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Value"]}")">
-                <DxCheckBox ReadOnly="@(!targetRecipeItem.hasTarget)" Checked="@boolVal"  CheckedChanged="@((bool b)=>TrySetStaticVal(b))" CheckType="CheckType.Switch" CheckedExpression="@(()=>boolVal)" />
-                </DxFormLayoutItem>
-                }
-                else if (targetRecipeItem.DataType == (int)DataType.Ushort)
-                {
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Value"]}")">
-                <DxSpinEdit ReadOnly="@(!targetRecipeItem.hasTarget)" Value="@ushortVal" ValueChanged="@((ushort u)=>TrySetStaticVal(u))" ValueExpression="@(()=>ushortVal)" />
-                </DxFormLayoutItem>
-                }
-                else if (targetRecipeItem.DataType == (int)DataType.String)
-                {
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Value"]}")">
-                <DxTextBox ReadOnly="@(!targetRecipeItem.hasTarget)" Text="@stringVal" TextChanged="@((string s)=>TrySetStaticVal(s))" TextExpression="@(()=>stringVal)" />
-                </DxFormLayoutItem>
-                } *@
                     <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Value"]}")">
                         <DxTextBox @bind-Text="@staticRecipe.ValueString" ShowValidationIcon="true" />
                     </DxFormLayoutItem>
@@ -167,7 +149,7 @@
                     <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Workorder Record"]}")" BeginRow="true">
                         <DxComboBox Data="@workorderRecordContentsWithFilter" @bind-Value="@customRecipe.TargetRecordID" ValueFieldName="@(nameof(WorkorderRecordContent.Id))" TextFieldName="@(nameof(WorkorderRecordContent.RecordName))" ShowValidationIcon="true"></DxComboBox>
                     </DxFormLayoutItem>
-                }
+                } *@
                 <DxFormLayoutItem ColSpanLg="12">
                     <hr />
                 </DxFormLayoutItem>
@@ -192,8 +174,8 @@
     private bool recipeNamed => recipeSelected ? !string.IsNullOrEmpty(targetRecipe.RecipeCategory) : false;
 
     IGrid? itemGrid { get; set; }
-    private IEnumerable<RecipeItemBase> recipeItems => recipeSelected ? targetRecipe.Recipes : new List<RecipeItemBase>();
-    private RecipeItemBase? targetRecipeItem;
+    private IEnumerable<RecipeItem> recipeItems => recipeSelected ? targetRecipe.Recipes : new List<RecipeItem>();
+    private RecipeItem? targetRecipeItem;
     private bool recipeItemSelected => targetRecipeItem != null;
 
     private bool recipePopupVisible;
@@ -243,15 +225,15 @@
         }
         else
         {
-            if (targetRecipeItem.GetType() == typeof(CustomRecipe))
-            {
-                CustomRecipe customRecipe = targetRecipeItem as CustomRecipe;
-                if (customRecipe.SourceCatSelected)
-                {
-                    return shopfloorService.GetWorkorderRecordContentsByConfigID(customRecipe.TargetRecordCatID);
+            // if (targetRecipeItem.GetType() == typeof(CustomRecipe))
+            // {
+            //     CustomRecipe customRecipe = targetRecipeItem as CustomRecipe;
+            //     if (customRecipe.SourceCatSelected)
+            //     {
+            //         return shopfloorService.GetWorkorderRecordContentsByConfigID(customRecipe.TargetRecordCatID);
 
-                }
-            }
+            //     }
+            // }
             return new List<WorkorderRecordContent>();
         }
     }
@@ -263,7 +245,7 @@
 
     private void SelectedRecipeItem(GridFocusedRowChangedEventArgs args)
     {
-        targetRecipeItem = args.DataItem as RecipeItemBase;
+        targetRecipeItem = args.DataItem as RecipeItem;
     }
 
 
@@ -327,28 +309,15 @@
         await InitParameter();
     }
 
-    private void NewRecipeItemClicked(int type)
+    private void NewRecipeItemClicked()
     {
-        GenrateNewRecipeItem(type);
+        GenrateNewRecipeItem();
         ShowRecipeItemPopup();
     }
 
-    private void GenrateNewRecipeItem(int type)
+    private void GenrateNewRecipeItem()
     {
-        switch (type)
-        {
-            case 0:
-                targetRecipeItem = new StaticRecipe(targetRecipe.Id);
-                break;
-            case 1:
-                targetRecipeItem = new BuildInRecipe(targetRecipe.Id);
-                break;
-            case 2:
-                targetRecipeItem = new CustomRecipe(targetRecipe.Id);
-                break;
-            default:
-                break;
-        }
+        targetRecipeItem = new RecipeItem(targetRecipe.Id);
     }
 
     private Tag? GetTagByIDInCandidates(Guid? tagId)
@@ -361,24 +330,24 @@
     {
         if (targetTagTypeCode == targetRecipeItem.DataType)
         {
-            if (editContext.Model.GetType() == typeof(CustomRecipe))
-            {
-                CustomRecipe? customRecipe = editContext.Model as CustomRecipe;
-                WorkorderRecordContent? content = await shopfloorService.GetWorkorderRecordContentByID(customRecipe.TargetRecordCatID, customRecipe.TargetRecordID);
-                if (content is null)
-                {
-                    uiService.ShowToast(new RequestResult(4, $"Content not found"));
-                    return;
-                }
-                else
-                {
-                    if (targetTagTypeCode != content.DataType)
-                    {
-                        uiService.ShowToast(new RequestResult(4, $"Content type {(DataType)content.DataType} and target type {(DataType)targetTagTypeCode} not match"));
-                        return;
-                    }
-                }
-            }
+            // if (editContext.Model.GetType() == typeof(CustomRecipe))
+            // {
+            //     CustomRecipe? customRecipe = editContext.Model as CustomRecipe;
+            //     WorkorderRecordContent? content = await shopfloorService.GetWorkorderRecordContentByID(customRecipe.TargetRecordCatID, customRecipe.TargetRecordID);
+            //     if (content is null)
+            //     {
+            //         uiService.ShowToast(new RequestResult(4, $"Content not found"));
+            //         return;
+            //     }
+            //     else
+            //     {
+            //         if (targetTagTypeCode != content.DataType)
+            //         {
+            //             uiService.ShowToast(new RequestResult(4, $"Content type {(DataType)content.DataType} and target type {(DataType)targetTagTypeCode} not match"));
+            //             return;
+            //         }
+            //     }
+            // }
             var res = await shopfloorService.UpsertRecipeItem(targetRecipeItem);
             await InitParameter();
             CloseRecipeItemPopup();

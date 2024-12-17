@@ -1,0 +1,171 @@
+﻿@using DevExpress.Blazor
+@inject IMachineService machineService
+@rendermode RenderMode.InteractiveServer
+<DxGridLayout>
+    <Rows>
+        <DxGridLayoutRow Height="auto"></DxGridLayoutRow>
+        <DxGridLayoutRow></DxGridLayoutRow>
+    </Rows>
+    <Columns>
+        <DxGridLayoutColumn></DxGridLayoutColumn>
+    </Columns>
+    <Items>
+        <DxGridLayoutItem Row="0" Column="0">
+            <Template>
+                <div>
+                    <EditForm Model="@machineUtilizationDTO" Context="editformcontext" OnValidSubmit="GetLogData">
+                        <DataAnnotationsValidator />
+                        <DxFormLayout>
+                            <DxFormLayoutItem Caption="Machine" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="4">
+                                <DxComboBox Data="machines" @bind-Value="@machineUtilizationDTO.MachineID" ValueFieldName="@nameof(Machine.Id)" TextFieldName="@nameof(Machine.Name)" ShowValidationIcon="true"></DxComboBox>
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem Caption="Range" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="4">
+                                <DxDateRangePicker @bind-StartDate="@machineUtilizationDTO.Start" @bind-EndDate="@machineUtilizationDTO.End" ShowValidationIcon="true"></DxDateRangePicker>
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="4">
+                                <DxToolbar>
+                                    <Items>
+                                        <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                                    </Items>
+                                </DxToolbar>
+                            </DxFormLayoutItem>
+                            <DxFormLayoutItem ColSpanLg="12">
+                                <hr>
+                            </DxFormLayoutItem>
+                        </DxFormLayout>
+                    </EditForm>
+
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+        <DxGridLayoutItem Row="1" Column="0">
+            <Template>
+                <div>
+                    <DxSplitter>
+                        <Panes>
+                            <DxSplitterPane>
+                                <DxPieChart @ref="@pieChart"
+                                            T="@MachineStatusInterval"
+                                            Data="@machineStatusIntervals"
+                                            CustomizeSeriesPoint="MachineTypeEnumHelper.SetPointColor"
+                                            Diameter="1"
+                                            InnerDiameter="0.6">
+                                    <DxPieChartSeries T="@MachineStatusInterval"
+                                                      TArgument="Status"
+                                                      TValue="double"
+                                                      ArgumentField="x => x.Status"
+                                                      ValueField="x => x.Interval.TotalSeconds"
+                                                      SummaryMethod="Enumerable.Sum">
+                                        <DxChartSeriesLabel Visible="true"
+                                                            Position="RelativePosition.Outside">
+                                            <DxChartSeriesLabelConnector Visible="true" />
+                                        </DxChartSeriesLabel>
+                                    </DxPieChartSeries>
+                                    <DxChartTooltip Context="tooltipcontext" Enabled="true"
+                                                    Position="RelativePosition.Outside">
+                                        <div style="margin: 0.75rem">
+                                            <div class="fw-bold">@(TimeSpan.FromSeconds((double)tooltipcontext.Point.Value))</div>
+                                        </div>
+                                    </DxChartTooltip>
+                                    <DxChartLegend HorizontalAlignment="HorizontalAlignment.Center"
+                                                   VerticalAlignment="VerticalEdge.Bottom"
+                                                   Position="RelativePosition.Outside"
+                                                   Orientation="Orientation.Horizontal" />
+                                </DxPieChart>
+                            </DxSplitterPane>
+                            <DxSplitterPane>
+                                <DxChart Data="@machineStatusIntervals" Rotated="true" CustomizeSeriesPoint="MachineTypeEnumHelper.SetPointColor" CssClass="p-3">
+                                    <DxChartRangeBarSeries T="@MachineStatusInterval"
+                                                           TArgument="Status"
+                                                           ArgumentField="@(i=>i.Status)"
+                                                           TValue="DateTime"
+                                                           StartValueField="@(i=>i.Start)"
+                                                           EndValueField="@(i=>i.End)">
+                                        <DxChartTooltip Context="tooltipcontext" Enabled="true" Position="RelativePosition.Inside">
+                                            @tooltipcontext.GetRangePoint().Render(x =>
+                                                @<div>
+                                                    @($"{x.StartValue}~{x.EndValue}")
+                                                </div>
+                                                     )
+                                        </DxChartTooltip>
+                                        <DxChartLegend Visible="false" />
+                                    </DxChartRangeBarSeries>
+                                </DxChart>
+
+                            </DxSplitterPane>
+                        </Panes>
+                    </DxSplitter>
+                </div>
+            </Template>
+        </DxGridLayoutItem>
+    </Items>
+
+</DxGridLayout>
+
+@code {
+    DxPieChart<MachineStatusInterval>? pieChart;
+
+    private MachineUtilizationDTO machineUtilizationDTO;
+
+    private IEnumerable<Machine>? machines;
+    private List<MachineStatusLog> machineStatusLogs = new();
+
+    private List<MachineStatusInterval> machineStatusIntervals = new();
+
+    DxSchedulerDataStorage? dataStorage;
+
+
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        machines = await machineService.GetAllMachinesConfig();
+        machineUtilizationDTO = new MachineUtilizationDTO { };
+    }
+
+    private async Task GetLogData()
+    {
+        machineStatusLogs = await machineService.GetMachineStatusLogByID(machineUtilizationDTO);
+
+        machineStatusIntervals = await GetMachineStatusIntervals(machineStatusLogs);
+
+        // dataStorage = new DxSchedulerDataStorage()
+        //     {
+        //         AppointmentsSource = machineStatusIntervals,
+        //         AppointmentMappings = new DxSchedulerAppointmentMappings()
+        //         {
+        //             Start = nameof(MachineStatusInterval.Start),
+        //             End = nameof(MachineStatusInterval.End),
+        //         },
+        //     };
+        var a = machineStatusIntervals.GroupBy(x => x.Status).Select(y =>
+                new
+                {
+                    a = y.FirstOrDefault().Status,
+                    b = y.Sum(z => z.Interval.TotalSeconds),
+                }
+            );
+        pieChart?.RefreshData();
+    }
+
+    private Task<List<MachineStatusInterval>> GetMachineStatusIntervals(List<MachineStatusLog> machineStatusLogs)
+    {
+        //await GetLogData();
+        List<MachineStatusInterval> res = new();
+        int totalCount = machineStatusLogs.Count();
+        for (int i = 0; i < totalCount; i++)
+        {
+            if (i == totalCount - 1)
+            {
+                res.Add(new(machineStatusLogs[i].LogTime, DateTime.Now, (Status)machineStatusLogs[i].Status));
+
+            }
+            else
+            {
+                res.Add(new(machineStatusLogs[i].LogTime, machineStatusLogs[i + 1].LogTime, (Status)machineStatusLogs[i].Status));
+            }
+        }
+        return Task.FromResult(res);
+    }
+}

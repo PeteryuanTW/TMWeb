@@ -1,4 +1,5 @@
 ﻿using CommonLibrary.API.Message;
+using CommonLibrary.MachinePKG.AnalysisData;
 using CommonLibrary.MachinePKG.EFModel;
 using DevExpress.XtraPrinting.Shape.Native;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +38,12 @@ namespace CommonLibrary.MachinePKG
 
         public Task<Machine?> GetMachineByName(string name);
 
+        public void MachineStatusChangedRecord(Machine machine, MachineStatusRecordType machineStatusRecordType);
+
+        #endregion
+
+        #region utilization
+        public Task<List<MachineStatusLog>> GetMachineStatusLogByID(MachineUtilizationDTO machineUtilizationDTO);
         #endregion
 
         #region tag

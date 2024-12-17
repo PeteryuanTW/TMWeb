@@ -12,6 +12,7 @@ namespace CommonLibrary.MachinePKG.MachineData
 
         protected override async Task UpdateStatus()
         {
+            //start address casting to ushort
             bool[] statusList = await master.ReadInputsAsync((byte)1, (ushort)7200, (ushort)14);
             if (statusList[8])
             {
@@ -37,12 +38,37 @@ namespace CommonLibrary.MachinePKG.MachineData
                         }
                         else
                         {
-                            Idel();
+                            Idle();
                         }
                     }
                 }
             }
             //await base.UpdateStatus();
+        }
+
+        public override async Task ManualRun()
+        {
+            await master?.WriteSingleCoilAsync((byte)1, (ushort)7103, true);
+        }
+
+        public async Task ManualPause()
+        {
+            await master?.WriteSingleCoilAsync((byte)1,(ushort) 7108, true);
+        }
+
+        public override async Task ManualStop()
+        {
+            await master?.WriteSingleCoilAsync((byte)1, 7105, true);
+        }
+
+        public async Task ManualSpeedUp()
+        {
+            await master?.WriteSingleCoilAsync((byte)1, 7106, true);
+        }
+
+        public async Task ManualSlowDown()
+        {
+            await master?.WriteSingleCoilAsync((byte)1, 7107, true);
         }
     }
 }

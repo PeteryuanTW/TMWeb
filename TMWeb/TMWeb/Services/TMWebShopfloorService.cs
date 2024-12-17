@@ -330,14 +330,14 @@ namespace TMWeb.Services
                             break;
                         case 2:
                             StationSingleWorkorderNoSerial? stationSingleWorkorderNoSerial = targetStation as StationSingleWorkorderNoSerial;
-                            
+
                             var itemDetail = await GetOrGenerateItemDetailByWorkorderWithoutSerialNo(stationSingleWorkorderNoSerial.Workerder);
                             stationSingleWorkorderNoSerial?.AddItemDetail(itemDetail);
                             ItemDetailUpdate(itemDetail.Id);
 
                             var taskDetail = await GenerateTaskDetailByItem(targetStation, itemDetail);
                             stationSingleWorkorderNoSerial?.AddTaskDetail(taskDetail);
-                            
+
                             stationSingleWorkorderNoSerial?.StationInWithAmount(amount);
                             break;
                         default:
@@ -843,12 +843,12 @@ namespace TMWeb.Services
         //    return machines.Where(x => x.ProcessId == target.Id).ToList();
         //}
 
-        public Task<List<Machine>> GetMachinesWithoutRelationAndCerrent(Guid? currentId)
+        public Task<List<Machine>> GetMachinesWithoutRelationAndCurrent(Guid? currentId)
         {
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                var existRelationMachinesId = dbContext.ProcessMachineRelations.Select(x=>x.MachineId).ToList();
+                var existRelationMachinesId = dbContext.ProcessMachineRelations.Select(x => x.MachineId).ToList();
                 var machineService = scope.ServiceProvider.GetRequiredService<IMachineService>();
                 return Task.FromResult(machineService.Machines.Where(x => !existRelationMachinesId.Contains(x.Id) || x.Id == currentId).ToList());
             }
@@ -861,8 +861,27 @@ namespace TMWeb.Services
             {
                 var machineService = scope.ServiceProvider.GetRequiredService<IMachineService>();
                 return machineService.Machines.Where(x => targetMachineIDs.Select(x => x.MachineId).Contains(x.Id)).ToList();
-            }   
+            }
         }
+
+        public async Task<Tag?> GetMachineTag(string machineName, string tagName)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var machineService = scope.ServiceProvider.GetRequiredService<IMachineService>();
+                return await machineService.GetMachineTag(machineName, tagName);
+            }
+        }
+
+        public async Task<RequestResult> SetMachineTag(string machineName, string tagName, object val)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var machineService = scope.ServiceProvider.GetRequiredService<IMachineService>();
+                return await machineService.SetMachineTag(machineName, tagName, val);
+            }
+        }
+
         public Task<List<ProcessMachineRelation>> GetProcessMachineRelationByID(Guid? id)
         {
             using (var scope = scopeFactory.CreateScope())
@@ -1501,7 +1520,7 @@ namespace TMWeb.Services
                 return Task.FromResult(dbContext.Workorders.Include(x => x.Process)
                     .Include(x => x.RecipeCategory).ThenInclude(x => x.Recipes)
                     .Include(x => x.WorkorderRecordCategory)//.ThenInclude(x => x.WorkorderRecordContents).ThenInclude(x => x.WorkorderRecordDetails.Where(x=>x.WorkerderId == id))
-                    .Include(x => x.WorkorderRecordDetails).ThenInclude(x=>x.RecordContent)
+                    .Include(x => x.WorkorderRecordDetails).ThenInclude(x => x.RecordContent)
                     .Include(x => x.ItemRecordsCategory).ThenInclude(x => x.ItemRecordContents)//.ThenInclude(x => x.ItemRecordDetails)
                     .Include(x => x.TaskRecordCategory)//.ThenInclude(x => x.TaskRecordContents).ThenInclude(x => x.TaskRecordDetails)
                     .AsSplitQuery()
@@ -1708,7 +1727,7 @@ namespace TMWeb.Services
                 return new(4, ex.Message);
             }
         }
-        public async Task<RequestResult> UpsertRecipeItem(RecipeItemBase recipeItemBase)
+        public async Task<RequestResult> UpsertRecipeItem(RecipeItem recipeItemBase)
         {
             try
             {
@@ -1723,63 +1742,7 @@ namespace TMWeb.Services
                         targetRecipeItem.TriggerTiming = recipeItemBase.TriggerTiming;
                         targetRecipeItem.TargetTagCatId = recipeItemBase.TargetTagCatId;
                         targetRecipeItem.TargetTagId = recipeItemBase.TargetTagId;
-                        if (recipeItemBase.GetType() == typeof(StaticRecipe))
-                        {
-                            StaticRecipe target = targetRecipeItem as StaticRecipe;
-                            StaticRecipe newVal = recipeItemBase as StaticRecipe;
-
-                            if (target != null && newVal != null)
-                            {
-                                //target.RecipeItemName = newVal.RecipeItemName;
-                                //target.DataType = newVal.DataType;
-                                target.ValueString = newVal.ValueString;
-                                //target.TriggerTiming = newVal.TriggerTiming;
-                                //target.TargetTagCatId = newVal.TargetTagCatId;
-                                //target.TargetTagId = newVal.TargetTagId;
-                            }
-                            else
-                            {
-                                return new(4, $"type casting error");
-                            }
-                        }
-                        else if (recipeItemBase.GetType() == typeof(BuildInRecipe))
-                        {
-                            BuildInRecipe target = targetRecipeItem as BuildInRecipe;
-                            BuildInRecipe newVal = recipeItemBase as BuildInRecipe;
-
-                            if (target != null && newVal != null)
-                            {
-                                //target.RecipeItemName = newVal.RecipeItemName;
-                                //target.DataType = newVal.DataType;
-                                //target.TriggerTiming = newVal.TriggerTiming;
-                                //target.TargetTagCatId = newVal.TargetTagCatId;
-                                //target.TargetTagId = newVal.TargetTagId;
-                                target.TargetProp = newVal.TargetProp;
-                            }
-                            else
-                            {
-                                return new(4, $"type casting error");
-                            }
-                        }
-                        else if (recipeItemBase.GetType() == typeof(CustomRecipe))
-                        {
-                            CustomRecipe target = targetRecipeItem as CustomRecipe;
-                            CustomRecipe newVal = recipeItemBase as CustomRecipe;
-
-                            if (target != null && newVal != null)
-                            {
-                                target.TargetRecordCatID = newVal.TargetRecordCatID;
-                                target.TargetRecordID = newVal.TargetRecordID;
-                            }
-                            else
-                            {
-                                return new(4, $"type casting error");
-                            }
-                        }
-                        else
-                        {
-                            return new(4, $"type error {recipeItemBase.GetType().Name}");
-                        }
+                        targetRecipeItem.ValueExpString = recipeItemBase.ValueExpString;
                     }
                     else
                     {
@@ -1795,23 +1758,23 @@ namespace TMWeb.Services
             }
 
         }
-        public async Task<RequestResult> DeleteRecipeItem(RecipeItemBase recipeItemBase)
+        public async Task<RequestResult> DeleteRecipeItem(RecipeItem recipeItem)
         {
             try
             {
                 using (var scope = scopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                    var targetRecipeItem = dbContext.RecipeBases.FirstOrDefault(x => x.Id == recipeItemBase.Id);
+                    var targetRecipeItem = dbContext.RecipeBases.FirstOrDefault(x => x.Id == recipeItem.Id);
                     if (targetRecipeItem != null)
                     {
                         dbContext.RecipeBases.Remove(targetRecipeItem);
                         await dbContext.SaveChangesAsync();
-                        return new(2, $"Delete tag {recipeItemBase.RecipeItemName} success");
+                        return new(2, $"Delete tag {recipeItem.RecipeItemName} success");
                     }
                     else
                     {
-                        return new(4, $"Tag {recipeItemBase.RecipeItemName} not found");
+                        return new(4, $"Tag {recipeItem.RecipeItemName} not found");
                     }
 
                 }
@@ -1870,7 +1833,7 @@ namespace TMWeb.Services
                                                 return res;
                                             }
                                         }
-                                        
+
                                     }
                                     else
                                     {
@@ -1918,7 +1881,7 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return dbContext.WorkorderRecordContents.Where(x=>x.ConfigId == id).ToList();//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
+                return dbContext.WorkorderRecordContents.Where(x => x.ConfigId == id).ToList();//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
             }
         }
 
@@ -1945,7 +1908,7 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.WorkorderRecordDetails.Include(x=>x.RecordContent).Where(x => x.WorkerderId == wo).ToList());//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
+                return Task.FromResult(dbContext.WorkorderRecordDetails.Include(x => x.RecordContent).Where(x => x.WorkerderId == wo).ToList());//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
             }
         }
 
@@ -2008,7 +1971,7 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.WorkorderRecordContents.FirstOrDefault(x =>x.ConfigId == configId && x.Id == id));//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
+                return Task.FromResult(dbContext.WorkorderRecordContents.FirstOrDefault(x => x.ConfigId == configId && x.Id == id));//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
             }
         }
 
@@ -2147,7 +2110,7 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return dbContext.ItemDetails.AsNoTracking().FirstOrDefault(x=>x.Id == id);
+                return dbContext.ItemDetails.AsNoTracking().FirstOrDefault(x => x.Id == id);
             }
         }
 
@@ -2688,12 +2651,12 @@ namespace TMWeb.Services
 
                     foreach (var e in mapComponentInDBs)
                     {
-                        if(!mapComponents.Any(x=>x.Id == e.Id))
+                        if (!mapComponents.Any(x => x.Id == e.Id))
                         {
                             deSet.Remove(e);
                         }
                     }
-                    
+
 
                     foreach (var mapComponent in mapComponents)
                     {
@@ -2800,7 +2763,7 @@ namespace TMWeb.Services
 
         }
 
-        
+
 
 
 

@@ -1,17 +1,12 @@
 ﻿using CommonLibrary.API.Message;
-using CommonLibrary.MachinePKG;
-using CommonLibrary.MachinePKG.EFModel;
-using NModbus;
+using CommonLibrary.MachinePKG.Extention;
 using System.Net.Sockets;
-using System.Reflection.Metadata.Ecma335;
-using System.Reflection.PortableExecutable;
-using System.Runtime.InteropServices;
 
 namespace CommonLibrary.MachinePKG.EFModel
 {
 
 
-    public partial class Machine: IDisposable
+    public partial class Machine : IDisposable
     {
 
         protected int retryCount = 0;
@@ -92,7 +87,7 @@ namespace CommonLibrary.MachinePKG.EFModel
         public Status MachineStatus => status;
         public string StatusStr => status.ToString();
 
-        public bool tagUsable => status != Status.Init && status != Status.Disconnect && status != Status.TryConnecting && status != Status.Error;
+        public bool machineAvailable => status != Status.Init && status != Status.Disconnect && status != Status.TryConnecting && status != Status.Error;
 
         protected Status customStatus;
         public Status CustomStatus => customStatus;
@@ -105,7 +100,7 @@ namespace CommonLibrary.MachinePKG.EFModel
         private bool runFlag => status != Status.Init && status != Status.Disconnect && status != Status.TryConnecting;
         public bool RunFlag => runFlag;
 
-        public bool canManualRetryFlag => isAutoRetry?false:status is Status.Disconnect || status is Status.Error;
+        public bool canManualRetryFlag => isAutoRetry ? false : status is Status.Disconnect || status is Status.Error;
 
         private string errorMsg = string.Empty;
         public string ErrorMsg => errorMsg;
@@ -116,7 +111,12 @@ namespace CommonLibrary.MachinePKG.EFModel
 
 
         public Action<Status>? MachineStatechangedAct;
-        private void MachineStatechanged() => MachineStatechangedAct?.Invoke(status);
+        public Action<Machine, MachineStatusRecordType>? MachineStatechangedRecordAct;
+        private void MachineStatechanged()
+        {
+            MachineStatechangedAct?.Invoke(status);
+            MachineStatechangedRecordAct?.Invoke(this, MachineStatusRecordType.InputStatus);
+        }
 
         public Action? CustomStatusChangedAct;
         private void CustomStatusChange() => CustomStatusChangedAct?.Invoke();
@@ -128,7 +128,8 @@ namespace CommonLibrary.MachinePKG.EFModel
         public Action? TagsStatechangedAct;
         protected void TagsStatechange() => TagsStatechangedAct?.Invoke();
 
-
+        public Action? UIUpdateAct;
+        protected void UIUPdate() => UIUpdateAct?.Invoke();
 
         public void InitMachine()
         {
@@ -159,6 +160,16 @@ namespace CommonLibrary.MachinePKG.EFModel
         {
             return Task.FromResult(new RequestResult(3, "Not implement yet"));
         }
+
+        public virtual Task ManualRun()
+        {
+            return Task.CompletedTask;
+        }
+
+        public virtual Task ManualStop()
+        {
+            return Task.CompletedTask;
+        }
         private async Task UpdateTags()
         {
             foreach (Tag tag in TagCategory.Tags)
@@ -183,12 +194,25 @@ namespace CommonLibrary.MachinePKG.EFModel
                 var customStatusTag = TagCategory?.Tags.FirstOrDefault(x => (SpecialTagType)x.SpecialType == SpecialTagType.CustomStatus && x.DataType == LogicStatusCategory?.DataType);
                 if (customStatusTag is not null)
                 {
-                    var connditionStatus = LogicStatusCategory?.LogicStatusConditions.FirstOrDefault(x => x.ConditionString == customStatusTag.ValueString);
-                    if (connditionStatus is not null)
+                    //var connditionStatus = LogicStatusCategory?.LogicStatusConditions.FirstOrDefault(x => x.ConditionString == customStatusTag.ValueString);
+                    //if (connditionStatus is not null)
+                    //{
+                    //    SetCustomStatus((Status)connditionStatus.Status);
+                    //}
+                    //else
+                    //{
+                    //    SetCustomStatus(Status.Init);
+                    //}
+                    bool conditionMatched = false;
+                    foreach (var condition in LogicStatusCategory?.LogicStatusConditions)
                     {
-                        SetCustomStatus((Status)connditionStatus.Status);
+                        if (condition.ConditionString.Compute<bool>(("value", customStatusTag.Value))) // false)
+                        {
+                            SetCustomStatus((Status)condition.Status);
+                            conditionMatched = true;
+                        }
                     }
-                    else
+                    if (!conditionMatched)
                     {
                         SetCustomStatus(Status.Init);
                     }
@@ -203,20 +227,31 @@ namespace CommonLibrary.MachinePKG.EFModel
 
         private Task UpdateErrorCode()
         {
-            if (hasTags && hasErrorCodeMapping)
+            if (CustomStatus == Status.Error)
             {
-                var customErrorCodeTag = TagCategory?.Tags.FirstOrDefault(x => (SpecialTagType)x.SpecialType == SpecialTagType.DetailCode && x.DataType == LogicStatusCategory?.DataType);
-                if (customErrorCodeTag is not null)
+                if (hasTags && hasErrorCodeMapping)
                 {
-                    var errorCodeMapping = ErrorCodeCategory?.ErrorCodeMappings.FirstOrDefault(x => x.ConditionString == customErrorCodeTag.ValueString);
-                    if (errorCodeMapping is not null)
+                    var customErrorCodeTag = TagCategory?.Tags.FirstOrDefault(x => (SpecialTagType)x.SpecialType == SpecialTagType.DetailCode && x.DataType == LogicStatusCategory?.DataType);
+                    if (customErrorCodeTag is not null)
                     {
-                        SetErrorDescription(errorCodeMapping.Description);
+                        var errorCodeMapping = ErrorCodeCategory?.ErrorCodeMappings.FirstOrDefault(x => x.ConditionString == customErrorCodeTag.ValueString);
+                        if (errorCodeMapping is not null)
+                        {
+                            SetErrorDescription(errorCodeMapping.Description);
+                        }
+                        else
+                        {
+                            SetErrorDescription("no error code matched");
+                        }
                     }
                     else
                     {
-                        SetErrorDescription(string.Empty);
+                        SetErrorDescription("no error code tag found");
                     }
+                }
+                else
+                {
+                    SetErrorDescription("not tag or error code not defined");
                 }
             }
             else
@@ -264,7 +299,7 @@ namespace CommonLibrary.MachinePKG.EFModel
                                             await ConnectAsync();
                                         }
                                     }
-                                    
+
                                 }
                                 else if (status == Status.TryConnecting)
                                 {
@@ -308,7 +343,7 @@ namespace CommonLibrary.MachinePKG.EFModel
                 MachineStatechanged();
             }
         }
-        protected void Idel()
+        protected void Idle()
         {
             if (status != Status.Idle)
             {

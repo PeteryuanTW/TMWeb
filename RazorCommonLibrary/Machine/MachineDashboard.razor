@@ -1,5 +1,6 @@
 ﻿@using DevExpress.Blazor
 @rendermode RenderMode.InteractiveServer
+@implements IDisposable
 @inject IMachineService machineService
 
 @if (hasMachine)
@@ -86,7 +87,7 @@
                                         <DxSpinEdit @bind-Value="@machine.Port" ReadOnly="true"></DxSpinEdit>
                                     </DxFormLayoutItem>
                                     <DxFormLayoutItem Caption="@($"{localizer["Connection Type"]}")">
-                                        <DxComboBox Data="@(connectionType)" Value="@((ConnectType)machine.ConnectionType)" ValueChanged="@((ConnectType ct)=>ConnectTypeChanged(ct))"></DxComboBox>
+                                        <DxComboBox Data="@(connectionType)" @bind-Value="@(machine.ConnectionType)" ReadOnly="true" ValueFieldName="@nameof(ConnectionTypeWrapperClass.Index)" TextFieldName="@nameof(ConnectionTypeWrapperClass.DisplayName)"></DxComboBox>
                                     </DxFormLayoutItem>
                                     <DxFormLayoutItem Caption="Tag Category">
                                         <DxComboBox Data="@tagCategories" @bind-Value="@machine.TagCategoryId" ReadOnly="true" ValueFieldName="@nameof(TagCategory.Id)" TextFieldName="@nameof(TagCategory.Name)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
@@ -108,35 +109,228 @@
                     <DxGridLayoutItem Row="0" Column="1">
                         <Template>
                             <div>
-                                @if (machine.hasTags && machine.tagUsable)
-                                {
-                                    <DxGrid Data="@machine.TagCategory.Tags">
-                                        <Columns>
-                                            <DxGridDataColumn FieldName="@nameof(Tag.Name)" />
-                                            <DxGridDataColumn FieldName="@nameof(Tag.DataType)">
-                                                <CellDisplayTemplate>
-                                                    <div>@((DataType)((int)context.Value))</div>
-                                                </CellDisplayTemplate>
-                                            </DxGridDataColumn>
-                                            <DxGridDataColumn FieldName="@nameof(Tag.UpdateByTime)" />
-                                            <DxGridDataColumn FieldName="@nameof(Tag.ValueString)" />
-                                            <DxGridDataColumn FieldName="@nameof(Tag.LastChangedTime)" DisplayFormat="G" />
-                                            <DxGridDataColumn FieldName="@nameof(Tag.LastUpdateTime)" DisplayFormat="G" />
-                                            <DxGridDataColumn>
-                                                <CellDisplayTemplate>
-                                                    <div class="d-flex justify-content-center">
+                                <DxFormLayout>
+                                    <DxFormLayoutTabPages>
+                                        <DxFormLayoutTabPage Caption="Basic Tag" Visible="@(machine.hasTags && machine.machineAvailable)">
+                                            <DxFormLayoutItem ColSpanLg="12">
+                                                <DxGrid Data="@machine.TagCategory.Tags">
+                                                    <Columns>
+                                                        <DxGridDataColumn FieldName="@nameof(Tag.Name)" />
+                                                        <DxGridDataColumn FieldName="@nameof(Tag.DataType)">
+                                                            <CellDisplayTemplate Context="datatypecontext">
+                                                                <div>@((DataType)((int)datatypecontext.Value))</div>
+                                                            </CellDisplayTemplate>
+                                                        </DxGridDataColumn>
+                                                        <DxGridDataColumn FieldName="@nameof(Tag.UpdateByTime)" />
+                                                        <DxGridDataColumn FieldName="@nameof(Tag.ValueString)" />
+                                                        <DxGridDataColumn FieldName="@nameof(Tag.LastChangedTime)" DisplayFormat="G" />
+                                                        <DxGridDataColumn FieldName="@nameof(Tag.LastUpdateTime)" DisplayFormat="G" />
+                                                        <DxGridDataColumn>
+                                                            <CellDisplayTemplate Context="btncontext">
+                                                                <div class="d-flex justify-content-center">
+                                                                    <DxToolbar>
+                                                                        <Items>
+                                                                            <DxToolbarItem Enabled="@(!(btncontext.DataItem as Tag).UpdateByTime)" Click="@(()=>UpdateTagClicked(btncontext.DataItem))" IconCssClass="oi oi-loop"></DxToolbarItem>
+                                                                            <DxToolbarItem Click="@(()=>SetTagClicked(btncontext.DataItem))" IconCssClass="oi oi-location"></DxToolbarItem>
+                                                                        </Items>
+                                                                    </DxToolbar>
+                                                                </div>
+                                                            </CellDisplayTemplate>
+                                                        </DxGridDataColumn>
+                                                    </Columns>
+                                                </DxGrid>
+                                            </DxFormLayoutItem>
+                                        </DxFormLayoutTabPage>
+                                        <DxFormLayoutTabPage Caption="Custom Data" Visible="@(machine.machineAvailable)">
+                                            @if (machine.GetType() == typeof(RegalscanRFIDMachine))
+                                            {
+                                                RegalscanRFIDMachine regalscanRFIDMachine = machine as RegalscanRFIDMachine;
+                                                    <DxFormLayoutItem Caption="@($"{localizer["Login token"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                                        <DxMemo Text=@(regalscanRFIDMachine.Token) ReadOnly="true"></DxMemo>
+                                                    </DxFormLayoutItem>
+                                                    <DxFormLayoutItem Caption="@($"{localizer["Expired time"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                                        <DxDateEdit Date="@regalscanRFIDMachine.TokenExpiredTime" DisplayFormat="G" ReadOnly="true"></DxDateEdit>
+                                                    </DxFormLayoutItem>
+                                                    <DxFormLayoutItem Caption="@($"{localizer["Front sensor detected"]}")" BeginRow="true" CaptionPosition="CaptionPosition.Vertical">
+                                                        <DxCheckBox Checked=@(regalscanRFIDMachine.FrontSensorOn) CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
+                                                    </DxFormLayoutItem>
+                                                    <DxFormLayoutItem Caption="@($"{localizer["Beeper"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                                        <DxCheckBox Checked=@(regalscanRFIDMachine.BeeperSensorOn) CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
+                                                    </DxFormLayoutItem>
+                                                    <DxFormLayoutItem Caption="@($"{localizer["Runtime tags info"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12" BeginRow="true">
+                                                        <DxGrid Data="@(regalscanRFIDMachine.RFIDTags)">
+                                                            <Columns>
+                                                                <DxGridDataColumn FieldName="@nameof(TagRes.EPC_CODE)"></DxGridDataColumn>
+                                                            </Columns>
+                                                        </DxGrid>
+                                                    </DxFormLayoutItem>
+                                            }
+                                            else
+                                            {
+
+                                            }
+                                        </DxFormLayoutTabPage>
+                                        <DxFormLayoutTabPage Caption="Custom Operation">
+                                            @if (machine.GetType() == typeof(TMRobotModbusTCP))
+                                            {
+                                                var tmrobot = machine as TMRobotModbusTCP;
+                                                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical">
+                                                    <DxToolbar>
+                                                        <Items>
+                                                            <DxToolbarItem IconCssClass="oi oi-media-play" RenderStyle="ButtonRenderStyle.Success" Click="@(async ()=>await machine?.ManualRun())" BeginGroup="true" />
+                                                            <DxToolbarItem IconCssClass="oi oi-media-pause" RenderStyle="ButtonRenderStyle.Warning" Click="@(async ()=>await tmrobot?.ManualPause())" BeginGroup="true" />
+                                                            <DxToolbarItem IconCssClass="oi oi-media-stop" RenderStyle="ButtonRenderStyle.Danger" Click="@(async ()=>await machine?.ManualStop())" BeginGroup="true" />
+                                                            <DxToolbarItem IconCssClass="oi oi-plus" RenderStyle="ButtonRenderStyle.Info" Click="@(async ()=>await tmrobot?.ManualSpeedUp())" BeginGroup="true" />
+                                                            <DxToolbarItem IconCssClass="oi oi-minus" RenderStyle="ButtonRenderStyle.Info" Click="@(async ()=>await tmrobot?.ManualSlowDown())" BeginGroup="true" />
+                                                        </Items>
+                                                    </DxToolbar>
+                                                </DxFormLayoutItem>
+                                                
+                                            }
+                                            else if (machine.GetType() == typeof(RegalscanRFIDMachine))
+                                            {
+                                                var regalscanRFID = machine as RegalscanRFIDMachine;
+                                                <EditForm Model="regalscanRFID.regalscanRFIDWorkModeModel" OnValidSubmit="@(async () => await Test())" Context="EditFormContext">
+                                                    <DataAnnotationsValidator />
+                                                    <DxFormLayout>
+                                                        <DxFormLayoutItem Caption="AUFNR" CaptionPosition="CaptionPosition.Vertical">
+                                                            <DxTextBox @bind-Text=@regalscanRFID.regalscanRFIDWorkModeModel.AUFNR></DxTextBox>
+                                                        </DxFormLayoutItem>
+                                                        <DxFormLayoutItem Caption="AUFNR_QTY" CaptionPosition="CaptionPosition.Vertical">
+                                                            <DxSpinEdit @bind-Value=@regalscanRFID.regalscanRFIDWorkModeModel.AUFNR_QTY></DxSpinEdit>
+                                                        </DxFormLayoutItem>
+                                                        <DxFormLayoutItem Caption="PACKAGE_QTY" CaptionPosition="CaptionPosition.Vertical">
+                                                            <DxSpinEdit @bind-Value=@regalscanRFID.regalscanRFIDWorkModeModel.PACKAGE_QTY></DxSpinEdit>
+                                                        </DxFormLayoutItem>
+                                                        <DxFormLayoutItem Caption="SITE_ID" CaptionPosition="CaptionPosition.Vertical">
+                                                            <DxComboBox Data="@(regalscanRFID.Sites)" @bind-Value=@(regalscanRFID.regalscanRFIDWorkModeModel.SITE_ID) ValueFieldName="@nameof(Site.SITE_ID)" TextFieldName="@nameof(Site.SITE_NAME)"></DxComboBox>
+                                                        </DxFormLayoutItem>
+                                                        <DxFormLayoutItem Caption="PRODUCT_CODE" CaptionPosition="CaptionPosition.Vertical">
+                                                            <DxComboBox Data="@(regalscanRFID.Upcs)" @bind-Value=@(regalscanRFID.regalscanRFIDWorkModeModel.PRODUCT_CODE) ValueFieldName="@nameof(UPC.PRODUCT_CODE)" TextFieldName="@nameof(UPC.EPC_CODE)"></DxComboBox>
+                                                        </DxFormLayoutItem>
+                                                        <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                                            <DxToolbar>
+                                                                <Items>
+                                                                    <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                                                                </Items>
+                                                            </DxToolbar>
+                                                        </DxFormLayoutItem>
+                                                    </DxFormLayout>
+                                                </EditForm>
+                                            }
+                                        </DxFormLayoutTabPage>
+                                    </DxFormLayoutTabPages>
+                                </DxFormLayout>
+                                @*<DxTabs @ref="@dxTabs">
+                                     <DxTabPage Text="Basic Tag" Visible="@(machine.hasTags && machine.machineAvailable)">
+
+                                        <DxGrid Data="@machine.TagCategory.Tags">
+                                            <Columns>
+                                                <DxGridDataColumn FieldName="@nameof(Tag.Name)" />
+                                                <DxGridDataColumn FieldName="@nameof(Tag.DataType)">
+                                                    <CellDisplayTemplate>
+                                                        <div>@((DataType)((int)context.Value))</div>
+                                                    </CellDisplayTemplate>
+                                                </DxGridDataColumn>
+                                                <DxGridDataColumn FieldName="@nameof(Tag.UpdateByTime)" />
+                                                <DxGridDataColumn FieldName="@nameof(Tag.ValueString)" />
+                                                <DxGridDataColumn FieldName="@nameof(Tag.LastChangedTime)" DisplayFormat="G" />
+                                                <DxGridDataColumn FieldName="@nameof(Tag.LastUpdateTime)" DisplayFormat="G" />
+                                                <DxGridDataColumn>
+                                                    <CellDisplayTemplate>
+                                                        <div class="d-flex justify-content-center">
+                                                            <DxToolbar>
+                                                                <Items>
+                                                                    <DxToolbarItem Enabled="@(!(context.DataItem as Tag).UpdateByTime)" Click="@(()=>UpdateTagClicked(context.DataItem))" IconCssClass="oi oi-loop"></DxToolbarItem>
+                                                                    <DxToolbarItem Click="@(()=>SetTagClicked(context.DataItem))" IconCssClass="oi oi-location"></DxToolbarItem>
+                                                                </Items>
+                                                            </DxToolbar>
+                                                        </div>
+                                                    </CellDisplayTemplate>
+                                                </DxGridDataColumn>
+                                            </Columns>
+                                        </DxGrid>
+
+                                    </DxTabPage>
+                                    <DxTabPage Text="Custom Data" Visible="@(machine.machineAvailable)">
+                                        @if (machine.GetType() == typeof(RegalscanRFIDMachine))
+                                        {
+                                            RegalscanRFIDMachine regalscanRFIDMachine = machine as RegalscanRFIDMachine;
+                                            <DxFormLayout>
+                                                <DxFormLayoutItem Caption="@($"{localizer["Login token"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                                    <DxMemo Text=@(regalscanRFIDMachine.Token) ReadOnly="true"></DxMemo>
+                                                </DxFormLayoutItem>
+                                                <DxFormLayoutItem Caption="@($"{localizer["Expired time"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                                    <DxDateEdit Date="@regalscanRFIDMachine.TokenExpiredTime" DisplayFormat="G" ReadOnly="true"></DxDateEdit>
+                                                </DxFormLayoutItem>
+                                                <DxFormLayoutItem Caption="@($"{localizer["Front sensor detected"]}")" BeginRow="true" CaptionPosition="CaptionPosition.Vertical">
+                                                    <DxCheckBox Checked=@(regalscanRFIDMachine.FrontSensorOn) CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
+                                                </DxFormLayoutItem>
+                                                <DxFormLayoutItem Caption="@($"{localizer["Beeper"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                                    <DxCheckBox Checked=@(regalscanRFIDMachine.BeeperSensorOn) CheckType="CheckType.Switch" ReadOnly="true"></DxCheckBox>
+                                                </DxFormLayoutItem>
+                                                <DxFormLayoutItem Caption="@($"{localizer["Runtime tags info"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12" BeginRow="true">
+                                                    <DxGrid Data="@(regalscanRFIDMachine.RFIDTags)">
+                                                        <Columns>
+                                                            <DxGridDataColumn FieldName="@nameof(TagRes.EPC_CODE)"></DxGridDataColumn>
+                                                        </Columns>
+                                                    </DxGrid>
+                                                </DxFormLayoutItem>
+                                            </DxFormLayout>
+                                        }
+                                        else
+                                        {
+
+                                        }
+                                    </DxTabPage>
+                                    <DxTabPage Text="Custom Operations" Visible="@(machine.machineAvailable)">
+                                        @if (machine.GetType() == typeof(TMRobotModbusTCP))
+                                        {
+                                            var tmrobot = machine as TMRobotModbusTCP;
+                                            <DxToolbar>
+                                                <Items>
+                                                    <DxToolbarItem IconCssClass="oi oi-media-play" Click="@(async ()=>await tmrobot?.ManualPlay())" BeginGroup="true" />
+                                                    <DxToolbarItem IconCssClass="oi oi-media-pause" Click="@(async ()=>await tmrobot?.ManualPause())" BeginGroup="true" />
+                                                    <DxToolbarItem IconCssClass="oi oi-media-stop" Click="@(async ()=>await tmrobot?.ManualStop())" BeginGroup="true" />
+                                                    <DxToolbarItem IconCssClass="oi oi-plus" Click="@(async ()=>await tmrobot?.ManualSpeedUp())" BeginGroup="true" />
+                                                    <DxToolbarItem IconCssClass="oi oi-minus" Click="@(async ()=>await tmrobot?.ManualSlowDown())" BeginGroup="true" />
+                                                </Items>
+                                            </DxToolbar>
+                                        }
+                                        else if (machine.GetType() == typeof(RegalscanRFIDMachine))
+                                        {
+                                            var regalscanRFID = machine as RegalscanRFIDMachine;
+                                            <EditForm Model="regalscanRFID.regalscanRFIDWorkModeModel" OnValidSubmit="@(async () => await Test())" Context="EditFormContext">
+                                                <DataAnnotationsValidator />
+                                                <DxFormLayout>
+                                                    <DxFormLayoutItem Caption="AUFNR">
+                                                        <DxTextBox @bind-Text=@regalscanRFID.regalscanRFIDWorkModeModel.AUFNR></DxTextBox>
+                                                    </DxFormLayoutItem>
+                                                    <DxFormLayoutItem Caption="AUFNR_QTY">
+                                                        <DxSpinEdit @bind-Value=@regalscanRFID.regalscanRFIDWorkModeModel.AUFNR_QTY></DxSpinEdit>
+                                                    </DxFormLayoutItem>
+                                                    <DxFormLayoutItem Caption="PACKAGE_QTY">
+                                                        <DxSpinEdit @bind-Value=@regalscanRFID.regalscanRFIDWorkModeModel.PACKAGE_QTY></DxSpinEdit>
+                                                    </DxFormLayoutItem>
+                                                    <DxFormLayoutItem Caption="SITE_ID">
+                                                        <DxSpinEdit @bind-Value=@regalscanRFID.regalscanRFIDWorkModeModel.SITE_ID></DxSpinEdit>
+                                                    </DxFormLayoutItem>
+                                                    <DxFormLayoutItem Caption="PRODUCT_CODE">
+                                                        <DxTextBox @bind-Text=@regalscanRFID.regalscanRFIDWorkModeModel.PRODUCT_CODE></DxTextBox>
+                                                    </DxFormLayoutItem>
+                                                    <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                                         <DxToolbar>
                                                             <Items>
-                                                                <DxToolbarItem Enabled="@(!(context.DataItem as Tag).UpdateByTime)" Click="@(()=>UpdateTagClicked(context.DataItem))" IconCssClass="oi oi-loop"></DxToolbarItem>
-                                                                <DxToolbarItem Click="@(()=>SetTagClicked(context.DataItem))" IconCssClass="oi oi-location"></DxToolbarItem>
+                                                                <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
                                                             </Items>
                                                         </DxToolbar>
-                                                    </div>
-                                                </CellDisplayTemplate>
-                                            </DxGridDataColumn>
-                                        </Columns>
-                                    </DxGrid>
-                                }
+                                                    </DxFormLayoutItem>
+                                                </DxFormLayout>
+                                            </EditForm>
+                                        }
+                                    </DxTabPage> 
+                                </DxTabs>*@
+
                             </div>
                         </Template>
                     </DxGridLayoutItem>
@@ -151,12 +345,15 @@ else
 }
 
 @code {
+    DxTabs? dxTabs { get; set; }
+    DxTabPage? dxTabPage { get; set; }
+    private int tabIndex { get; set; }
     [Parameter]
     public string MachineId { get; set; }
     private Machine? machine;
     private bool hasMachine => machine != null;
 
-    private IEnumerable<ConnectType> connectionType = Enum.GetValues(typeof(ConnectType)).Cast<ConnectType>();
+    private IEnumerable<ConnectionTypeWrapperClass> connectionType => MachineTypeEnumHelper.GetConnectTypesWrapperClass();
     private IEnumerable<TagCategory> tagCategories = new List<TagCategory>();
 
     private bool drawerOpen = false;
@@ -173,12 +370,13 @@ else
 
     }
 
-    public void Dispose()
+    void IDisposable.Dispose()
     {
         if (hasMachine)
         {
             machine.MachineStatechangedAct -= StatusUpdate;
-            machine.TagsStatechangedAct -= TagUpdate;
+            machine.TagsStatechangedAct -= UIUpdate;
+            machine.UIUpdateAct -= UIUpdate;
         }
 
     }
@@ -189,9 +387,9 @@ else
         if (hasMachine)
         {
             await RetriveTagCategory();
-            //machine.MachineStatechangedAct += UpdateUI;
             machine.MachineStatechangedAct += StatusUpdate;
-            machine.TagsStatechangedAct += TagUpdate;
+            machine.TagsStatechangedAct += UIUpdate;
+            machine.UIUpdateAct += UIUpdate;
         }
     }
 
@@ -220,7 +418,7 @@ else
         await InvokeAsync(StateHasChanged);
     }
 
-    private async void TagUpdate()
+    private async void UIUpdate()
     {
         await InvokeAsync(StateHasChanged);
     }
@@ -230,11 +428,11 @@ else
         tagCategories = await machineService.GetCategoryByConnectionType(machine.ConnectionType);
     }
 
-    private async void ConnectTypeChanged(ConnectType ct)
-    {
-        machine.ConnectionType = (int)ct;
-        await RetriveTagCategory();
-    }
+    // private async void ConnectTypeChanged(ConnectType ct)
+    // {
+    //     machine.ConnectionType = (int)ct;
+    //     await RetriveTagCategory();
+    // }
 
 
     private void SelectedNewCategry(Guid? id)
@@ -300,5 +498,11 @@ else
             }
         }
         CloseDrawer();
+    }
+
+    private async Task Test()
+    {
+        var regalscanRFID = machine as RegalscanRFIDMachine;
+        await regalscanRFID.DeployWorkMode();
     }
 }

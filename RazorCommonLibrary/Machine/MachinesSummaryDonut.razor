@@ -1,12 +1,12 @@
 ﻿@using DevExpress.Blazor
-@using System.Drawing
+
 @rendermode RenderMode.InteractiveServer
 @implements IDisposable
 
 <DxPieChart @ref="@machinesDonut"
             T="@Machine"
             Data="@Machines"
-            CustomizeSeriesPoint="SetPointColor"
+            CustomizeSeriesPoint="MachineTypeEnumHelper.SetPointColor"
             Diameter="1"
             InnerDiameter="0.6">
     <DxPieChartSeries T="@Machine"
@@ -64,20 +64,6 @@
             {
                 machine.MachineStatechangedAct -= Update;
             }
-        }
-    }
-
-    protected void SetPointColor(ChartSeriesPointCustomizationSettings pointSettings)
-    {
-        int statusCode = (int)pointSettings.Point.Argument;
-        var targetStyle = MachineTypeEnumHelper.GetStatusStyle(statusCode);
-        if (targetStyle is not null)
-        {
-            pointSettings.PointAppearance.Color = targetStyle.StyleColor;
-        }
-        else
-        {
-            pointSettings.PointAppearance.Color = Color.Black;
         }
     }
 }

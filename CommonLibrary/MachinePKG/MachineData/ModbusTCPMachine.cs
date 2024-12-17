@@ -50,7 +50,7 @@ namespace CommonLibrary.MachinePKG.MachineData
         {
             try
             {
-                if (MachineStatus != Status.Disconnect || MachineStatus != Status.TryConnecting)
+                if (MachineStatus != Status.Disconnect && MachineStatus != Status.TryConnecting)
                 {
                     int station = tag.Int1;
                     int startIndex = tag.Int2;

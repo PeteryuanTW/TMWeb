@@ -24,7 +24,7 @@ public partial class TmwebContext : DbContext
     //public virtual DbSet<MachineBase> MachineBases { get; set; }
     //public virtual DbSet<Machine> Machines { get; set; }
 
-    public virtual DbSet<MachineStatusLog> MachineStatusLogs { get; set; }
+    
 
     public virtual DbSet<MapComponent> MapComponents { get; set; }
 
@@ -68,7 +68,7 @@ public partial class TmwebContext : DbContext
 
     //public virtual DbSet<WorkorderRecipeContent> WorkorderRecipeContents { get; set; }
 
-    public virtual DbSet<RecipeItemBase> RecipeBases { get; set; }
+    public virtual DbSet<RecipeItem> RecipeBases { get; set; }
 
     public virtual DbSet<WorkorderRecordConfig> WorkorderRecordConfigs { get; set; }
 
@@ -203,16 +203,7 @@ public partial class TmwebContext : DbContext
         //    entity.Property(e => e.MaxRetryCount).HasColumnName("MaxRetryCount");
         //});
 
-        modelBuilder.Entity<MachineStatusLog>(entity =>
-        {
-
-            entity.ToTable("MachineStatusLogs");
-            entity.HasKey(e => e.Id);
-
-            entity.Property(e => e.MachineID).HasColumnName("MachineID");
-            entity.Property(e => e.Status).HasColumnName("Status");
-            entity.Property(e => e.LogTime).HasColumnName("LogTime");
-        });
+        
 
         modelBuilder.Entity<MapComponent>(entity =>
         {
@@ -593,9 +584,9 @@ public partial class TmwebContext : DbContext
             entity.Property(e => e.RecipeCategory).HasMaxLength(50);
         });
 
-        modelBuilder.Entity<RecipeItemBase>(entity =>
+        modelBuilder.Entity<RecipeItem>(entity =>
         {
-            entity.UseTpcMappingStrategy();
+            //entity.UseTpcMappingStrategy();
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ConfigId).HasColumnName("ConfigID");
             entity.Property(e => e.RecipeItemName).HasColumnName("RecipeItemName");
@@ -603,31 +594,32 @@ public partial class TmwebContext : DbContext
             entity.Property(e => e.DataType).HasColumnName("DataType");
             entity.Property(e => e.TargetTagCatId).HasColumnName("TargetTagCatID");
             entity.Property(e => e.TargetTagId).HasColumnName("TargetTagID");
+            entity.Property(e => e.ValueExpString).HasColumnName("ValueExpString");
 
             entity.HasOne(d => d.Config).WithMany(p => p.Recipes)
                 .HasForeignKey(d => d.ConfigId);
         });
 
-        modelBuilder.Entity<StaticRecipe>(entity =>
-        {
-            entity.ToTable("StaticRecipes");
-            entity.Property(e => e.ValueString).HasColumnName("ValueString");
+        //modelBuilder.Entity<StaticRecipe>(entity =>
+        //{
+        //    entity.ToTable("StaticRecipes");
+        //    entity.Property(e => e.ValueString).HasColumnName("ValueString");
 
 
-        });
+        //});
 
-        modelBuilder.Entity<BuildInRecipe>(entity =>
-        {
-            entity.ToTable("BuildInRecipes");
-            entity.Property(e => e.TargetProp).HasColumnName("TargetProp");
-        });
+        //modelBuilder.Entity<BuildInRecipe>(entity =>
+        //{
+        //    entity.ToTable("BuildInRecipes");
+        //    entity.Property(e => e.TargetProp).HasColumnName("TargetProp");
+        //});
 
-        modelBuilder.Entity<CustomRecipe>(entity =>
-        {
-            entity.ToTable("CustomRecipes");
-            entity.Property(e => e.TargetRecordCatID).HasColumnName("TargetRecordCatID");
-            entity.Property(e => e.TargetRecordID).HasColumnName("TargetRecordID");
-        });
+        //modelBuilder.Entity<CustomRecipe>(entity =>
+        //{
+        //    entity.ToTable("CustomRecipes");
+        //    entity.Property(e => e.TargetRecordCatID).HasColumnName("TargetRecordCatID");
+        //    entity.Property(e => e.TargetRecordID).HasColumnName("TargetRecordID");
+        //});
 
         modelBuilder.Entity<WorkorderRecordConfig>(entity =>
         {

@@ -14,32 +14,30 @@
         <DxGridLayoutItem Row="0" Column="0">
             <Template>
                 <DxFormLayout>
-                    @* <DxFormLayoutItem Caption="AutoPlay" ColSpanLg="3" CaptionPosition="CaptionPosition.Vertical">
-                        <DxCheckBox Checked="@autoPlay" CheckType="CheckType.Switch" CheckedChanged="((bool b)=>SwitchAutoPlay(b))"></DxCheckBox>
-                    </DxFormLayoutItem>
-                    <DxFormLayoutItem Caption="DelaySecond" Visible="@autoPlay" ColSpanLg="3" CaptionPosition="CaptionPosition.Vertical">
-                        <DxSpinEdit @bind-Value="@autoPlaySec"></DxSpinEdit>
-                    </DxFormLayoutItem> *@
                     <DxFormLayoutItem ColSpanLg="12">
-                        @* <DxTabs @bind-ActiveTabIndex="@activeIndex" >
-                            <DxTabPage Text="Machine">
-                                <div> *@
-                        <MachinesSummaryBarGauge Machines="@machines"></MachinesSummaryBarGauge>
-                                @* </div>
-                            </DxTabPage>
-                            <DxTabPage Text="Test">
-                                <div>
-                                    Test
-                                </div>
-                            </DxTabPage>
-                        </DxTabs> *@
+                        <DxCarousel LoopNavigationEnabled="true"
+                                    SlideShowEnabled="true"
+                                    NavButtonsDisplayMode="CarouselControlsDisplayMode.VisibleOnHover">
+                            <Items>
+                                <DxCarouselItem>
+                                    <div>
+                                        <MachinesSummaryBarGauge Machines="@machines"></MachinesSummaryBarGauge>
+                                    </div>
+                                </DxCarouselItem>
+                                <DxCarouselItem>
+                                    <div>
+                                        <MachinesSummaryBarGauge Machines="@machines"></MachinesSummaryBarGauge>
+                                    </div>
+                                </DxCarouselItem>
+                            </Items>
+                        </DxCarousel>
                     </DxFormLayoutItem>
                 </DxFormLayout>
             </Template>
         </DxGridLayoutItem>
         <DxGridLayoutItem Row="0" Column="1">
             <Template>
-                <EventLogGrid/>
+                <EventLogGrid />
             </Template>
         </DxGridLayoutItem>
     </Items>
@@ -54,7 +52,7 @@
     private int totalIndex = 1;
 
     private int autoPlaySec = 10;
-    private int autoPlayDelay => autoPlaySec *1000;
+    private int autoPlayDelay => autoPlaySec * 1000;
 
     private bool autoPlay = true;
     private bool running = true;
