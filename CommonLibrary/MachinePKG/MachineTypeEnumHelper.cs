@@ -154,12 +154,30 @@ namespace CommonLibrary.MachinePKG
             new TagParameter( ConnectType.TMRobot, "Int2", "Start Index" ),
             new TagParameter( ConnectType.TMRobot, "Int3", "Offset"),
 
+            //conveyor
             new TagParameter( ConnectType.ConveyorMachine, "Bool1", "Input/Output" ),
             new TagParameter( ConnectType.ConveyorMachine, "Bool2", "String Reverse" ),
 
             new TagParameter( ConnectType.ConveyorMachine, "Int1", "Station No" ),
             new TagParameter( ConnectType.ConveyorMachine, "Int2", "Start Index" ),
             new TagParameter( ConnectType.ConveyorMachine, "Int3", "Offset" ),
+
+            //Wrapping
+            new TagParameter( ConnectType.WrappingMachine, "Bool1", "Input/Output" ),
+            new TagParameter( ConnectType.WrappingMachine, "Bool2", "String Reverse" ),
+
+            new TagParameter( ConnectType.WrappingMachine, "Int1", "Station No" ),
+            new TagParameter( ConnectType.WrappingMachine, "Int2", "Start Index" ),
+            new TagParameter( ConnectType.WrappingMachine, "Int3", "Offset" ),
+
+
+            //Web api
+            new TagParameter( ConnectType.WebAPI, "String1", "Get Controller" ),
+            new TagParameter( ConnectType.WebAPI, "String2", "Post COntroller" ),
+
+            //rfid
+            new TagParameter( ConnectType.RegalscanRFID, "String1", "Get Controller" ),
+            new TagParameter( ConnectType.RegalscanRFID, "String2", "Post COntroller" ),
         };
 
         public static string GetTagParameterMeaning(ConnectType connectType, string varName)

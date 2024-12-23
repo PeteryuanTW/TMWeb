@@ -6,19 +6,20 @@
     <div class="p-3 h-100">
         <DxGridLayout ColumnSpacing="1rem" RowSpacing="1rem">
             <Rows>
-                <DxGridLayoutRow Height="4fr"/>
-                <DxGridLayoutRow Height="8fr"/>
+                <DxGridLayoutRow Height="4fr" />
+                <DxGridLayoutRow Height="8fr" />
             </Rows>
             <Columns>
-                <DxGridLayoutColumn Width="4fr"/>
-                <DxGridLayoutColumn Width="4fr"/>
-                <DxGridLayoutColumn Width="4fr"/>
+                <DxGridLayoutColumn Width="4fr" />
+                <DxGridLayoutColumn Width="4fr" />
+                <DxGridLayoutColumn Width="4fr" />
             </Columns>
             <Items>
                 <DxGridLayoutItem Row="0" Column="0" RowSpan="2">
                     <Template>
-                        <DxFormLayout CssClass="card p-3 h-100">
+                        <DxFormLayout CssClass="card p-3 h-100 overflow-auto">
                             <DxFormLayoutTabPages>
+
                                 <DxFormLayoutTabPage Caption="@($"{localizer["Detail"]}")">
                                     <DxFormLayoutItem ColSpanLg="12" Caption="@($"{localizer["Basic Info"]}")" CaptionPosition="CaptionPosition.Horizontal">
                                         <hr>
@@ -83,27 +84,28 @@
                                             </DxFormLayoutItem>
                                         }
                                     }
-                                    <DxFormLayoutItem ColSpanLg="12">
-                                        <hr>
-                                    </DxFormLayoutItem>
-                                    <DxFormLayoutItem>
-                                        <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large">
-                                            <DxToolbarItem IconCssClass="oi oi-media-play" Click="StartWorkorder" RenderStyle="@ButtonRenderStyle.Success" BeginGroup="true" />
-                                            <DxToolbarItem IconCssClass="oi oi-media-stop" RenderStyle="@ButtonRenderStyle.Danger" BeginGroup="true" />
-                                        </DxToolbar>
-                                    </DxFormLayoutItem>
+                                    @* <DxFormLayoutItem ColSpanLg="12">
+                                            <hr>
+                                        </DxFormLayoutItem>
+                                        <DxFormLayoutItem>
+                                            <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large">
+                                                <DxToolbarItem IconCssClass="oi oi-media-play" Click="StartWorkorder" RenderStyle="@ButtonRenderStyle.Success" BeginGroup="true" />
+                                                <DxToolbarItem IconCssClass="oi oi-media-stop" RenderStyle="@ButtonRenderStyle.Danger" BeginGroup="true" />
+                                            </DxToolbar>
+                                        </DxFormLayoutItem> *@
                                 </DxFormLayoutTabPage>
+
                                 @if (workorder.HasRecipe && workorder.RecipeIncluded)
                                 {
                                     <DxFormLayoutTabPage Caption="@($"{localizer["Recipe"]}")">
 
-                                        @foreach (var recipe in workorder.RecipeCategory?.Recipes)
+                                        @foreach (var recipeRes in RecipesSource)
                                         {
                                             <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" BeginRow="true" ColSpanLg="1">
-                                                <DxCheckBox Checked="@(recipe.GetValueString(workorder).Item1)" ReadOnly="true"></DxCheckBox>
+                                                <DxCheckBox Checked="@(recipeRes.Item1)" ReadOnly="true"></DxCheckBox>
                                             </DxFormLayoutItem>
-                                            <DxFormLayoutItem Caption="@recipe.RecipeItemName" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="11">
-                                                <DxTextBox Text="@(recipe.GetValueString(workorder).Item2)" ReadOnly="true"></DxTextBox>
+                                            <DxFormLayoutItem Caption="@recipeRes.Item2" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="11">
+                                                <DxTextBox Text="@(recipeRes.Item3)" ReadOnly="true"></DxTextBox>
                                             </DxFormLayoutItem>
                                         }
                                         <DxFormLayoutItem ColSpanLg="12">
@@ -145,14 +147,63 @@
                         </DxFormLayout>
                     </Template>
                 </DxGridLayoutItem>
-                <DxGridLayoutItem Row="0" Column="1">
+                <DxGridLayoutItem Row="0" Column="1" ColumnSpan="2">
+                    <Template>
+                        <DxToolbar SizeMode="SizeMode.Large">
+                            <Items>
+                                @* <DxToolbarItem Visible="@hasMachine" BeginGroup="true">
+                                    <Template>
+                                        <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@checkMachines">
+                                            Machines Check
+                                        </DxCheckBox>
+                                    </Template>
+                                </DxToolbarItem>
+                                <DxToolbarItem Visible="@hasStation" BeginGroup="true">
+                                    <Template>
+                                        <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@checkStations">
+                                            Station Check
+                                        </DxCheckBox>
+                                    </Template>
+                                </DxToolbarItem> *@
+                                <DxToolbarItem Click="StartWorkorder" Enabled="@canWOStart" RenderStyle="ButtonRenderStyle.Success" IconCssClass="oi oi-media-play" BeginGroup="true" />
+                                <DxToolbarItem RenderStyle="ButtonRenderStyle.Danger" IconCssClass="oi oi-media-stop" BeginGroup="true" />
+                                <DxToolbarItem IconCssClass="oi oi-cog" BeginGroup="true" Alignment="ToolbarItemAlignment.Right">
+                                    <Items>
+                                        <DxToolbarItem>
+                                            <Template>
+                                                <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@skipMachines">
+                                                    Skip Machines Check
+                                                </DxCheckBox>
+                                            </Template>
+                                        </DxToolbarItem>
+                                        <DxToolbarItem>
+                                            <Template>
+                                                <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@skipRecipes">
+                                                    Skip Recipe Check
+                                                </DxCheckBox>
+                                            </Template>
+                                        </DxToolbarItem>
+                                        <DxToolbarItem>
+                                            <Template>
+                                                <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@skipStations">
+                                                    Skip Station Check
+                                                </DxCheckBox>
+                                            </Template>
+                                        </DxToolbarItem>
+                                    </Items>
+                                </DxToolbarItem>
+                            </Items>
+                        </DxToolbar>
+                    </Template>
+                </DxGridLayoutItem>
+                <DxGridLayoutItem Row="1" Column="1">
                     <Template>
                         <div class="w-100 h-100 p-3">
                             <MachinesSummaryDonut Machines="@machines"></MachinesSummaryDonut>
                         </div>
                     </Template>
                 </DxGridLayoutItem>
-                <DxGridLayoutItem Row="0" Column="2">
+                <DxGridLayoutItem Row="1" Column="2">
                     <Template>
                         <div class="w-100 h-100 p-3">
                             <StationsSummaryDonut Stations="@stations"></StationsSummaryDonut>
@@ -174,15 +225,31 @@
 
     private bool hasWorkorder => workorder != null;
 
-    // private IEnumerable<Process> processes;
-    // private IEnumerable<WorkorderRecipeConfig> workorderRecipeConfigs;
-    // private IEnumerable<WorkorderRecordConfig> workorderRecordConfigs;
-    // private IEnumerable<ItemRecordConfig> itemRecordConfigs;
-    // private IEnumerable<TaskRecordConfig> taskRecordConfigs;
+    private bool skipMachines = false;
+    private bool skipStations = false;
+    private bool skipRecipes = false;
+
     private IEnumerable<WorkorderRecordDetail> workorderRecordDetails;
 
-    IEnumerable<Machine> machines;
-    IEnumerable<Station> stations;
+    IEnumerable<Machine> machines = new List<Machine> { };
+    private bool hasMachine => machines.Any();
+    private bool allMachineReady => machines.Count(x => !x.machineAvailable) == 0;
+
+    IEnumerable<Station> stations = new List<Station> { };
+    private bool hasStation => stations.Any();
+    private bool allStationReady => stations.Count(x => x.StationStatus != Status.Init) == 0;
+
+    private bool machinesReadyOrSkip => allMachineReady || skipMachines;
+    private bool stationsReadyOrSkip => allStationReady || skipStations;
+
+    private List<Tuple<bool, string, string>> RecipesSource = new();
+    private bool hasRecipe => RecipesSource.Any();
+    private bool allRecipeReady => RecipesSource.Count(x => !x.Item1) == 0;
+
+    private bool recipesReadyOrSkip => allRecipeReady || skipRecipes;
+
+    private bool canWOStart => machinesReadyOrSkip && stationsReadyOrSkip && recipesReadyOrSkip;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -194,6 +261,20 @@
         await GetWorkorderDetail();
         await GetMachinesInProcess();
         await GetStationsInProcess();
+        await GetRecipesAsync();
+    }
+
+    private async Task GetRecipesAsync()
+    {
+        RecipesSource = new();
+        if (hasWorkorder && workorder.RecipeIncluded && workorder.RecipeCategory.HasRecipes)
+        {
+            foreach (var recipe in workorder.RecipeCategory?.Recipes)
+            {
+                RecipesSource.Add(await recipe.GetValueString(workorder));
+            }
+        }
+
     }
 
     private async Task GetWorkorderDetail()
@@ -221,7 +302,7 @@
     private async Task StartWorkorder()
     {
 
-        var res =  await shopfloorService.StartWorkorderByID(workorder.Id);
+        var res = await shopfloorService.StartWorkorderByID(workorder.Id);
         uiService.ShowToast(res);
     }
 

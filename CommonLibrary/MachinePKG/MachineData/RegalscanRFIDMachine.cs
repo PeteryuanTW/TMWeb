@@ -1,4 +1,5 @@
-﻿using CommonLibrary.MachinePKG.EFModel;
+﻿using CommonLibrary.API.Message;
+using CommonLibrary.MachinePKG.EFModel;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -197,7 +198,7 @@ namespace CommonLibrary.MachinePKG.MachineData
                     sites = new();
                     Error("Get rfid sites fail");
                 }
-                    
+
             }
             catch (Exception e)
             {
@@ -291,7 +292,7 @@ namespace CommonLibrary.MachinePKG.MachineData
 
         public async Task DeployWorkMode()
         {
-            var workModeStr =  JsonConvert.SerializeObject(regalscanRFIDWorkModeModel);
+            var workModeStr = JsonConvert.SerializeObject(regalscanRFIDWorkModeModel);
             var changeWorkmodeResponse = await httpClient.PostAsync($"http://{Ip}:{Port}//api/WorkMode/Post?Authorization={token}", new StringContent(workModeStr, Encoding.UTF8, "application/json"));
             if (changeWorkmodeResponse.IsSuccessStatusCode)
             {
@@ -300,6 +301,37 @@ namespace CommonLibrary.MachinePKG.MachineData
             }
             else
             {
+            }
+        }
+
+
+        public override async Task<RequestResult> SetTag(Tag tag, object val)
+        {
+            try
+            {
+                if (MachineStatus == Status.Running)
+                {
+                    var apiRes = await httpClient.PostAsync($"http://{Ip}:{Port}{tag.String2}?Authorization={token}", new StringContent(val.ToString(), Encoding.UTF8, "application/json"));
+                    if (apiRes.IsSuccessStatusCode)
+                    {
+                        var apiResponse = await apiRes.Content.ReadAsStringAsync();
+                        tag.SetValue(apiResponse);
+                        return new(2, $"Send api to machine {Name} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Send api to machine {Name} fail");
+                    }
+                }
+                else
+                {
+                    return new(4, $"Machine {Name} is not running");
+                }
+
+            }
+            catch (Exception e)
+            {
+                return new(4, $"Send api to machine {Name} fail({e.Message})");
             }
         }
     }

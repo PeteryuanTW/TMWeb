@@ -190,7 +190,7 @@
                                             else if (machine.GetType() == typeof(RegalscanRFIDMachine))
                                             {
                                                 var regalscanRFID = machine as RegalscanRFIDMachine;
-                                                <EditForm Model="regalscanRFID.regalscanRFIDWorkModeModel" OnValidSubmit="@(async () => await Test())" Context="EditFormContext">
+                                                <EditForm Model="regalscanRFID.regalscanRFIDWorkModeModel" OnValidSubmit="@(async () => await regalscanRFID.DeployWorkMode())" Context="EditFormContext">
                                                     <DataAnnotationsValidator />
                                                     <DxFormLayout>
                                                         <DxFormLayoutItem Caption="AUFNR" CaptionPosition="CaptionPosition.Vertical">
@@ -498,11 +498,5 @@ else
             }
         }
         CloseDrawer();
-    }
-
-    private async Task Test()
-    {
-        var regalscanRFID = machine as RegalscanRFIDMachine;
-        await regalscanRFID.DeployWorkMode();
     }
 }

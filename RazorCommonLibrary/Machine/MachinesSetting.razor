@@ -75,6 +75,9 @@
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["UpdateDelay"]}({localizer["ms"]})")" ColSpanLg="6" BeginRow="true">
                     <DxSpinEdit @bind-Value="@taregtMachine.UpdateDelay" MinValue="100" MaxValue="65535" />
                 </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Record Status Changed"]}")" Visible ColSpanLg="6">
+                    <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@taregtMachine.RecordStatusChanged" />
+                </DxFormLayoutItem>
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Enable"]}")" ColSpanLg="6">
                     <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@taregtMachine.Enabled" />
                 </DxFormLayoutItem>

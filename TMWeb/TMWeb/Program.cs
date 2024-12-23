@@ -14,9 +14,24 @@ using Microsoft.Extensions.Hosting;
 using System.Runtime.CompilerServices;
 using System.Data.Common;
 using CommonLibrary.MachinePKG;
+using Microsoft.Extensions.Hosting.WindowsServices;
 
+
+
+
+//Environment.SetEnvironmentVariable("APPRoot",
+//    WindowsServiceHelpers.IsWindowsService() ? AppContext.BaseDirectory : Directory.GetCurrentDirectory());
 
 var builder = WebApplication.CreateBuilder(args);
+
+var b = WindowsServiceHelpers.IsWindowsService();
+var c = AppContext.BaseDirectory;
+var d = Directory.GetCurrentDirectory();
+Console.WriteLine(b);
+Console.WriteLine(c);
+Console.WriteLine(d);
+var tmp = AppDomain.CurrentDomain.BaseDirectory;
+
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -41,14 +56,17 @@ builder.Host.UseSerilog(
         .ReadFrom.Configuration(context.Configuration)
         .ReadFrom.Services(services)
         .Enrich.FromLogContext()
-        .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Controller")).WriteTo.File(setting["Serilog:WriteTo:1:Args:Path"],
-            rollingInterval: Enum.Parse<RollingInterval>(setting["Serilog:WriteTo:1:Args:rollingInterval"]),
+        .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Controller"))
+        .WriteTo.File($"{tmp}logs",
+        rollingInterval: Enum.Parse<RollingInterval>(setting["Serilog:WriteTo:1:Args:rollingInterval"]),
             retainedFileCountLimit: int.Parse(setting["Serilog:WriteTo:1:Args:retainedFileCountLimit"])))
-         .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Service")).WriteTo.File(setting["Serilog:WriteTo:2:Args:Path"],
+         .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Service"))
+         .WriteTo.File($"{tmp}logs",
             rollingInterval: Enum.Parse<RollingInterval>(setting["Serilog:WriteTo:2:Args:rollingInterval"]),
             retainedFileCountLimit: int.Parse(setting["Serilog:WriteTo:2:Args:retainedFileCountLimit"])));
     });
-
+//setting[$"Serilog:WriteTo:1:Args:Path"]
+//setting[$"Serilog:WriteTo:2:Args:Path"]
 
 builder.Services.AddSingleton<WeatherForecastService>();
 
@@ -135,6 +153,4 @@ app.UseSwaggerUI(c =>
 
 app.Run();
 
-//var tmWebShopfloorService = app.Services.GetRequiredService<TMWebShopfloorService>();
-//await tmWebShopfloorService.InitAll();
 

@@ -68,7 +68,7 @@ public partial class TmwebContext : DbContext
 
     //public virtual DbSet<WorkorderRecipeContent> WorkorderRecipeContents { get; set; }
 
-    public virtual DbSet<RecipeItem> RecipeBases { get; set; }
+    public virtual DbSet<RecipeItem> RecipeItems { get; set; }
 
     public virtual DbSet<WorkorderRecordConfig> WorkorderRecordConfigs { get; set; }
 
@@ -587,6 +587,7 @@ public partial class TmwebContext : DbContext
         modelBuilder.Entity<RecipeItem>(entity =>
         {
             //entity.UseTpcMappingStrategy();
+            entity.ToTable("RecipeItems");
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ConfigId).HasColumnName("ConfigID");
             entity.Property(e => e.RecipeItemName).HasColumnName("RecipeItemName");

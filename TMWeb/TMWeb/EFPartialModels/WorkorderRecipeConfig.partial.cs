@@ -8,5 +8,7 @@
         {
             this.Id = id;
         }
+
+        public bool HasRecipes => Recipes.Count > 0;
     }
 }

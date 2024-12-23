@@ -3,13 +3,9 @@ using NModbus;
 using System;
 using Azure;
 using System.Text;
-using static DevExpress.Utils.HashCodeHelper.Primitives;
 using System.Buffers.Binary;
-using DevExpress.Blazor.Internal;
-using NModbus.Extensions.Enron;
 using CommonLibrary.API.Message;
 using CommonLibrary.MachinePKG.EFModel;
-using Microsoft.AspNetCore.Authorization;
 
 namespace CommonLibrary.MachinePKG.MachineData
 {
@@ -252,26 +248,26 @@ namespace CommonLibrary.MachinePKG.MachineData
                     return new(3, "Not implement yet");
             }
         }
-        public override async Task<RequestResult> SetTag(string tagName, object val)
-        {
-            if (hasCategory)
-            {
-                Tag tag = TagCategory.Tags.FirstOrDefault(x => x.Name == tagName);
-                if (tag != null)
-                {
-                    return await SetTag(tag, val);
-                }
-                else
-                {
-                    return new(4, $"No tag {tagName}");
-                }
-            }
-            else
-            {
-                return new(4, "No tag exist");
-            }
+        //public override async Task<RequestResult> SetTag(string tagName, object val)
+        //{
+        //    if (hasCategory)
+        //    {
+        //        Tag tag = TagCategory.Tags.FirstOrDefault(x => x.Name == tagName);
+        //        if (tag != null)
+        //        {
+        //            return await SetTag(tag, val);
+        //        }
+        //        else
+        //        {
+        //            return new(4, $"No tag {tagName}");
+        //        }
+        //    }
+        //    else
+        //    {
+        //        return new(4, "No tag exist");
+        //    }
 
-        }
+        //}
 
 
         private ushort[] StringToByte(string s, bool reverse)

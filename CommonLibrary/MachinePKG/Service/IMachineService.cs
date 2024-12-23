@@ -5,6 +5,7 @@ using DevExpress.XtraPrinting.Shape.Native;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -44,6 +45,8 @@ namespace CommonLibrary.MachinePKG
 
         #region utilization
         public Task<List<MachineStatusLog>> GetMachineStatusLogByID(MachineUtilizationDTO machineUtilizationDTO);
+
+        public IAsyncEnumerable<MachineStatusInterval> CalculateMachineStatusIntervalByOrderedLog(List<MachineStatusLog> machineStatusLogs, ushort delayMilliSec = 0, IProgress<int>? progress = null);
         #endregion
 
         #region tag

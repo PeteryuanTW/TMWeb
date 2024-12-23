@@ -1734,7 +1734,7 @@ namespace TMWeb.Services
                 using (var scope = scopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                    var targetRecipeItem = dbContext.RecipeBases.FirstOrDefault(x => x.Id == recipeItemBase.Id);
+                    var targetRecipeItem = dbContext.RecipeItems.FirstOrDefault(x => x.Id == recipeItemBase.Id);
                     if (targetRecipeItem != null)
                     {
                         targetRecipeItem.RecipeItemName = recipeItemBase.RecipeItemName;
@@ -1746,7 +1746,7 @@ namespace TMWeb.Services
                     }
                     else
                     {
-                        await dbContext.RecipeBases.AddAsync(recipeItemBase);
+                        await dbContext.RecipeItems.AddAsync(recipeItemBase);
                     }
                     await dbContext.SaveChangesAsync();
                     return new(2, $"Upsert recipe item {recipeItemBase.RecipeItemName} success");
@@ -1765,10 +1765,10 @@ namespace TMWeb.Services
                 using (var scope = scopeFactory.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                    var targetRecipeItem = dbContext.RecipeBases.FirstOrDefault(x => x.Id == recipeItem.Id);
+                    var targetRecipeItem = dbContext.RecipeItems.FirstOrDefault(x => x.Id == recipeItem.Id);
                     if (targetRecipeItem != null)
                     {
-                        dbContext.RecipeBases.Remove(targetRecipeItem);
+                        dbContext.RecipeItems.Remove(targetRecipeItem);
                         await dbContext.SaveChangesAsync();
                         return new(2, $"Delete tag {recipeItem.RecipeItemName} success");
                     }
@@ -1815,8 +1815,8 @@ namespace TMWeb.Services
                     {
                         foreach (var recipe in wo.RecipeCategory?.Recipes)
                         {
-                            var recipeRes = recipe.GetValue(wo);
-                            if (recipeRes.Item1 && recipeRes.Item2 is not null)
+                            var recipeRes = await recipe.GetValue(wo);
+                            if (recipeRes.Item1 && recipeRes.Item3 is not null)
                             {
                                 var machineHasRecipe = machines.Where(x => x.TagCategoryId == recipe.TargetTagCatId);
                                 foreach (var machine in machineHasRecipe)
@@ -1827,7 +1827,7 @@ namespace TMWeb.Services
                                         using (var scope = scopeFactory.CreateScope())
                                         {
                                             var machineService = scope.ServiceProvider.GetRequiredService<IMachineService>();
-                                            var res = await machineService.SetMachineTag(machine.Name, targetTag.Name, recipeRes.Item2);
+                                            var res = await machineService.SetMachineTag(machine.Name, targetTag.Name, recipeRes.Item3);
                                             if (!res.IsSuccess)
                                             {
                                                 return res;

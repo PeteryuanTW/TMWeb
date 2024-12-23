@@ -40,7 +40,8 @@ public partial class Machine
     [Range(100, 65535)]
     public int UpdateDelay { get; set; }
 
-    //public virtual Process? Process { get; set; }
+    [Required]
+    public bool RecordStatusChanged { get; set; }
 
     public virtual TagCategory? TagCategory { get; set; }
 

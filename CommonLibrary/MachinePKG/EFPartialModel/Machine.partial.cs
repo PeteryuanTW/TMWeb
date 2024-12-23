@@ -29,6 +29,7 @@ namespace CommonLibrary.MachinePKG.EFModel
             Enabled = machine.Enabled;
             TagCategoryId = machine.TagCategoryId;
             UpdateDelay = machine.UpdateDelay;
+            RecordStatusChanged = machine.RecordStatusChanged;
 
             if (machine.hasCategory)
             {
@@ -87,7 +88,7 @@ namespace CommonLibrary.MachinePKG.EFModel
         public Status MachineStatus => status;
         public string StatusStr => status.ToString();
 
-        public bool machineAvailable => status != Status.Init && status != Status.Disconnect && status != Status.TryConnecting && status != Status.Error;
+        public bool machineAvailable => status == Status.Idle || status == Status.Running;
 
         protected Status customStatus;
         public Status CustomStatus => customStatus;
@@ -115,7 +116,10 @@ namespace CommonLibrary.MachinePKG.EFModel
         private void MachineStatechanged()
         {
             MachineStatechangedAct?.Invoke(status);
-            MachineStatechangedRecordAct?.Invoke(this, MachineStatusRecordType.InputStatus);
+            if (RecordStatusChanged)
+            {
+                MachineStatechangedRecordAct?.Invoke(this, MachineStatusRecordType.InputStatus);
+            }
         }
 
         public Action? CustomStatusChangedAct;
@@ -152,9 +156,24 @@ namespace CommonLibrary.MachinePKG.EFModel
         {
             return Task.FromResult(new RequestResult(3, "Not implement yet"));
         }
-        public virtual Task<RequestResult> SetTag(string tagName, object val)
+        public async Task<RequestResult> SetTag(string tagName, object val)
         {
-            return Task.FromResult(new RequestResult(3, "Not implement yet"));
+            if (hasCategory)
+            {
+                Tag tag = TagCategory.Tags.FirstOrDefault(x => x.Name == tagName);
+                if (tag != null)
+                {
+                    return await SetTag(tag, val);
+                }
+                else
+                {
+                    return new(4, $"No tag {tagName}");
+                }
+            }
+            else
+            {
+                return new(4, "No tag exist");
+            }
         }
         public virtual Task<RequestResult> SetTag(Tag tag, object val)
         {
@@ -335,13 +354,13 @@ namespace CommonLibrary.MachinePKG.EFModel
         }
         protected void Init()
         {
-            if (status != Status.Init)
-            {
-                status = Status.Init;
-                errorMsg = string.Empty;
-                lastStatusChangedTime = DateTime.Now;
-                MachineStatechanged();
-            }
+            //if (status != Status.Init)
+            //{
+            status = Status.Init;
+            errorMsg = string.Empty;
+            lastStatusChangedTime = DateTime.Now;
+            MachineStatechanged();
+            //}
         }
         protected void Idle()
         {

@@ -39,7 +39,7 @@
                             <DxToolbar ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
                                 <Items>
                                     <DxToolbarItem IconCssClass="oi oi-plus" Click="NewRecipeItemClicked" BeginGroup="true">
-@*                                         <Items>
+                                        @*                                         <Items>
                                             <DxToolbarItem Text="Static" Click="(()=>{NewRecipeItemClicked(0);})" />
                                             <DxToolbarItem Text="Build" Click="(()=>{NewRecipeItemClicked(1);})" />
                                             <DxToolbarItem Text="Custom" Click="(()=>{NewRecipeItemClicked(2);})" />
@@ -52,6 +52,7 @@
                         </ToolbarTemplate>
                         <Columns>
                             <DxGridDataColumn FieldName="@nameof(RecipeItem.RecipeItemName)"></DxGridDataColumn>
+                            <DxGridDataColumn FieldName="@nameof(RecipeItem.ValueExpString)"></DxGridDataColumn>
                         </Columns>
                     </DxGrid>
                 </div>
@@ -90,7 +91,7 @@
     </BodyContentTemplate>
 </DxPopup>
 
-<DxPopup @bind-Visible="@recipeItemPopupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" Width="50rem">
+<DxPopup @bind-Visible="@recipeItemPopupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" Width="50rem" AllowResize="true">
     <HeaderTemplate>
         <div class="w-100 p-3 border border-bottom">
             <DxToolbar>
@@ -112,19 +113,23 @@
                     <DxComboBox Data="@triggerTimingWrapperClasses" @bind-Value="@targetRecipeItem.TriggerTiming" ValueFieldName="@(nameof(WrapperClass.Index))" TextFieldName="@(nameof(WrapperClass.DisplayName))" ShowValidationIcon="true"></DxComboBox>
                 </DxFormLayoutItem>
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Target category"]}")">
-                    <DxComboBox Data="@tagCategories" @bind-Value="@targetRecipeItem.TargetTagCatId" ValueFieldName="@(nameof(TagCategory.Id))" TextFieldName="@(nameof(TagCategory.Name))" ShowValidationIcon="true" />
+                    <DxComboBox Data="@tagCategories" Value="@targetRecipeItem.TargetTagCatId" ValueChanged="((Guid? id) => TargetTagCatSelected(id))" ValueFieldName="@(nameof(TagCategory.Id))" ValueExpression="(()=>targetRecipeItem.TargetTagCatId)" TextFieldName="@(nameof(TagCategory.Name))" ShowValidationIcon="true" />
                     @* ValueChanged="((Guid? id)=>TargetTagCatChanged(id))" ValueExpression="@(() => targetRecipeItem.TargetTagCatId)" *@
                 </DxFormLayoutItem>
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Target tag"]}({TargetTagTypeString})")">
-                    <DxComboBox Data="@tagCandidates" @bind-Value="@targetRecipeItem.TargetTagId" ValueFieldName="@(nameof(Tag.Id))" TextFieldName="@(nameof(Tag.Name))" ShowValidationIcon="true" />
+                    <DxComboBox Data="@tagCandidates" Value="@targetRecipeItem.TargetTagId" ValueChanged="((Guid? id)=>TargetTagSelected(id))" ValueFieldName="@(nameof(Tag.Id))" ValueExpression="(()=>targetRecipeItem.TargetTagId)" TextFieldName="@(nameof(Tag.Name))" ShowValidationIcon="true" />
                     @* ValueChanged="((Guid? id)=>TargetTagChanged(id))" ValueExpression="@(() => targetRecipeItem.TargetTagId)" *@
                 </DxFormLayoutItem>
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["DataType"]}")" BeginRow="true">
-                    <DxComboBox Data="@DataTypes" @bind-Value="@targetRecipeItem.DataType" ValueFieldName="@(nameof(DataTypeWrapperClass.Index))" TextFieldName="@(nameof(DataTypeWrapperClass.DisplayName))" ShowValidationIcon="true"></DxComboBox>
+                     @*<DxComboBox Data="@DataTypes" @bind-Value="@targetRecipeItem.DataType" ValueFieldName="@(nameof(DataTypeWrapperClass.Index))" TextFieldName="@(nameof(DataTypeWrapperClass.DisplayName))" ShowValidationIcon="true"></DxComboBox>*@                    <DxSpinEdit @bind-Value="@targetRecipeItem.DataType"></DxSpinEdit>
                     <ValidationMessage For="@(() => targetRecipeItem.DataType)" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanLg="12">
                     <hr />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem ColSpanLg="12" Caption="@($"{localizer["Value Expression"]}")" CaptionPosition="CaptionPosition.Vertical">
+                    <DxTextBox @bind-Text="@targetRecipeItem.ValueExpString" ShowValidationIcon="true"></DxTextBox>
+                    <ValidationMessage For="@(() => targetRecipeItem.DataType)" />
                 </DxFormLayoutItem>
                 @*                 @if (targetRecipeItem.GetType() == typeof(StaticRecipe))
                 {
@@ -318,6 +323,24 @@
     private void GenrateNewRecipeItem()
     {
         targetRecipeItem = new RecipeItem(targetRecipe.Id);
+    }
+
+    private void TargetTagCatSelected(Guid? id)
+    {
+        targetRecipeItem.TargetTagCatId = id;
+        targetRecipeItem.TargetTagId = null;
+        UpdateDataTypeCode();
+    }
+
+    private void TargetTagSelected(Guid? id)
+    {
+        targetRecipeItem.TargetTagId = id;
+        UpdateDataTypeCode();
+    }
+
+    private void UpdateDataTypeCode()
+    {
+        targetRecipeItem.DataType = machineService.GetTagTypeCodeByIds(targetRecipeItem?.TargetTagCatId, targetRecipeItem?.TargetTagId);
     }
 
     private Tag? GetTagByIDInCandidates(Guid? tagId)

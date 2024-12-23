@@ -37,18 +37,18 @@
 	  <Compile Remove="EFPartialModels\TagCategory.partial.cs" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="BitzArt.Blazor.Cookies.Server" Version="1.1.2" />
+		<PackageReference Include="BitzArt.Blazor.Cookies.Server" Version="1.1.4" />
 		<PackageReference Include="BlazorMonaco" Version="3.2.0" />
 		<PackageReference Include="DevExpress.Blazor" Version="24.2.3" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="8.*-*" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" />
+		<PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="3.8.0" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
 		<PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Localization" Version="8.0.7" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="NModbus" Version="3.0.81" />
 		<PackageReference Include="OmniSharp.Roslyn.CSharp" Version="1.37.4" />
-		<PackageReference Include="Serilog.AspNetCore" Version="8.0.2" />
+		<PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
 		<PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.2" />
 		<PackageReference Include="System.Net.Http" Version="4.3.4" />
@@ -105,7 +105,7 @@
 	  <None Include="EFPartialModels\LogicStatusCondition.cs" />
 	</ItemGroup>
 	<ItemGroup>
-	  <XamlAppDef Include="EFModels\StaticRecipe.cs" />
+	  <None Include="EFModels\StaticRecipe.cs" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Content Update="Components\Pages\Setting\TagCategoriesPage.razor">

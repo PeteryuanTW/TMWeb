@@ -111,6 +111,7 @@ namespace CommonLibrary.MachinePKG.Service
                         target.ErrorCodeCategoryId = machine.ErrorCodeCategoryId;
                         target.Enabled = machine.Enabled;
                         target.UpdateDelay = machine.UpdateDelay;
+                        target.RecordStatusChanged = machine.RecordStatusChanged;
                     }
                     else
                     {
@@ -234,6 +235,10 @@ namespace CommonLibrary.MachinePKG.Service
 
         async void IMachineService.MachineStatusChangedRecord(Machine machine, MachineStatusRecordType machineStatusRecordType)
         {
+            if (!machine.RecordStatusChanged)
+            {
+                return;
+            }
             try
             {
                 using (var scope = scopeFactory.CreateScope())
@@ -266,6 +271,27 @@ namespace CommonLibrary.MachinePKG.Service
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<MachineDBContext>();
                 return Task.FromResult(dbContext.MachineStatusLogs.Where(x=>x.MachineID == machineUtilizationDTO.MachineID && x.LogTime>= machineUtilizationDTO.Start && x.LogTime<= machineUtilizationDTO.End).OrderBy(x=>x.LogTime).AsNoTracking().ToList());
+            }
+        }
+
+        async IAsyncEnumerable<MachineStatusInterval> IMachineService.CalculateMachineStatusIntervalByOrderedLog(List<MachineStatusLog> machineStatusLogs, ushort delayMilliSec, IProgress<int>? progress)
+        {
+            int totalCount = machineStatusLogs.Count();
+            progress?.Report(0);
+            for (int i = 0; i < totalCount; i++)
+            {
+                if (i == totalCount - 1)
+                {
+                    //res.Add(new(machineStatusLogs[i].LogTime, DateTime.Now, (Status)machineStatusLogs[i].Status));
+                    yield return new(machineStatusLogs[i].LogTime, DateTime.Now, (Status)machineStatusLogs[i].Status);
+                }
+                else
+                {
+                    //res.Add(new(machineStatusLogs[i].LogTime, machineStatusLogs[i + 1].LogTime, (Status)machineStatusLogs[i].Status));
+                    yield return new(machineStatusLogs[i].LogTime, machineStatusLogs[i + 1].LogTime, (Status)machineStatusLogs[i].Status);
+                }
+                await Task.Delay(delayMilliSec);
+                progress?.Report(i * 100 / totalCount);
             }
         }
 

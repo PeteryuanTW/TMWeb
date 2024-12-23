@@ -63,6 +63,8 @@ namespace CommonLibrary.MachinePKG.EFModel
                 entity.Property(e => e.Enabled).HasColumnName("Enabled");
                 entity.Property(e => e.UpdateDelay).HasColumnName("UpdateDelay");
                 entity.Property(e => e.MaxRetryCount).HasColumnName("MaxRetryCount");
+                entity.Property(e => e.RecordStatusChanged).HasColumnName("RecordStatusChanged");
+
             });
 
             modelBuilder.Entity<MachineStatusLog>(entity =>
