@@ -9,10 +9,26 @@ namespace TMWeb.EFModels
 {
     public partial class RecipeItem
     {
+        public RecipeItem() { }
         public RecipeItem(Guid configId)
         {
             Id = Guid.NewGuid();
             ConfigId = configId;
+        }
+
+        public RecipeItem Copy(Guid catId)
+        {
+            return new RecipeItem()
+            {
+                Id = Guid.NewGuid(),
+                ConfigId = catId,
+                RecipeItemName = this.RecipeItemName,
+                TriggerTiming = this.TriggerTiming,
+                TargetTagCatId = this.TargetTagCatId,
+                TargetTagId = this.TargetTagId,
+                DataType = this.DataType,
+                ValueExpString = this.ValueExpString,
+            };
         }
 
         public bool hasTargetTag => TargetTagCatId != null && TargetTagId != null;

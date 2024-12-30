@@ -70,43 +70,43 @@
                                     <div>@((SpecialTagType)context.Value)</div>
                                 </CellDisplayTemplate>
                             </DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("Bool1") && showTagDetails)" Caption="@(GetLocalization("Bool1"))" FieldName="@nameof(Tag.Bool1)">
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("Bool1"))" FieldName="@nameof(Tag.Bool1)">
                                 <CellDisplayTemplate>
                                     <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
                                 </CellDisplayTemplate>
                             </DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("Bool2") && showTagDetails)" Caption="@(GetLocalization("Bool2"))" FieldName="@nameof(Tag.Bool2)">
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("Bool2"))" FieldName="@nameof(Tag.Bool2)">
                                 <CellDisplayTemplate>
                                     <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
                                 </CellDisplayTemplate>
                             </DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("Bool3") && showTagDetails)" Caption="@(GetLocalization("Bool3"))" FieldName="@nameof(Tag.Bool3)">
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("Bool3"))" FieldName="@nameof(Tag.Bool3)">
                                 <CellDisplayTemplate>
                                     <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
                                 </CellDisplayTemplate>
                             </DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("Bool4") && showTagDetails)" Caption="@(GetLocalization("Bool4"))" FieldName="@nameof(Tag.Bool4)">
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("Bool4"))" FieldName="@nameof(Tag.Bool4)">
                                 <CellDisplayTemplate>
                                     <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
                                 </CellDisplayTemplate>
                             </DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("Bool5") && showTagDetails)" Caption="@(GetLocalization("Bool5"))" FieldName="@nameof(Tag.Bool5)">
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("Bool5"))" FieldName="@nameof(Tag.Bool5)">
                                 <CellDisplayTemplate>
                                     <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
                                 </CellDisplayTemplate>
                             </DxGridDataColumn>
                             
-                            <DxGridDataColumn Visible="@(GetVariableDefined("Int1") && showTagDetails)" Caption="@(GetLocalization("Int1"))" FieldName="@nameof(Tag.Int1)"></DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("Int2") && showTagDetails)" Caption="@(GetLocalization("Int2"))" FieldName="@nameof(Tag.Int2)"></DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("Int3") && showTagDetails)" Caption="@(GetLocalization("Int3"))" FieldName="@nameof(Tag.Int3)"></DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("Int4") && showTagDetails)" Caption="@(GetLocalization("Int4"))" FieldName="@nameof(Tag.Int4)"></DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("Int5") && showTagDetails)" Caption="@(GetLocalization("Int5"))" FieldName="@nameof(Tag.Int5)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("Int1"))" FieldName="@nameof(Tag.Int1)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("Int2"))" FieldName="@nameof(Tag.Int2)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("Int3"))" FieldName="@nameof(Tag.Int3)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("Int4"))" FieldName="@nameof(Tag.Int4)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("Int5"))" FieldName="@nameof(Tag.Int5)"></DxGridDataColumn>
                             
-                            <DxGridDataColumn Visible="@(GetVariableDefined("String1") && showTagDetails)" Caption="@(GetLocalization("String1"))" FieldName="@nameof(Tag.String1)"></DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("String2") && showTagDetails)" Caption="@(GetLocalization("String2"))" FieldName="@nameof(Tag.String2)"></DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("String3") && showTagDetails)" Caption="@(GetLocalization("String3"))" FieldName="@nameof(Tag.String3)"></DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("String4") && showTagDetails)" Caption="@(GetLocalization("String4"))" FieldName="@nameof(Tag.String4)"></DxGridDataColumn>
-                            <DxGridDataColumn Visible="@(GetVariableDefined("String5") && showTagDetails)" Caption="@(GetLocalization("String5"))" FieldName="@nameof(Tag.String5)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("String1"))" FieldName="@nameof(Tag.String1)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("String2"))" FieldName="@nameof(Tag.String2)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("String3"))" FieldName="@nameof(Tag.String3)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("String4"))" FieldName="@nameof(Tag.String4)"></DxGridDataColumn>
+                            <DxGridDataColumn Visible="@(showTagDetails)" Caption="@(GetLocalization("String5"))" FieldName="@nameof(Tag.String5)"></DxGridDataColumn>
                         </Columns>
                     </DxGrid>
                 </div>
@@ -174,51 +174,51 @@
                     <DxComboBox @bind-Value="@targetTag.SpecialType" Data="@SpecialTagTypes" ValueFieldName="@(nameof(SpecialTagTypeWrapperClass.Index))" TextFieldName="@(nameof(SpecialTagTypeWrapperClass.DisplayName))" />
                 </DxFormLayoutItem>
 
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("Bool1"))" Caption="@(GetLocalization("Bool1"))" ColSpanLg="2" BeginRow="true">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical"Caption="@(GetLocalization("Bool1"))" ColSpanLg="2" BeginRow="true">
                     <DxCheckBox @bind-Checked="@targetTag.Bool1" CheckType="CheckType.Switch" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("Bool2"))" Caption="@(GetLocalization("Bool2"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("Bool2"))" ColSpanLg="2">
                     <DxCheckBox @bind-Checked="@targetTag.Bool2" CheckType="CheckType.Switch" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("Bool3"))" Caption="@(GetLocalization("Bool3"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("Bool3"))" ColSpanLg="2">
                     <DxCheckBox @bind-Checked="@targetTag.Bool3" CheckType="CheckType.Switch" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("Bool4"))" Caption="@(GetLocalization("Bool4"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("Bool4"))" ColSpanLg="2">
                     <DxCheckBox @bind-Checked="@targetTag.Bool4" CheckType="CheckType.Switch" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("Bool5"))" Caption="@(GetLocalization("Bool5"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("Bool5"))" ColSpanLg="2">
                     <DxCheckBox @bind-Checked="@targetTag.Bool5" CheckType="CheckType.Switch" />
                 </DxFormLayoutItem>
 
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("Int1"))" Caption="@(GetLocalization("Int1"))" ColSpanLg="2" BeginRow="true">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("Int1"))" ColSpanLg="2" BeginRow="true">
                     <DxSpinEdit @bind-Value="@targetTag.Int1" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("Int2"))" Caption="@(GetLocalization("Int2"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("Int2"))" ColSpanLg="2">
                     <DxSpinEdit @bind-Value="@targetTag.Int2" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("Int3"))" Caption="@(GetLocalization("Int3"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("Int3"))" ColSpanLg="2">
                     <DxSpinEdit @bind-Value="@targetTag.Int3" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("Int4"))" Caption="@(GetLocalization("Int4"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("Int4"))" ColSpanLg="2">
                     <DxSpinEdit @bind-Value="@targetTag.Int4" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("Int5"))" Caption="@(GetLocalization("Int5"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("Int5"))" ColSpanLg="2">
                     <DxSpinEdit @bind-Value="@targetTag.Int5" />
                 </DxFormLayoutItem>
 
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("String1"))" Caption="@(GetLocalization("String1"))" ColSpanLg="2" BeginRow="true">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("String1"))" ColSpanLg="2" BeginRow="true">
                     <DxTextBox @bind-Text="@targetTag.String1" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("String2"))" Caption="@(GetLocalization("String2"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("String2"))" ColSpanLg="2">
                     <DxTextBox @bind-Text="@targetTag.String2" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("String3"))" Caption="@(GetLocalization("String3"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("String3"))" ColSpanLg="2">
                     <DxTextBox @bind-Text="@targetTag.String3" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("String4"))" Caption="@(GetLocalization("String4"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("String4"))" ColSpanLg="2">
                     <DxTextBox @bind-Text="@targetTag.String4" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Visible="@(GetVariableDefined("String5"))" Caption="@(GetLocalization("String5"))" ColSpanLg="2">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@(GetLocalization("String5"))" ColSpanLg="2">
                     <DxTextBox @bind-Text="@targetTag.String5" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">

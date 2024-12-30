@@ -30,7 +30,7 @@ namespace CommonLibrary.MachinePKG.MachineData
     public class TagRes
     {
         public DateTime FIRST_TIME { get; set; }
-        public DateTime LAST_TIME { get; set; }
+        public DateTime? LAST_TIME { get; set; }
         public int READ_COUNT { get; set; }
         public string SERIAL_NUMBER { get; set; }
         public string AUFNR { get; set; }
@@ -48,7 +48,7 @@ namespace CommonLibrary.MachinePKG.MachineData
         public int NOT_SCAN { get; set; }
         public double RSSI_DBM { get; set; }
         public string USER_ID { get; set; }
-        public DateTime CREATE_TIME { get; set; }
+        public Nullable<DateTime> CREATE_TIME { get; set; }
     }
 
     public class RegalscanRFIDLoginModel
@@ -102,7 +102,7 @@ namespace CommonLibrary.MachinePKG.MachineData
         public string IP_ADDRESS { get; set; }
         public string USER_ID { get; set; }
         public DateTime CREATE_TIME { get; set; }
-        public DateTime LAST_TIME { get; set; }
+        public DateTime? LAST_TIME { get; set; }
     }
 
     public class UPC
@@ -118,7 +118,7 @@ namespace CommonLibrary.MachinePKG.MachineData
         public string SERIAL_CODE { get; set; }
         public string USER_ID { get; set; }
         public DateTime CREATE_TIME { get; set; }
-        public DateTime LAST_TIME { get; set; }
+        public DateTime? LAST_TIME { get; set; }
     }
 
 

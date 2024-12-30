@@ -87,23 +87,22 @@ namespace CommonLibrary.MachinePKG.EFModel
         protected Status status;
         public Status MachineStatus => status;
         public string StatusStr => status.ToString();
-
-        public bool machineAvailable => status == Status.Idle || status == Status.Running;
+        public bool machineAvailable => status != Status.Init && status == Status.TryConnecting && status == Status.Disconnect && status == Status.Stop && status == Status.Error;
 
         protected Status customStatus;
         public Status CustomStatus => customStatus;
         public string CustomStatusStr => customStatus.ToString();
 
         //private DateTime initTime;
-        private DateTime lastStatusChangedTime;
-        private DateTime lastTagUpdateTime;
+        protected DateTime lastStatusChangedTime;
+        protected DateTime lastTagUpdateTime;
 
         private bool runFlag => status != Status.Init && status != Status.Disconnect && status != Status.TryConnecting;
         public bool RunFlag => runFlag;
 
         public bool canManualRetryFlag => isAutoRetry ? false : status is Status.Disconnect || status is Status.Error;
 
-        private string errorMsg = string.Empty;
+        protected string errorMsg = string.Empty;
         public string ErrorMsg => errorMsg;
 
         private string errorCodeDescription = string.Empty;
@@ -113,7 +112,7 @@ namespace CommonLibrary.MachinePKG.EFModel
 
         public Action<Status>? MachineStatechangedAct;
         public Action<Machine, MachineStatusRecordType>? MachineStatechangedRecordAct;
-        private void MachineStatechanged()
+        protected void MachineStatechanged()
         {
             MachineStatechangedAct?.Invoke(status);
             if (RecordStatusChanged)
@@ -196,7 +195,6 @@ namespace CommonLibrary.MachinePKG.EFModel
                 if (tag.UpdateByTime)
                 {
                     var res = await UpdateTag(tag);
-                    //Console.WriteLine(res.ReturnCode+": "+res.Msg);
                 }
             }
             lastTagUpdateTime = DateTime.Now;

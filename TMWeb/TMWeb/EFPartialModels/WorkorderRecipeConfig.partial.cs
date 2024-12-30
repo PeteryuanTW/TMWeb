@@ -10,5 +10,14 @@
         }
 
         public bool HasRecipes => Recipes.Count > 0;
+
+        public WorkorderRecipeConfig Copy()
+        {
+            return new WorkorderRecipeConfig
+            {
+                Id = Guid.NewGuid(),
+                RecipeCategory = $"{this.RecipeCategory}_copy",
+            };
+        }
     }
 }

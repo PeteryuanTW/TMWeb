@@ -1700,8 +1700,7 @@ namespace TMWeb.Services
                 return new(4, ex.Message);
             }
         }
-
-        public async Task<RequestResult> DeleteRecipeConfig(WorkorderRecipeConfig recipeConfig)
+        public async Task<RequestResult> CopyRecipeCatAndItems(WorkorderRecipeConfig recipeConfig)
         {
             try
             {
@@ -1709,15 +1708,50 @@ namespace TMWeb.Services
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
                     var targetTagCat = dbContext.WorkorderRecipeConfigs.Include(x => x.Recipes).FirstOrDefault(x => x.Id == recipeConfig.Id);
-                    if (targetTagCat != null)
+                    if (targetTagCat is not null)
                     {
-                        dbContext.WorkorderRecipeConfigs.Remove(targetTagCat);
+                        var catCopy = targetTagCat.Copy();
+                        await dbContext.WorkorderRecipeConfigs.AddAsync(catCopy);
+                        var items = targetTagCat.Recipes;
+                        var itemsCopy = CopyRecipeItems(catCopy.Id, items);
+                        await dbContext.RecipeItems.AddRangeAsync(itemsCopy);
                         await dbContext.SaveChangesAsync();
-                        return new(2, $"Delete recipe config {targetTagCat.RecipeCategory} success");
+                        return new(2, $"Copy recipe config {recipeConfig.RecipeCategory} with new name {catCopy.RecipeCategory} with {itemsCopy.Count()} items success");
+
                     }
                     else
                     {
-                        return new(4, $"Recipe config {targetTagCat.RecipeCategory} not found");
+                        return new(4, $"Recipe config {recipeConfig.RecipeCategory} not found");
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                return new(4, ex.Message);
+            }
+        }
+        private List<RecipeItem> CopyRecipeItems(Guid catId, ICollection<RecipeItem> recipeSources)
+        {
+            return recipeSources.Select(x => x.Copy(catId)).ToList();
+        }
+        public async Task<RequestResult> DeleteRecipeConfig(WorkorderRecipeConfig recipeConfig)
+        {
+            try
+            {
+                using (var scope = scopeFactory.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                    var targetRecipeCat = dbContext.WorkorderRecipeConfigs.Include(x => x.Recipes).FirstOrDefault(x => x.Id == recipeConfig.Id);
+                    if (targetRecipeCat != null)
+                    {
+                        dbContext.WorkorderRecipeConfigs.Remove(targetRecipeCat);
+                        await dbContext.SaveChangesAsync();
+                        return new(2, $"Delete recipe config {targetRecipeCat.RecipeCategory} success");
+                    }
+                    else
+                    {
+                        return new(4, $"Recipe config {recipeConfig.RecipeCategory} not found");
                     }
 
                 }
@@ -1802,7 +1836,6 @@ namespace TMWeb.Services
                 return Task.FromResult(dbContext.WorkorderRecipeConfigs.Include(x => x.Workorders).ToList());//.Include(x=>x.WorkorderRecipeContents).ThenInclude(x =>x.WorkorderRecipeDetails)
             }
         }
-
         public async Task<RequestResult> DeployWorkorderRecipeInProcess(Workorder wo)
         {
             var targetProcess = await GetProcessByID(wo.ProcessId);

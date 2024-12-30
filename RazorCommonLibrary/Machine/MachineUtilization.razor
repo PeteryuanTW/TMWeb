@@ -11,9 +11,11 @@
         <Columns>
             <DxGridLayoutColumn></DxGridLayoutColumn>
             <DxGridLayoutColumn></DxGridLayoutColumn>
+            <DxGridLayoutColumn></DxGridLayoutColumn>
+            <DxGridLayoutColumn></DxGridLayoutColumn>
         </Columns>
         <Items>
-            <DxGridLayoutItem Row="0" Column="0" ColumnSpan="2">
+            <DxGridLayoutItem Row="0" Column="0" ColumnSpan="4">
                 <Template>
                     <div>
                         <EditForm Model="@machineUtilizationDTO" Context="editformcontext" OnValidSubmit="GetLogData">
@@ -28,7 +30,7 @@
                                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="4">
                                     <DxToolbar>
                                         <Items>
-                                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                                            <DxToolbarItem IconCssClass="oi oi-check" SubmitFormOnClick="true" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Left" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
                                         </Items>
                                     </DxToolbar>
                                 </DxFormLayoutItem>
@@ -37,11 +39,26 @@
                                 </DxFormLayoutItem>
                             </DxFormLayout>
                         </EditForm>
-
                     </div>
                 </Template>
             </DxGridLayoutItem>
-            <DxGridLayoutItem Row="1" Column="0" Visible="@hasMachineStatusIntervals">
+@*             <DxGridLayoutItem Row="0" Column="3">
+                <Template>
+                    <div>
+                        <DxDropDownButton RenderStyle="ButtonRenderStyle.Secondary"
+                                          Text="Clipboard"
+                                          IconCssClass="tb-icon tb-icon-paste"
+                                          CssClass="me-1">
+                            <Items>
+                                <DxDropDownButtonItem Text="Cut" IconCssClass="menu-icon-cut menu-icon" />
+                                <DxDropDownButtonItem Text="Copy" IconCssClass="menu-icon-copy menu-icon" />
+                                <DxDropDownButtonItem Text="Paste" IconCssClass="tb-icon tb-icon-paste" />
+                            </Items>
+                        </DxDropDownButton>
+                    </div>
+                </Template>
+            </DxGridLayoutItem> *@
+            <DxGridLayoutItem Row="1" Column="0" Visible="@hasMachineStatusIntervals" ColumnSpan="2">
                 <Template>
                     <div>
                         <DxPieChart @ref="@pieChart"
@@ -76,7 +93,7 @@
                     </div>
                 </Template>
             </DxGridLayoutItem>
-            <DxGridLayoutItem Row="1" Column="1" Visible="@hasMachineStatusIntervals">
+            <DxGridLayoutItem Row="1" Column="2" Visible="@hasMachineStatusIntervals" ColumnSpan="2">
                 <Template>
                     <div>
                         <DxChart Data="@machineStatusIntervals" Rotated="true" CustomizeSeriesPoint="MachineTypeEnumHelper.SetPointColor" CssClass="p-3">
@@ -100,16 +117,14 @@
                     </div>
                 </Template>
             </DxGridLayoutItem>
-            <DxGridLayoutItem Row="1" Column="0" Visible="@(!hasMachineStatusIntervals && !isProcessing)" ColumnSpan="2">
+            <DxGridLayoutItem Row="1" Column="0" Visible="@(!hasMachineStatusIntervals && !isProcessing)" ColumnSpan="4">
                 <Template>
                     <div class="alert alert-warning" role="alert">
                         No data found
                     </div>
                 </Template>
             </DxGridLayoutItem>
-
         </Items>
-
     </DxGridLayout>
 
 </DxLoadingPanel>

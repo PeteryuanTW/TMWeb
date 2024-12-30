@@ -20,7 +20,8 @@
                                 <Items>
                                     <DxToolbarItem IconCssClass="oi oi-plus" Click="NewRecipeClicked" BeginGroup="true" />
                                     <DxToolbarItem IconCssClass="oi oi-pencil" Click="ShowRecipePopup" Enabled="@recipeSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
-                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowRecipeDelete" Enabled="@recipeSelected" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
+                                    <DxToolbarItem IconUrl="images\myicon\copy.svg" Click="CopyCategoryAndItems" Enabled="@recipeSelected" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                    <DxToolbarItem IconCssClass="oi oi-trash" Click="ShowRecipeDelete" Enabled="@recipeSelected" RenderStyle="ButtonRenderStyle.Danger" Alignment="ToolbarItemAlignment.Right" BeginGroup="true" />
                                 </Items>
                             </DxToolbar>
                         </ToolbarTemplate>
@@ -121,7 +122,7 @@
                     @* ValueChanged="((Guid? id)=>TargetTagChanged(id))" ValueExpression="@(() => targetRecipeItem.TargetTagId)" *@
                 </DxFormLayoutItem>
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["DataType"]}")" BeginRow="true">
-                     @*<DxComboBox Data="@DataTypes" @bind-Value="@targetRecipeItem.DataType" ValueFieldName="@(nameof(DataTypeWrapperClass.Index))" TextFieldName="@(nameof(DataTypeWrapperClass.DisplayName))" ShowValidationIcon="true"></DxComboBox>*@                    <DxSpinEdit @bind-Value="@targetRecipeItem.DataType"></DxSpinEdit>
+                    @*<DxComboBox Data="@DataTypes" @bind-Value="@targetRecipeItem.DataType" ValueFieldName="@(nameof(DataTypeWrapperClass.Index))" TextFieldName="@(nameof(DataTypeWrapperClass.DisplayName))" ShowValidationIcon="true"></DxComboBox>*@                    <DxSpinEdit @bind-Value="@targetRecipeItem.DataType"></DxSpinEdit>
                     <ValidationMessage For="@(() => targetRecipeItem.DataType)" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem ColSpanLg="12">
@@ -280,6 +281,14 @@
     private async Task UpsertRecipeCategory()
     {
         var res = await shopfloorService.UpsertRecipeConfig(targetRecipe);
+        await InitParameter();
+        CloseRecipePopup();
+        uiService.ShowToast(res);
+    }
+
+    private async Task CopyCategoryAndItems()
+    {
+        var res = await shopfloorService.CopyRecipeCatAndItems(targetRecipe);
         await InitParameter();
         CloseRecipePopup();
         uiService.ShowToast(res);

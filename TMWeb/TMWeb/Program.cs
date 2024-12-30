@@ -16,21 +16,9 @@ using System.Data.Common;
 using CommonLibrary.MachinePKG;
 using Microsoft.Extensions.Hosting.WindowsServices;
 
-
-
-
-//Environment.SetEnvironmentVariable("APPRoot",
-//    WindowsServiceHelpers.IsWindowsService() ? AppContext.BaseDirectory : Directory.GetCurrentDirectory());
-
 var builder = WebApplication.CreateBuilder(args);
 
-var b = WindowsServiceHelpers.IsWindowsService();
-var c = AppContext.BaseDirectory;
-var d = Directory.GetCurrentDirectory();
-Console.WriteLine(b);
-Console.WriteLine(c);
-Console.WriteLine(d);
-var tmp = AppDomain.CurrentDomain.BaseDirectory;
+
 
 
 // Add services to the container.
@@ -49,6 +37,9 @@ builder.Services.AddDevExpressBlazor(options =>
 
 //https://github.com/nethawkChen/dotnet8-Serilog
 var setting = builder.Configuration;
+var logPath = WindowsServiceHelpers.IsWindowsService() ? AppContext.BaseDirectory : Directory.GetCurrentDirectory();
+
+
 builder.Host.UseSerilog(
     (context, services, configuration) =>
     {
@@ -57,11 +48,11 @@ builder.Host.UseSerilog(
         .ReadFrom.Services(services)
         .Enrich.FromLogContext()
         .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Controller"))
-        .WriteTo.File($"{tmp}logs",
+        .WriteTo.File($"{logPath}\\logs\\controller\\log_.txt",
         rollingInterval: Enum.Parse<RollingInterval>(setting["Serilog:WriteTo:1:Args:rollingInterval"]),
             retainedFileCountLimit: int.Parse(setting["Serilog:WriteTo:1:Args:retainedFileCountLimit"])))
          .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Service"))
-         .WriteTo.File($"{tmp}logs",
+         .WriteTo.File($"{logPath}\\logs\\service\\log_.txt",
             rollingInterval: Enum.Parse<RollingInterval>(setting["Serilog:WriteTo:2:Args:rollingInterval"]),
             retainedFileCountLimit: int.Parse(setting["Serilog:WriteTo:2:Args:retainedFileCountLimit"])));
     });

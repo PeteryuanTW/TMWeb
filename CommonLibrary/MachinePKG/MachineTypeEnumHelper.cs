@@ -37,6 +37,9 @@ namespace CommonLibrary.MachinePKG
                 new (Status.Pause, ButtonRenderStyle.Warning, Color.FromArgb(235, 192, 0)),
                 new (Status.Stop, ButtonRenderStyle.Danger, Color.FromArgb(204, 0, 0)),
                 new (Status.Error, ButtonRenderStyle.Danger, Color.FromArgb(204, 0, 0)),
+
+                new (Status.PDown, ButtonRenderStyle.Info, Color.FromArgb(130, 192, 192)),
+                new (Status.Offline, ButtonRenderStyle.Secondary, Color.FromArgb(143, 143, 143)),
             };
 
         public static StatusStyle? GetStatusStyle(int statusCode)
@@ -207,6 +210,7 @@ namespace CommonLibrary.MachinePKG
         WebAPI = 10,
         ConveyorMachine = 20,
         WrappingMachine = 21,
+        RobotOther = 22,
         RegalscanRFID = 78,
     }
     #endregion
@@ -235,6 +239,9 @@ namespace CommonLibrary.MachinePKG
         Pause,
         Stop,
         Error,
+
+        PDown,
+        Offline,
     }
 
     public class StatusStyle

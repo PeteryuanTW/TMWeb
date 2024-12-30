@@ -47,6 +47,9 @@ namespace CommonLibrary.MachinePKG
         public Task<List<MachineStatusLog>> GetMachineStatusLogByID(MachineUtilizationDTO machineUtilizationDTO);
 
         public IAsyncEnumerable<MachineStatusInterval> CalculateMachineStatusIntervalByOrderedLog(List<MachineStatusLog> machineStatusLogs, ushort delayMilliSec = 0, IProgress<int>? progress = null);
+
+        public Task<RequestResult> ClearMachineStatusLogBeforeSpecificTime(DateTime? time);
+
         #endregion
 
         #region tag

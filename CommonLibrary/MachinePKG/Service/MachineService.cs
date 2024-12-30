@@ -192,6 +192,9 @@ namespace CommonLibrary.MachinePKG.Service
                 case 21:
                     res = new WrappingMachine(machine);
                     break;
+                case 22:
+                    res = new RobotOther(machine);
+                    break;
                 case 78:
                     res = new RegalscanRFIDMachine(machine);
                     break;
@@ -292,6 +295,33 @@ namespace CommonLibrary.MachinePKG.Service
                 }
                 await Task.Delay(delayMilliSec);
                 progress?.Report(i * 100 / totalCount);
+            }
+        }
+
+        Task<RequestResult> IMachineService.ClearMachineStatusLogBeforeSpecificTime(DateTime? time)
+        {
+            var t = time is null ? DateTime.Now : time.Value;
+            using (var scope = scopeFactory.CreateScope())
+            {
+                try
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<MachineDBContext>();
+                    var targets = dbContext.MachineStatusLogs.Where(x => x.LogTime < t);
+                    if (targets.Count() > 0)
+                    {
+                        dbContext.MachineStatusLogs.RemoveRange(targets);
+                        dbContext.SaveChanges();
+                        return Task.FromResult(new RequestResult(2, $"Clear machine status log before {t} success"));
+                    }
+                    else
+                    {
+                        return Task.FromResult(new RequestResult(1, $"No machine status logs before {t}"));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    return Task.FromResult(new RequestResult(4, ex.Message));
+                }
             }
         }
 
