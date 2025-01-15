@@ -151,20 +151,6 @@
                     <Template>
                         <DxToolbar SizeMode="SizeMode.Large">
                             <Items>
-                                @* <DxToolbarItem Visible="@hasMachine" BeginGroup="true">
-                                    <Template>
-                                        <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@checkMachines">
-                                            Machines Check
-                                        </DxCheckBox>
-                                    </Template>
-                                </DxToolbarItem>
-                                <DxToolbarItem Visible="@hasStation" BeginGroup="true">
-                                    <Template>
-                                        <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@checkStations">
-                                            Station Check
-                                        </DxCheckBox>
-                                    </Template>
-                                </DxToolbarItem> *@
                                 <DxToolbarItem Click="StartWorkorder" Enabled="@canWOStart" RenderStyle="ButtonRenderStyle.Success" IconCssClass="oi oi-media-play" BeginGroup="true" />
                                 <DxToolbarItem RenderStyle="ButtonRenderStyle.Danger" IconCssClass="oi oi-media-stop" BeginGroup="true" />
                                 <DxToolbarItem IconCssClass="oi oi-cog" BeginGroup="true" Alignment="ToolbarItemAlignment.Right">

@@ -1,0 +1,11 @@
+﻿<DxGrid Data="@ItemRecordDetails">
+    <Columns>
+        <DxGridDataColumn FieldName="@nameof(ItemRecordDetail.Content)" />
+        <DxGridDataColumn FieldName="@nameof(ItemRecordDetail.Value)" />
+    </Columns>
+</DxGrid>
+
+@code {
+    [Parameter]
+    public IEnumerable<ItemRecordDetail> ItemRecordDetails { get; set; } = new List<ItemRecordDetail>();
+}

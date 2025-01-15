@@ -1,0 +1,71 @@
+﻿@using Serilog.Events
+@rendermode InteractiveServer
+@inject SerilogService serilogService
+
+<DxGrid Data="@serilogDatas" @ref="@grid" CustomizeElement="Grid_CustomizeElement">
+    <ToolbarTemplate Context="btncontext">
+        <DxFormLayout CssClass="w-100">
+            <DxFormLayoutItem>
+                <DxDateRangePicker @bind-StartDate="@startTime" @bind-EndDate="@endTime" DisplayFormat="D"></DxDateRangePicker>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem>
+                <DxToolbar>
+                    <DxToolbarItem RenderStyle="ButtonRenderStyle.Info" IconCssClass="oi oi-magnifying-glass" Click="QueryInInterval"></DxToolbarItem>
+                    <DxToolbarItem RenderStyle="ButtonRenderStyle.Info" IconCssClass="oi oi-data-transfer-download" Click="Download" Enabled="@hasLogs" Alignment="ToolbarItemAlignment.Right" BeginGroup="true"></DxToolbarItem>
+                </DxToolbar>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+    </ToolbarTemplate>
+    <Columns>
+        <DxGridDataColumn FieldName="@nameof(SerilogData.Severity)">
+            <CellDisplayTemplate>
+                <div>@((LogEventLevel)((int)context.Value))</div>
+            </CellDisplayTemplate>
+        </DxGridDataColumn>
+        <DxGridDataColumn FieldName="@nameof(SerilogData.Msg)" />
+        <DxGridDataColumn FieldName="@nameof(SerilogData.TimeStamp)" DisplayFormat="G" />
+        <DxGridDataColumn FieldName="@nameof(SerilogData.Caller)" />
+        <DxGridDataColumn FieldName="@nameof(SerilogData.Method)" />
+        <DxGridDataColumn FieldName="@nameof(SerilogData.Row)" />
+        <DxGridDataColumn FieldName="@nameof(SerilogData.Column)" />
+    </Columns>
+</DxGrid>
+@code {
+    IGrid? grid { get; set; }
+    private DateTime startTime = DateTime.Today;
+    private DateTime endTime = DateTime.Today;
+
+    private IEnumerable<SerilogData> serilogDatas = new List<SerilogData>();
+
+    private bool hasLogs => serilogDatas.Any();
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        grid?.AutoFitColumnWidths();
+        return base.OnAfterRenderAsync(firstRender);
+    }
+
+    private async Task QueryInInterval()
+    {
+        serilogDatas = await serilogService.GetSerilogDatas(startTime, endTime);
+
+        //await InvokeAsync(StateHasChanged);
+    }
+
+    private void Grid_CustomizeElement(GridCustomizeElementEventArgs e)
+    {
+        if (e.ElementType == GridElementType.DataRow)
+        {
+            var severity = e.Grid.GetRowValue(e.VisibleIndex, "Severity");
+            e.Style = TypeEnumHelper.GetSerilogEventLogLevelStyle((int)severity) is not null ? $"background-color:{TypeEnumHelper.GetSerilogEventLogLevelStyle((int)severity)?.ColorRGBString}" : string.Empty;
+        }
+    }
+
+    private async Task Download()
+    {
+        using (HttpClient httpClient = new())
+        {
+            nav.NavigateTo($"Export/Logs?start={startTime.ToString("yyyy-MM-dd")}&end={endTime.ToString("yyyy-MM-dd")}", true);
+        }
+    }
+}

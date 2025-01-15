@@ -1,0 +1,17 @@
+﻿<DxFormLayout Data="@WorkorderParam" CssClass="card w-100 p-3" ReadOnly="true">
+    <DxFormLayoutItem ColSpanLg="12" Field="@nameof(Workorder.WorkorderNo)"/>
+    <DxFormLayoutItem ColSpanLg="3">
+        <div class="d-flex justify-content-center">
+            <DxProgressBar Type="ProgressBarType.Circular"  MinValue="0" MaxValue="@WorkorderParam.TargetAmount" Value="@(WorkorderParam.Okamount + WorkorderParam.Ngamount)" />
+        </div>
+    </DxFormLayoutItem>
+    <DxFormLayoutItem ColSpanLg="3" Caption="@($"{localizer["Target"]}")" CaptionPosition="CaptionPosition.Vertical" Field="@nameof(Workorder.TargetAmount)"/>
+    <DxFormLayoutItem ColSpanLg="3" Caption="@($"{localizer["OK"]}")" CaptionPosition="CaptionPosition.Vertical" Field="@nameof(Workorder.Okamount)"/>
+    <DxFormLayoutItem ColSpanLg="3" Caption="@($"{localizer["NG"]}")" CaptionPosition="CaptionPosition.Vertical" Field="@nameof(Workorder.Ngamount)"/>
+</DxFormLayout>
+
+@code {
+    [Parameter]
+    public Workorder? WorkorderParam { get; set; }
+    private bool hasWorkorder => WorkorderParam is not null;
+}

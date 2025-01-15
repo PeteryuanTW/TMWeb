@@ -5,90 +5,50 @@ using TMWeb.Data.CustomAttribute;
 using TMWeb.EFModels;
 using CommonLibrary.Data;
 using CommonLibrary.MachinePKG;
+using Serilog.Core;
+using Serilog.Events;
+using Microsoft.IdentityModel.Abstractions;
 
 namespace TMWeb.Data
 {
     public static class TypeEnumHelper
     {
-        //public static IEnumerable<ConnectionTypeWrapperClass> GetConnectTypesWrapperClass()
-        //{
-        //    return Enum.GetValues(typeof(ConnectType)).OfType<ConnectType>()
-        //        .Select(x => new ConnectionTypeWrapperClass(x));
-        //}
+        public static IEnumerable<EventLogLevelStyle> EventLogLevelStyle =>
+            new List<EventLogLevelStyle>
+            {
+                new (EventLogLevel.info, ButtonRenderStyle.Info, Color.FromArgb(130, 192, 192)),
+                new (EventLogLevel.success, ButtonRenderStyle.Success, Color.FromArgb(1, 178, 104)),
+                new (EventLogLevel.warning, ButtonRenderStyle.Warning, Color.FromArgb(235, 192, 0)),
+                new (EventLogLevel.danger, ButtonRenderStyle.Danger, Color.FromArgb(204, 0, 0)),
+            };
 
+        public static EventLogLevelStyle? GetEventLogLevelStyle(int statusCode)
+        {
+            var target = EventLogLevelStyle.FirstOrDefault(x => (int)x.eventLogLevel == statusCode);
+            return target;
+        }
+
+        public static IEnumerable<SerilogEventLogLevelStyle> SerilogEventLogLevelStyle =>
+            new List<SerilogEventLogLevelStyle>
+            {
+                new (LogEventLevel.Verbose, Color.FromArgb(100, 0, 0, 0)),
+                new (LogEventLevel.Debug, Color.FromArgb(100, 0, 0, 0)),
+                new (LogEventLevel.Information, Color.FromArgb(80, 130, 192, 192)),
+                new (LogEventLevel.Warning, Color.FromArgb(80, 235, 192, 0)),
+                new (LogEventLevel.Error, Color.FromArgb(80, 204, 0, 0)),
+                new (LogEventLevel.Fatal, Color.FromArgb(80, 204, 0, 0)),
+            };
+
+        public static SerilogEventLogLevelStyle? GetSerilogEventLogLevelStyle(int statusCode)
+        {
+            var target = SerilogEventLogLevelStyle.FirstOrDefault(x => (int)x.logEventLevel == statusCode);
+            return target;
+        }
         public static IEnumerable<StationTypeWrapperClass> GetStationTypesWrapperClass()
         {
             return Enum.GetValues(typeof(StationType)).OfType<StationType>()
                 .Select(x => new StationTypeWrapperClass(x));
         }
-
-        //public static Dictionary<DataType, Type> TypeDict = new()
-        //{
-        //    { DataType.Bool, typeof(bool) },
-        //    { DataType.Ushort, typeof(ushort) },
-        //    { DataType.Float, typeof(float) },
-        //    { DataType.String, typeof(string) },
-        //    //{ DataType.ArrayOfBool, typeof(bool[]) },
-        //    //{ DataType.ArrayOfUshort, typeof(ushort[]) },
-        //    //{ DataType.ArrayOfFloat, typeof(float[]) },
-        //    //{ DataType.ArrayOfString, typeof(string[]) },
-
-        //};
-
-        //public static bool TypeMatch(int? code, Type? type)
-        //{
-        //    if (code is null || type is null)
-        //    {
-        //        return false;
-        //    }
-        //    DataType dt = (DataType)code;
-        //    if (TypeDict.ContainsKey(dt))
-        //    {
-        //        if (TypeDict[dt] == type)
-        //        {
-        //            return true;
-        //        }
-        //        else
-        //        {
-        //            return false;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return false;
-        //    }
-        //}
-
-        //public static bool TypeMatch(DataType dt, Type type)
-        //{
-        //    if (TypeDict.ContainsKey(dt))
-        //    {
-        //        if (TypeDict[dt] == type)
-        //        {
-        //            return true;
-        //        }
-        //        else
-        //        {
-        //            return false;
-        //        }
-        //    }
-        //    else
-        //    {
-        //        return false;
-        //    }
-        //}
-
-        //public static IEnumerable<DataTypeWrapperClass> GetDataTypesWrapperClass()
-        //{
-        //    return Enum.GetValues(typeof(DataType)).OfType<DataType>()
-        //        .Select(x => new DataTypeWrapperClass(x));
-        //}
-
-        //public static IEnumerable<SpecialTagTypeWrapperClass> GetSpecialTagTypesWrapperClass()
-        //{
-        //    return Enum.GetValues(typeof(SpecialTagType)).OfType<SpecialTagType>()
-        //        .Select(x => new SpecialTagTypeWrapperClass(x));
-        //}
 
         public static IEnumerable<BuildInRecipeWrapperClass> GetBuildInRecipeWrapperClass()
         {
@@ -109,24 +69,6 @@ namespace TMWeb.Data
                 .Select(x => new RecipeTriggerTimingWrapperClass(x));
         }
 
-        //public static IEnumerable<StatusStyle> StatusStyles =>
-        //    new List<StatusStyle>
-        //    {
-        //        new (Status.Init, ButtonRenderStyle.Secondary, Color.FromArgb(143, 143, 143)),
-        //        new (Status.TryConnecting, ButtonRenderStyle.Info, Color.FromArgb(91, 91, 174)),
-        //        new (Status.Disconnect, ButtonRenderStyle.Danger, Color.FromArgb(204, 0, 0)),
-        //        new (Status.Idle, ButtonRenderStyle.Info, Color.FromArgb(130, 192, 192)),
-        //        new (Status.Running, ButtonRenderStyle.Success, Color.FromArgb(1, 178, 104)),
-        //        new (Status.Pause, ButtonRenderStyle.Warning, Color.FromArgb(235, 192, 0)),
-        //        new (Status.Stop, ButtonRenderStyle.Danger, Color.FromArgb(204, 0, 0)),
-        //        new (Status.Error, ButtonRenderStyle.Danger, Color.FromArgb(204, 0, 0)),
-        //    };
-
-        //public static IEnumerable<StatusWrapperClass> GetStatusWrapperClass()
-        //{
-        //    return Enum.GetValues(typeof(Status)).OfType<Status>()
-        //        .Select(x => new StatusWrapperClass(x));
-        //}
 
         public static IEnumerable<MapComponentTargetTypeWrapperClass> GetMapComponentTargetTypeWrapperClass()
         {
@@ -134,11 +76,6 @@ namespace TMWeb.Data
                 .Select(x => new MapComponentTargetTypeWrapperClass(x));
         }
 
-        //public static StatusStyle? GetStatusStyle(int statusCode)
-        //{
-        //    var target = StatusStyles.FirstOrDefault(x => (int)x.status == statusCode);
-        //    return target;
-        //}
 
         public static IEnumerable<MapEditCommandWrapperClass> GetMapEditCommandWrapperClass()
         {
@@ -147,19 +84,7 @@ namespace TMWeb.Data
         }
     }
 
-    
 
-    //public enum ModbusTCPAction
-    //{
-    //    ReadCoils = 1,
-    //    ReadDiscreteInputs = 2,
-    //    ReadHoldingRegisters = 3,
-    //    ReadInputRegisters = 4,
-    //    WriteSingleCoil = 5,
-    //    WriteSingleRegister = 6,
-    //    WriteMultipleCoils = 15,
-    //    WriteMultipleRegisters = 16,
-    //}
 
     public enum EventLogLevel
     {
@@ -169,36 +94,56 @@ namespace TMWeb.Data
         danger = 4,
     }
 
-    //public class ConnectionTypeWrapperClass : WrapperClass
-    //{
-    //    public ConnectionTypeWrapperClass(ConnectType type)
-    //    {
-    //        Type = type;
-    //        index = (int)Type;
-    //        displayName = Type.ToString();
-    //    }
-    //    public ConnectType Type { get; init; }
-    //}
-    //public enum ConnectType
-    //{
-    //    ModbusTCP = 0,
-    //    TMRobot = 1,
-    //    ModbusTCPother = 2,
-    //    WebAPI = 10,
-    //}
 
-    //public class DataTypeWrapperClass : WrapperClass
-    //{
-    //    public DataTypeWrapperClass(DataType dataType)
-    //    {
-    //        Type = dataType;
-    //        index = (int)Type;
-    //        displayName = Type.ToString();
-    //    }
 
-    //    public DataType Type { get; init; }
-    //    public Type csType => TypeEnumHelper.TypeDict[Type];
-    //}
+    public class EventLogLevelStyle
+    {
+        public EventLogLevel eventLogLevel { get; init; }
+        public ButtonRenderStyle buttonRenderStyle { get; init; }
+        public Color StyleColor { get; init; }
+        public string ColorRGBString => $"RGB({StyleColor.R}, {StyleColor.G}, {StyleColor.B}, 0.3)";
+        public string ColorHTMLString => $"#{StyleColor.R:X2}{StyleColor.G:X2}{StyleColor.B:X2}";
+        public EventLogLevelStyle(EventLogLevel eventLogLevel, ButtonRenderStyle buttonRenderStyle, Color color)
+        {
+            this.eventLogLevel = eventLogLevel;
+            this.buttonRenderStyle = buttonRenderStyle;
+            this.StyleColor = color;
+        }
+    }
+
+    public class SerilogEventLogLevelStyle
+    {
+        public LogEventLevel logEventLevel { get; init; }
+        public Color StyleColor { get; init; }
+        public string ColorRGBString => $"RGB({StyleColor.R}, {StyleColor.G}, {StyleColor.B}, 0.3)";
+        public string ColorHTMLString => $"#{StyleColor.R:X2}{StyleColor.G:X2}{StyleColor.B:X2}";
+        public SerilogEventLogLevelStyle(LogEventLevel logEventLevel, Color color)
+        {
+            this.logEventLevel = logEventLevel;
+            this.StyleColor = color;
+        }
+    }
+
+    public class LogLevelAsIntEnricher : ILogEventEnricher
+    {
+        public void Enrich(LogEvent logEvent, ILogEventPropertyFactory propertyFactory)
+        {
+            var logLevelAsInt = MapLogLevelToInt(logEvent.Level);
+            logEvent.AddPropertyIfAbsent(new LogEventProperty("Severity", new ScalarValue(logLevelAsInt)));
+
+        }
+        int MapLogLevelToInt(LogEventLevel level) => level switch
+        {
+            LogEventLevel.Verbose => 0,
+            LogEventLevel.Debug => 1,
+            LogEventLevel.Information => 2,
+            LogEventLevel.Warning => 3,
+            LogEventLevel.Error => 4,
+            LogEventLevel.Fatal => 5,
+            _ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
+        };
+    }
+
 
     public class BuildInRecipeWrapperClass : WrapperClass
     {
@@ -208,33 +153,7 @@ namespace TMWeb.Data
             displayName = propertyName;
         }
     }
-    //public enum DataType
-    //{
-    //    Bool = 1,
-    //    Ushort = 2,
-    //    Float = 3,
-    //    String = 4,
-    //    //ArrayOfBool = 11,
-    //    //ArrayOfUshort = 22,
-    //    //ArrayOfFloat = 33,
-    //    //ArrayOfString = 44,
-    //}
 
-
-    //public class SpecialTagTypeWrapperClass : WrapperClass
-    //{
-    //    public SpecialTagTypeWrapperClass(SpecialTagType specialTagType)
-    //    {
-    //        index = (int)specialTagType;
-    //        displayName = specialTagType.ToString();
-    //    }
-    //}
-    //public enum SpecialTagType
-    //{
-    //    General,
-    //    CustomStatus,
-    //    DetailCode,
-    //}
 
     public class StationTypeWrapperClass : WrapperClass
     {
@@ -290,7 +209,7 @@ namespace TMWeb.Data
     //    public Status Status { get; init; }
     //}
 
-    
+
     //public enum Status
     //{
     //    Init,

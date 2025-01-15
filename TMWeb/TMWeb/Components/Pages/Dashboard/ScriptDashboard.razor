@@ -72,6 +72,12 @@
                                         <DxFormLayoutItem Caption="@($"{localizer["Status"]}")" CaptionPosition="CaptionPosition.Vertical">
                                             <DxTextBox Text="@(scriptConfig.script.Status.ToString())" ReadOnly="true"/>
                                         </DxFormLayoutItem>
+                                        <DxFormLayoutItem Caption="@($"{localizer["DelayMilliseconds"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                            <DxSpinEdit Value="@(scriptConfig.script.DelayMilliseconds)" ReadOnly="true"/>
+                                        </DxFormLayoutItem>
+                                        <DxFormLayoutItem Caption="@($"{localizer["MaxLogCount"]}")" CaptionPosition="CaptionPosition.Vertical">
+                                            <DxSpinEdit Value="@(scriptConfig.script.MaxLogCount)" ReadOnly="true" />
+                                        </DxFormLayoutItem>
                                     </DxFormLayoutGroup>
                                 }
                             }

@@ -1,6 +1,8 @@
 ﻿using Microsoft.Extensions.Hosting;
 using Serilog;
+using Serilog.Events;
 using System;
+using TMWeb.Extension;
 
 namespace TMWeb.Services
 {
@@ -9,28 +11,21 @@ namespace TMWeb.Services
 
 
         private readonly IHostApplicationLifetime _applicationLifetime;
-        private readonly ILogger<TMWebShopfloorService> logger;
-        public ApplicationLifetimeService(IHostApplicationLifetime applicationLifetime, ILogger<TMWebShopfloorService> logger)
+        public ApplicationLifetimeService(IHostApplicationLifetime applicationLifetime)
         {
             _applicationLifetime = applicationLifetime;
             _applicationLifetime.ApplicationStarted.Register(OnStarted);
             _applicationLifetime.ApplicationStopping.Register(OnStopping);
-            this.logger = logger;
         }
 
         private void OnStarted()
         {
-            // Your startup logic here
-            logger.LogWarning("app start");
-            //Console.WriteLine("Application has started.");
+            //SerilogExtension.LogWithSeverity(LogEventLevel.Information, "app start");
         }
 
         private void OnStopping()
         {
-            logger.LogWarning("app shutdown");
-
-            // Your cleanup logic here
-            //Console.WriteLine("Application is shutting down...");
+            //SerilogExtension.LogWithSeverity(LogEventLevel.Information, "app stop");
         }
     }
 

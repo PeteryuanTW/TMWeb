@@ -8,14 +8,14 @@
     </Rows>
     <Columns>
         <DxGridLayoutColumn Width="3fr"></DxGridLayoutColumn>
-        <DxGridLayoutColumn Width="3fr"></DxGridLayoutColumn>
+        <DxGridLayoutColumn Width="6fr"></DxGridLayoutColumn>
     </Columns>
     <Items>
         <DxGridLayoutItem Row="0" Column="0">
             <Template>
                 <DxFormLayout>
                     <DxFormLayoutItem ColSpanLg="12">
-                        <DxCarousel LoopNavigationEnabled="true"
+                        @* <DxCarousel LoopNavigationEnabled="true"
                                     SlideShowEnabled="true"
                                     NavButtonsDisplayMode="CarouselControlsDisplayMode.VisibleOnHover">
                             <Items>
@@ -30,14 +30,15 @@
                                     </div>
                                 </DxCarouselItem>
                             </Items>
-                        </DxCarousel>
+                        </DxCarousel> *@
+                        <MachinesSummaryBarGauge Machines="@machines"></MachinesSummaryBarGauge>
                     </DxFormLayoutItem>
                 </DxFormLayout>
             </Template>
         </DxGridLayoutItem>
         <DxGridLayoutItem Row="0" Column="1">
             <Template>
-                <EventLogGrid />
+                <WorkorderWIPComponent></WorkorderWIPComponent>
             </Template>
         </DxGridLayoutItem>
     </Items>

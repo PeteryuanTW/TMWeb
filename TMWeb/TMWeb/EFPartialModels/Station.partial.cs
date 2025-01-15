@@ -1,5 +1,6 @@
 ﻿using TMWeb.Data;
 using CommonLibrary.MachinePKG;
+using CommonLibrary.API.Message;
 
 namespace TMWeb.EFModels
 {
@@ -47,7 +48,22 @@ namespace TMWeb.EFModels
         private string errorMsg = String.Empty;
         public string ErrorMsg => errorMsg;
 
+        public virtual bool CheckHasItem()
+        {
+            return false;
+        }
+
         public bool hasCustomUIInfo => StationUirecords.Any();
+
+        public virtual bool CheckCanReset()
+        {
+            return true;
+        }
+        public virtual Task<RequestResult> ResetStation()
+        {
+            return Task.FromResult(new RequestResult(4, "not implement yet"));
+        }
+
         public void InitStation()
         {
             stationStatus = Status.Init;

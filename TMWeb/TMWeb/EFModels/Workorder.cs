@@ -31,7 +31,8 @@ public partial class Workorder
     [PublicProperty]
     public string? PartNo { get; set; }
     [PublicProperty]
-    public ushort TargetAmount { get; set; }
+    [Range(1, Int16.MaxValue)]
+    public int TargetAmount { get; set; }
     public int Okamount { get; set; }
 
     public int Ngamount { get; set; }

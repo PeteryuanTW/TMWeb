@@ -15,7 +15,7 @@
     protected bool canoperate => hasStation ? StationParam.StationStatus == Status.Running : false;
     protected bool canpause => hasStation ? StationParam.StationStatus == Status.Running : false;
     protected bool canstop => hasStation ? StationParam.StationStatus == Status.Running : false;
-    protected bool canretry => hasStation ? (StationParam.StationStatus == Status.Stop || StationParam.StationStatus == Status.Error) : false;
+    protected bool canretry => hasStation ? StationParam.CheckCanReset() : false;
     protected bool iserror => hasStation ? StationParam.StationStatus == Status.Error : false;
 
     public bool showErrorMsg = false;

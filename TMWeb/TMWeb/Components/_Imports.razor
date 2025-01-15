@@ -28,6 +28,8 @@
 @using TMWeb.Components.Pages.Action
 @using TMWeb.Components.Pages.Dashboard
 @using TMWeb.Components.Pages.Setting
+@using TMWeb.Components.Query
+@using TMWeb.Components.Workorder
 
 @using CommonLibrary.API.Message
 @using CommonLibrary.Auth
@@ -51,12 +53,17 @@
 
 @using DevExpress.Blazor
 
-
+@using Blazor.Diagrams;
+@using Blazor.Diagrams.Core.PathGenerators;
+@using Blazor.Diagrams.Core.Routers;
+@using Blazor.Diagrams.Core.Models;
+@using Blazor.Diagrams.Core.Anchors;
+@using Blazor.Diagrams.Components;
+@using Blazor.Diagrams.Options;
 
 @inject IStringLocalizer<Language> localizer
 @inject NavigationManager nav
 @inject TMWebShopfloorService shopfloorService
 @inject IMachineService machineService
-@inject EventLogService eventLogService
 @inject ScriptService scriptService
 @inject UIService uiService

@@ -37,6 +37,16 @@ namespace TMWeb.Services
         {
             return scriptConfigs.FirstOrDefault(x => x.Id == id);
         }
+        public ScriptConfig? GetScriptByIDForExport(Guid id)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                var target = dbContext.ScriptConfigs.AsNoTracking().FirstOrDefault(x => x.Id == id);
+                return target;
+
+            }
+        }
         public async Task<RequestResult> UpsertScript(ScriptConfig scriptConfig)
         {
             try
@@ -49,6 +59,8 @@ namespace TMWeb.Services
                     if (exist)
                     {
                         target.ScriptName = scriptConfig.ScriptName;
+                        target.DelayMilliseconds = scriptConfig.DelayMilliseconds;
+                        target.MaxLogCount = scriptConfig.MaxLogCount;
                         target.AutoCompile = scriptConfig.AutoCompile;
                         target.AutoRun = scriptConfig.AutoRun;
                         target.SuorceCode = scriptConfig.SuorceCode;

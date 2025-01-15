@@ -2,6 +2,10 @@
 {
     public partial class ItemDetail
     {
+        public bool HasWorkorder => Workorders != null;
+        public string? WorkorderNo => HasWorkorder ? Workorders?.WorkorderNo : string.Empty;
+        public string? WorkorderLot => HasWorkorder ? Workorders?.Lot : string.Empty;
+
         public ItemDetail() { }
         public ItemDetail(Guid workorderID, string serialNo)
         {

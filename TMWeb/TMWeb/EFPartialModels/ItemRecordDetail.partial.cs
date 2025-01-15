@@ -15,5 +15,9 @@
             RecordContentId = itemRecordContents.Id;
             Value = string.Empty;
         }
+
+        public bool HasContent => RecordContent != null;
+
+        public string? Content => HasContent ? RecordContent?.RecordName : string.Empty;
     }
 }

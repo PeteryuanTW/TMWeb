@@ -7,9 +7,18 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="MachinePKG\MachineData\RobotOther.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="MachinePKG\MachineData\RobotOther.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="BitzArt.Blazor.Cookies.Server" Version="1.1.4" />
     <PackageReference Include="DevExpress.Blazor" Version="24.2.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NModbus" Version="3.0.81" />

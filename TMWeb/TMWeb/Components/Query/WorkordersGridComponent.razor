@@ -1,0 +1,55 @@
+﻿<DxGrid Data="@targetWorkorders" @ref="@grid">
+    <ToolbarTemplate Context="btncontext">
+        <DxFormLayout CssClass="w-100">
+            <DxFormLayoutItem>
+                <DxDateRangePicker @bind-StartDate="@startTime" @bind-EndDate="@endTime" DisplayFormat="D"></DxDateRangePicker>
+            </DxFormLayoutItem>
+            <DxFormLayoutItem >
+                <DxToolbar>
+                    <DxToolbarItem RenderStyle="ButtonRenderStyle.Info" IconCssClass="oi oi-magnifying-glass" Click="QueryInInterval"></DxToolbarItem>
+                    <DxToolbarItem RenderStyle="ButtonRenderStyle.Info" IconCssClass="oi oi-data-transfer-download" Click="Export" BeginGroup="true"></DxToolbarItem>
+                </DxToolbar>
+            </DxFormLayoutItem>
+        </DxFormLayout>
+    </ToolbarTemplate>
+    <Columns>
+        <DxGridDataColumn FieldName="@nameof(Workorder.WorkorderNo)" />
+        <DxGridDataColumn FieldName="@nameof(Workorder.Lot)" />
+        <DxGridDataColumn FieldName="@nameof(Workorder.PartNo)" />
+        <DxGridDataColumn FieldName="@nameof(Workorder.TargetAmount)" />
+        <DxGridDataColumn FieldName="@nameof(Workorder.Okamount)" />
+        <DxGridDataColumn FieldName="@nameof(Workorder.Ngamount)" />
+        <DxGridDataColumn FieldName="@nameof(Workorder.StartTime)" DisplayFormat="g"/>
+        <DxGridDataColumn FieldName="@nameof(Workorder.FinishedTime)" DisplayFormat="G" />
+        <DxGridDataColumn FieldName="@nameof(Workorder.CreateTime)" DisplayFormat="G" />
+    </Columns>
+    <DetailRowTemplate>
+        @{
+            var workorderContext = context.DataItem as Workorder;
+            if (workorderContext is not null && workorderContext.ItemDetails.Count() > 0 )
+            {
+                <ItemsGridComponent ItemDetails="@(workorderContext.ItemDetails)" />
+            }
+        }
+    </DetailRowTemplate>
+</DxGrid>
+
+@code {
+    IGrid grid { get; set; }
+    private DateTime startTime = DateTime.Today;
+    private DateTime endTime = DateTime.Today;
+
+    public IEnumerable<Workorder> targetWorkorders;
+
+    private async Task QueryInInterval()
+    {
+        targetWorkorders = await shopfloorService.GetWorkorderAndItemdetails();
+        //await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task Export()
+    {
+        //await grid?.ExportToXlsxAsync($"TMItem_{startTime.ToString("G")}_{endTime.ToString("G")}");
+        var a = JsonConvert.SerializeObject(targetWorkorders);
+    }
+}

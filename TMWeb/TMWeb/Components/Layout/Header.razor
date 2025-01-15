@@ -28,6 +28,7 @@
                 <Items>
                     <DxMenuItem Text="@($"{localizer["Production History"]}")" IconUrl="images\MyIcon\producthistory.svg" NavigateUrl="/HistoryQuery" />
                     <DxMenuItem Text="@($"{localizer["Machine Utilization"]}")" Visible="@(authService.IsRole("SuperUser"))" IconCssClass="oi oi-clock" NavigateUrl="/MachineUtilization" />
+                    <DxMenuItem Text="@($"{localizer["Log Query"]}")" Visible="@(authService.IsRole("SuperUser"))" IconCssClass="oi oi-menu" NavigateUrl="/LogData" />
 
                 </Items>
             </DxMenuItem>
@@ -52,9 +53,8 @@
             </DxMenuItem>
             <DxMenuItem Position="ItemPosition.Center" Text="@($"{localizer["Developer"]}")" IconUrl="images\MyIcon\programmer.svg" Visible="@(authService.IsRole("SuperUser"))" BeginGroup="true">
                 <Items>
-                    <DxMenuItem Text="@($"{localizer["Command"]}")" IconCssClass="oi oi-terminal" NavigateUrl="/Developer" />
+                    @* <DxMenuItem Text="@($"{localizer["Command"]}")" IconCssClass="oi oi-terminal" NavigateUrl="/Developer" /> *@
                     <DxMenuItem Text="@($"{localizer["Swagger"]}")" IconUrl="images\MyIcon\swagger.svg" NavigateUrl="/Swagger" />
-                    <DxMenuItem Text="@($"{localizer["Modbus TCP"]}")" IconCssClass="oi oi-tablet" NavigateUrl="/ModbusTCPTesting" />
                 </Items>
             </DxMenuItem>
             <AuthComponent></AuthComponent>

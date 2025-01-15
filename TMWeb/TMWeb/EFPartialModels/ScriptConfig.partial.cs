@@ -25,6 +25,8 @@ namespace TMWeb.EFModels
         public void SetScript(ScriptBaseClass scriptBaseClass)
         {
             script = scriptBaseClass;
+            script.SetMaxLogCount(MaxLogCount);
+            script.SetdelayMilliseconds(DelayMilliseconds);
             ScriptChanged();
         }
 
@@ -39,6 +41,7 @@ namespace TMWeb.EFModels
             if (HasScript)
             {
                 script?.Stop();
+                script = null;
             }
         }
     }

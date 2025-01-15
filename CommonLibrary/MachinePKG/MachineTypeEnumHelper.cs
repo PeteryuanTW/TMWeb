@@ -38,8 +38,8 @@ namespace CommonLibrary.MachinePKG
                 new (Status.Stop, ButtonRenderStyle.Danger, Color.FromArgb(204, 0, 0)),
                 new (Status.Error, ButtonRenderStyle.Danger, Color.FromArgb(204, 0, 0)),
 
-                new (Status.PDown, ButtonRenderStyle.Info, Color.FromArgb(130, 192, 192)),
-                new (Status.Offline, ButtonRenderStyle.Secondary, Color.FromArgb(143, 143, 143)),
+                //new (Status.PDown, ButtonRenderStyle.Info, Color.FromArgb(130, 192, 192)),
+                //new (Status.Offline, ButtonRenderStyle.Secondary, Color.FromArgb(143, 143, 143)),
             };
 
         public static StatusStyle? GetStatusStyle(int statusCode)
@@ -234,14 +234,15 @@ namespace CommonLibrary.MachinePKG
         Init,
         TryConnecting,
         Disconnect,
+        
         Idle,
         Running,
         Pause,
         Stop,
         Error,
 
-        PDown,
-        Offline,
+        //PDown,
+        //Offline,
     }
 
     public class StatusStyle

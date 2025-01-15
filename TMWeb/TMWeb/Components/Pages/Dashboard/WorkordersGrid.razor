@@ -19,12 +19,10 @@
                             <DxToolbar SizeMode="SizeMode.Large" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
                                 <DxToolbarItem IconCssClass="oi oi-plus" Click="NewWorkorderClicked" BeginGroup="true" />
                                 <DxToolbarItem IconCssClass="oi oi-pencil" Enabled="@canEditOrDelete" Click="ShowPopup" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
-                                <DxToolbarItem Enabled="@canEditOrDelete" Click="ShowDelete" IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right"/>
-                                <DxToolbarItem Enabled="@workorderSelected" Click="NavToWorkorderDetail" IconCssClass="oi oi-magnifying-glass" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
-                                @if (authService.IsRole("SuperUser"))
-                                {
-                                    <DxToolbarItem Enabled="@workorderSelected" Click="ResetWorkorder" IconCssClass="oi oi-reload" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
-                                }
+                                <DxToolbarItem Enabled="@workorderSelected" Click="NavToWorkorderAction" IconCssClass="oi oi-share" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" />
+                                <DxToolbarItem Enabled="@workorderSelected" IconCssClass="oi oi-list" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+                                <DxToolbarItem Enabled="@workorderSelected" Visible="@(authService.IsRole("SuperUser"))" Click="ResetWorkorder" IconCssClass="oi oi-reload" RenderStyle="ButtonRenderStyle.Warning" Alignment="ToolbarItemAlignment.Right" BeginGroup="true" />
+                                <DxToolbarItem Enabled="@canEditOrDelete" Click="ShowDelete" IconCssClass="oi oi-trash" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" />
                             </DxToolbar>
                         </ToolbarTemplate>
                         <Columns>
@@ -37,8 +35,8 @@
                             <DxGridDataColumn Caption="@($"{localizer["Lot"]}")" FieldName="@nameof(Workorder.Lot)" />
                             <DxGridDataColumn Caption="@($"{localizer["Part No"]}")" FieldName="@nameof(Workorder.PartNo)" />
                             <DxGridDataColumn Caption="@($"{localizer["Target"]}")" FieldName="@nameof(Workorder.TargetAmount)" />
-                            <DxGridDataColumn Caption="@($"{localizer["OK"]}")" FieldName="@nameof(Workorder.Ngamount)" />
-                            <DxGridDataColumn Caption="@($"{localizer["NG"]}")" FieldName="@nameof(Workorder.Okamount)" />
+                            <DxGridDataColumn Caption="@($"{localizer["OK"]}")" FieldName="@nameof(Workorder.Okamount)" />
+                            <DxGridDataColumn Caption="@($"{localizer["NG"]}")" FieldName="@nameof(Workorder.Ngamount)" />
                         </Columns>
                     </DxGrid>
                 </div>
@@ -76,7 +74,7 @@
                     <DxTextBox @bind-Text="@selectedWorkorder.PartNo" ReadOnly="@(!canEditOrDelete)" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Target"]}")" ColSpanLg="6">
-                    <DxSpinEdit T="@(ushort)" @bind-Value="@selectedWorkorder.TargetAmount" ReadOnly="@(!canEditOrDelete)" MinValue="0" ShowValidationIcon="true" />
+                    <DxSpinEdit @bind-Value="@selectedWorkorder.TargetAmount" ReadOnly="@(!canEditOrDelete)" MinValue="0" ShowValidationIcon="true" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem Caption="@($"{localizer["Workorder Recipe"]}")" CaptionPosition="CaptionPosition.Vertical" BeginRow="true">
                     <DxComboBox Data="@workorderRecipeConfigs" @bind-Value="@selectedWorkorder.RecipeCategoryId" ReadOnly="@(!canEditOrDelete)" ValueFieldName="@nameof(WorkorderRecipeConfig.Id)" TextFieldName="@nameof(WorkorderRecipeConfig.RecipeCategory)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto"></DxComboBox>
@@ -174,7 +172,7 @@
         selectedWorkorder = e.DataItem as Workorder;
     }
 
-    private void NavToWorkorderDetail()
+    private void NavToWorkorderAction()
     {
         nav.NavigateTo($"/Workorder/{selectedWorkorder.Id.ToString()}");
     }

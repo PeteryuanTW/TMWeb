@@ -1,0 +1,24 @@
+﻿<DxGrid Data="@ItemDetails">
+    <Columns>
+        <DxGridDataColumn FieldName="@nameof(ItemDetail.SerialNo)" />
+        <DxGridDataColumn FieldName="@nameof(ItemDetail.TargetAmount)" />
+        <DxGridDataColumn FieldName="@nameof(ItemDetail.Okamount)" />
+        <DxGridDataColumn FieldName="@nameof(ItemDetail.Ngamount)" />
+        <DxGridDataColumn FieldName="@nameof(ItemDetail.StartTime)" DisplayFormat="G" />
+        <DxGridDataColumn FieldName="@nameof(ItemDetail.FinishedTime)" DisplayFormat="G" />
+    </Columns>
+    <DetailRowTemplate>
+        @{
+            var itemContext = context.DataItem as ItemDetail;
+            if (itemContext is not null && itemContext.ItemRecordDetails.Count() > 0)
+            {
+                <ItemRecordDetailsGridComponent ItemRecordDetails="@(itemContext.ItemRecordDetails)" />
+            }
+        }
+    </DetailRowTemplate>
+</DxGrid>
+
+@code {
+    [Parameter]
+    public IEnumerable<ItemDetail> ItemDetails { get; set; } = new List<ItemDetail>();
+}

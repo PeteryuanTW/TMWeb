@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace TMWeb.EFModels;
+﻿namespace TMWeb.EFModels;
 
 public partial class ItemDetail
 {
@@ -18,8 +15,8 @@ public partial class ItemDetail
     public int Ngamount { get; set; }
 
     public DateTime? StartTime { get; set; }
-
     public DateTime? FinishedTime { get; set; }
+
 
     public virtual ICollection<ItemRecordDetail> ItemRecordDetails { get; set; } = new List<ItemRecordDetail>();
 

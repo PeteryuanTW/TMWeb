@@ -5,15 +5,19 @@
     <ToolbarTemplate>
         <DxToolbar SizeMode="SizeMode.Large" ItemRenderStyleMode="ToolbarRenderStyleMode.Contained">
             <DxToolbarItem IconCssClass="oi oi-plus" Click="NewScriptClicked" BeginGroup="true" />
+            <DxToolbarItem IconCssClass="oi oi-data-transfer-upload" Visible="false" id="scriptuploadbtn" Alignment="ToolbarItemAlignment.Right" BeginGroup="true" />
+            <DxToolbarItem IconCssClass="oi oi-data-transfer-download" Enabled="@scriptSelected" Click="DownloadScript" Alignment="ToolbarItemAlignment.Right" BeginGroup="true" />
             <DxToolbarItem IconCssClass="oi oi-pencil" Enabled="@scriptSelected" Click="ShowPopup" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
             <DxToolbarItem IconCssClass="oi oi-code" Enabled="@scriptSelected" Click="NavToEditor" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
-            <DxToolbarItem IconCssClass="oi oi-terminal" Enabled="@scriptSelected" Click="NavToDashboard" RenderStyle="ButtonRenderStyle.Info" BeginGroup="true" />
+            <DxToolbarItem IconCssClass="oi oi-terminal" Enabled="@scriptSelected" Click="NavToDashboard" BeginGroup="true" />
             <DxToolbarItem IconCssClass="oi oi-trash" Enabled="@scriptSelected" Click="ShowDelete" Alignment="ToolbarItemAlignment.Right" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" />
         </DxToolbar>
     </ToolbarTemplate>
     <Columns>
         <DxGridDataColumn Caption="@($"{localizer["ID"]}")" FieldName="@nameof(ScriptConfig.Id)" />
         <DxGridDataColumn Caption="@($"{localizer["Name"]}")" FieldName="@nameof(ScriptConfig.ScriptName)" />
+        <DxGridDataColumn Caption="@($"{localizer["DelayMilliseconds"]}")" FieldName="@nameof(ScriptConfig.DelayMilliseconds)" />
+        <DxGridDataColumn Caption="@($"{localizer["MaxLogCount"]}")" FieldName="@nameof(ScriptConfig.MaxLogCount)" />
         <DxGridDataColumn Caption="@($"{localizer["AutoCompile"]}")" FieldName="@nameof(ScriptConfig.AutoCompile)">
             <CellDisplayTemplate>
                 <DxCheckBox CheckType="CheckType.Switch" ReadOnly="true" Checked="@((bool)context.Value)" />
@@ -44,7 +48,13 @@
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["Name"]}")" ColSpanLg="6" BeginRow="true">
                     <DxTextBox @bind-Text="@targetScript.ScriptName" ShowValidationIcon="true" />
                 </DxFormLayoutItem>
-                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["AutoCompile"]}")" ColSpanLg="6">
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["DelayMilliseconds"]}")" ColSpanLg="6" BeginRow="true">
+                    <DxSpinEdit @bind-Value="@targetScript.DelayMilliseconds" ShowValidationIcon="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["MaxLogCount"]}")" ColSpanLg="6" BeginRow="true">
+                    <DxSpinEdit @bind-Value="@targetScript.MaxLogCount" ShowValidationIcon="true" />
+                </DxFormLayoutItem>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["AutoCompile"]}")" ColSpanLg="6" BeginRow="true">
                     <DxCheckBox CheckType="CheckType.Switch" @bind-Checked="@targetScript.AutoCompile" />
                 </DxFormLayoutItem>
                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" Caption="@($"{localizer["AutoRun"]}")" ColSpanLg="6">
@@ -62,6 +72,8 @@
     </BodyContentTemplate>
 </DxPopup>
 
+<DxFileInput Visible="false" SelectedFilesChanged="SelectedFileChanged" FilesUploading="OnFilesUploading" ExternalSelectButtonCssSelector="#scriptuploadbtn"  MaxFileSize="15000000"></DxFileInput>
+
 @code {
     IGrid? grid { get; set; }
     private IEnumerable<ScriptConfig> scripts;
@@ -69,6 +81,8 @@
     private bool scriptSelected => targetScript != null;
 
     private bool popupVisible;
+
+    private string updateURL => nav.ToAbsoluteUri("/Export/UploadScript").AbsoluteUri;
 
     protected override async Task OnInitializedAsync()
     {
@@ -112,7 +126,7 @@
 
     private void ShowDelete()
     {
-        grid.ShowDataItemDeleteConfirmation(targetScript);
+        grid?.ShowDataItemDeleteConfirmation(targetScript);
     }
 
     private async Task DeleteScript()
@@ -137,5 +151,39 @@
         {
             nav.NavigateTo($"/ScriptDashboard/{targetScript?.Id}");
         }
+    }
+
+    private void DownloadScript()
+    {
+        if (scriptSelected)
+        {
+            nav.NavigateTo($"/Export/Script?id={targetScript?.Id}", true);
+        }
+    }
+
+    protected async Task OnFilesUploading(FilesUploadingEventArgs args)
+    {
+        var file = args.Files[0];
+        using var stream = new System.IO.MemoryStream();
+        await file.OpenReadStream(file.Size).CopyToAsync(stream);
+    }
+
+    private void SelectedFileChanged(IEnumerable<UploadFileInfo> uploadFileInfos)
+    {
+
+    }
+
+    private void OnUploadStarted(FileUploadStartEventArgs e)
+    {
+        
+    }
+    private void OnUploadCompleted(FileUploadEventArgs e)
+    {
+
+    }
+
+    private void UploadFail(FileUploadErrorEventArgs e)
+    {
+        var a = e.RequestInfo.ResponseText;
     }
 }

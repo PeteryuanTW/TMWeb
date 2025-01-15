@@ -7,6 +7,7 @@ using CommonLibrary.MachinePKG;
 using CommonLibrary.MachinePKG.EFModel;
 using CommonLibrary.MachinePKG.MachineData;
 using Serilog.Filters;
+using TMWeb.Components.Pages.Developer;
 
 namespace TMWeb.Services
 {
@@ -18,7 +19,6 @@ namespace TMWeb.Services
         {
             this.scopeFactory = scopeFactory;
             logger = tmWebShopfloorServicelogger;
-            //_ = InitAll();
         }
 
         public async Task InitAll()
@@ -142,7 +142,6 @@ namespace TMWeb.Services
                 return Task.FromResult(dbContext.Stations.AsNoTracking().ToList());
             }
         }
-
         public async Task<RequestResult> UpsertStation(Station station)
         {
             using (var scope = scopeFactory.CreateScope())
@@ -174,7 +173,6 @@ namespace TMWeb.Services
 
             }
         }
-
         public async Task<RequestResult> DeleteStation(Station station)
         {
             try
@@ -201,7 +199,6 @@ namespace TMWeb.Services
                 return new RequestResult(4, $"Delete station {station.Name} fail({ex.Message})");
             }
         }
-
         public async Task<List<Station>> GetStationsByProcessName(string processName)
         {
             Process? targetProcess = await GetProcessByName(processName);
@@ -379,14 +376,14 @@ namespace TMWeb.Services
                                 if (!pass)
                                 {
                                     await SummaryItemFromTaskWithSerialNoWhenNg(targetItemDetail);
-                                    await SummaryWorkorderFromUtemWithSerialNoWhenNg(workorder);
+                                    await SummaryWorkorderFromItemWithSerialNoWhenNg(workorder);
                                 }
                                 else
                                 {
                                     if (isLast)
                                     {
                                         await SummaryItemFromTaskWithSerialNoWhenOk(targetItemDetail);
-                                        await SummaryWorkorderFromUtemWithSerialNoWhenOk(workorder);
+                                        await SummaryWorkorderFromItemWithSerialNoWhenOk(workorder);
                                     }
                                 }
 
@@ -416,14 +413,14 @@ namespace TMWeb.Services
                                 if (!pass)
                                 {
                                     await SummaryItemFromTaskWithSerialNoWhenNg(targetItemDetail);
-                                    await SummaryWorkorderFromUtemWithSerialNoWhenNg(workorder);
+                                    await SummaryWorkorderFromItemWithSerialNoWhenNg(workorder);
                                 }
                                 else
                                 {
                                     if (isLast)
                                     {
                                         await SummaryItemFromTaskWithSerialNoWhenOk(targetItemDetail);
-                                        await SummaryWorkorderFromUtemWithSerialNoWhenOk(workorder);
+                                        await SummaryWorkorderFromItemWithSerialNoWhenOk(workorder);
                                     }
                                 }
                             }
@@ -469,14 +466,14 @@ namespace TMWeb.Services
                                     if (!pass)
                                     {
                                         await SummaryItemFromTaskWithSerialNoWhenNg(targetItemDetail);
-                                        await SummaryWorkorderFromUtemWithSerialNoWhenNg(workorder);
+                                        await SummaryWorkorderFromItemWithSerialNoWhenNg(workorder);
                                     }
                                     else
                                     {
                                         if (isLast)
                                         {
                                             await SummaryItemFromTaskWithSerialNoWhenOk(targetItemDetail);
-                                            await SummaryWorkorderFromUtemWithSerialNoWhenOk(workorder);
+                                            await SummaryWorkorderFromItemWithSerialNoWhenOk(workorder);
                                         }
                                     }
                                     return new(2, $"{stationName} stationout with FIFO success");
@@ -576,8 +573,7 @@ namespace TMWeb.Services
                 }
             }
         }
-
-        public async Task SummaryWorkorderFromUtemWithSerialNoWhenOk(Workorder workorder)
+        public async Task SummaryWorkorderFromItemWithSerialNoWhenOk(Workorder workorder)
         {
             using (var scope = scopeFactory.CreateScope())
             {
@@ -590,11 +586,11 @@ namespace TMWeb.Services
                         wo.Okamount = wo.ItemDetails.Sum(x => x.Okamount);
                     }
                     await dbContext.SaveChangesAsync();
+                    WorkorderContentChanged();
                 }
             }
         }
-
-        public async Task SummaryWorkorderFromUtemWithSerialNoWhenNg(Workorder workorder)
+        public async Task SummaryWorkorderFromItemWithSerialNoWhenNg(Workorder workorder)
         {
             using (var scope = scopeFactory.CreateScope())
             {
@@ -607,6 +603,7 @@ namespace TMWeb.Services
                         wo.Ngamount = wo.ItemDetails.Sum(x => x.Ngamount);
                     }
                     await dbContext.SaveChangesAsync();
+                    WorkorderContentChanged();
                 }
             }
         }
@@ -626,7 +623,6 @@ namespace TMWeb.Services
                 }
             }
         }
-
         public async Task StopStationByName(string stationName)//station name, workorder no and lot
         {
             Station? targetStation = await GetStationsByName(stationName);
@@ -636,8 +632,20 @@ namespace TMWeb.Services
                 StationChanged(targetStation);
             }
         }
-
-
+        public async Task<RequestResult> ResetStationByName(string stationName)//station name, workorder no and lot
+        {
+            Station? targetStation = await GetStationsByName(stationName);
+            if (targetStation is not null)
+            {
+                var resetRes = await targetStation.ResetStation();
+                StationChanged(targetStation);
+                return resetRes;
+            }
+            else
+            {
+                return new(4, $"Station {stationName} not found");
+            }
+        }
         public async Task<bool> StationClearWorkorder(string stationName)
         {
             Station? targetStation = await GetStationsByName(stationName);
@@ -649,199 +657,9 @@ namespace TMWeb.Services
         }
         public Action<Station>? StationChangedAct;
         private void StationChanged(Station station) => StationChangedAct?.Invoke(station);
-
-
         #endregion
 
         #region machine
-
-        //private List<Machine> machines = new();
-        //Task<List<MachineBase>> IMachineService.GetAllMachinesConfig()
-        //{
-        //    using (var scope = scopeFactory.CreateScope())
-        //    {
-        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-        //        return Task.FromResult(dbContext.Machines.AsNoTracking().ToList());
-        //    }
-        //}
-
-        //public Task<List<Machine>> GetAllMachinesConfig()
-        //{
-        //    using (var scope = scopeFactory.CreateScope())
-        //    {
-        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-        //        return Task.FromResult(dbContext.Machines.AsNoTracking().ToList());
-        //    }
-        //}
-
-        //Task<List<MachineBase>> IMachineService.GetAllMachinesConfig()
-        //{
-        //    throw new NotImplementedException();
-        //}
-        //public List<Machine> Machines => machines;
-
-        //public async Task InitAllMachinesFromDB()
-        //{
-        //    using (var scope = scopeFactory.CreateScope())
-        //    {
-        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-        //        var tmp = dbContext.Machines.Include(x => x.TagCategory).ThenInclude(x => x.Tags)
-        //            .Include(x=>x.LogicStatusCategory).ThenInclude(x=>x.LogicStatusConditions)
-        //            .Include(x=>x.ErrorCodeCategory).ThenInclude(x=>x.ErrorCodeMappings)
-        //            .AsSplitQuery()
-        //            .AsNoTracking()
-        //            .ToList();
-        //        machines = tmp.Select(x => InitMachineToDerivesClass(x)).ToList();
-        //        List<Task> tasks = new();
-        //        foreach (Machine machine in machines)
-        //        {
-        //            tasks.Add(Task.Run(() =>
-        //            {
-        //                machine.InitMachine();
-        //                if (machine.Enabled)
-        //                {
-        //                    machine.StartUpdating();
-        //                }
-        //            }));
-
-        //        }
-        //        await Task.WhenAll(tasks);
-        //    }
-        //}
-        //public Machine? InitMachineFromDBById(Guid id)
-        //{
-        //    using (var scope = scopeFactory.CreateScope())
-        //    {
-        //        var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-        //        var tmp = dbContext.Machines.Include(x => x.TagCategory).ThenInclude(x => x.Tags)
-        //            .Include(x=>x.LogicStatusCategory).ThenInclude(x=>x.LogicStatusConditions)
-        //            .Include(x => x.ErrorCodeCategory).ThenInclude(x => x.ErrorCodeMappings)
-        //            .AsSplitQuery()
-        //            .AsNoTracking()
-        //            .FirstOrDefault(x => x.Id == id);
-        //        tmp = InitMachineToDerivesClass(tmp);
-        //        tmp.InitMachine();
-        //        if (tmp.Enabled)
-        //        {
-        //            tmp.StartUpdating();
-        //        }
-        //        return tmp;
-        //    }
-        //}
-        //public Machine InitMachineToDerivesClass(Machine machine)
-        //{
-        //    switch (machine.ConnectionType)
-        //    {
-        //        case 0:
-        //            return new ModbusTCPMachine(machine);
-        //        case 1:
-        //            return new TMRobotModbusTCP(machine);
-        //        case 2:
-        //        case 10:
-        //        default:
-        //            return machine;
-        //    }
-        //}
-        //public async Task<RequestResult> UpsertMachineConfig(Machine machine)
-        //{
-        //    using (var scope = scopeFactory.CreateScope())
-        //    {
-        //        try
-        //        {
-        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-        //            var target = dbContext.Machines.FirstOrDefault(x => x.Id == machine.Id);
-        //            bool exist = target is not null;
-        //            if (exist)
-        //            {
-        //                target.Name = machine.Name;
-        //                //target.ProcessId = machine.ProcessId;
-        //                target.Ip = machine.Ip;
-        //                target.Port = machine.Port;
-        //                target.ConnectionType = machine.ConnectionType;
-        //                target.MaxRetryCount = machine.MaxRetryCount;
-        //                target.TagCategoryId = machine.TagCategoryId;
-        //                target.LogicStatusCategoryId = machine.LogicStatusCategoryId;
-        //                target.ErrorCodeCategoryId = machine.ErrorCodeCategoryId;
-        //                target.Enabled = machine.Enabled;
-        //                target.UpdateDelay = machine.UpdateDelay;
-        //            }
-        //            else
-        //            {
-        //                await dbContext.Machines.AddAsync(machine);
-        //            }
-        //            await dbContext.SaveChangesAsync();
-        //            DataEditMode dataEditMode = exist ? DataEditMode.Update : DataEditMode.Insert;
-        //            await RefreshMachine(machine, dataEditMode);
-        //            return new(2, $"upsert machine {machine.Name} success");
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            return new(4, $"upsert machine {machine.Name} fail({e.Message})");
-        //        }
-
-        //    }
-        //}
-        //public async Task<RequestResult> DeleteMachine(Machine machine)
-        //{
-        //    using (var scope = scopeFactory.CreateScope())
-        //    {
-        //        try
-        //        {
-        //            var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-        //            var target = dbContext.Machines.FirstOrDefault(x => x.Id == machine.Id);
-        //            if (target != null)
-        //            {
-        //                dbContext.Remove(target);
-        //                await dbContext.SaveChangesAsync();
-        //                await RefreshMachine(target, DataEditMode.Delete);
-        //                return new(2, $"Delete machine {machine.Name} success");
-        //            }
-        //            else
-        //            {
-        //                return new(4, $"Machine {machine.Name} not found");
-        //            }
-
-        //        }
-        //        catch (Exception e)
-        //        {
-        //            return new(4, $"Delete machine {machine.Name} fail({e.Message})");
-        //        }
-
-        //    }
-        //}
-        //public async Task RefreshMachine(Machine machine, DataEditMode dataEditMode)
-        //{
-        //    var target = await GetMachineByID(machine.Id);
-        //    if (target != null)
-        //    {
-        //        //update or delete
-        //        machines.Remove(target);
-        //        target.Dispose();
-        //        if (dataEditMode != DataEditMode.Delete)
-        //        {
-        //            machines.Add(InitMachineFromDBById(machine.Id));
-        //        }
-        //        else
-        //        {
-        //        }
-        //    }
-        //    else
-        //    {
-        //        machines.Add(InitMachineFromDBById(machine.Id));
-        //    }
-        //    MachineConfigChanged(machine.Id, dataEditMode);
-        //}
-
-        //public Action<Guid, DataEditMode>? MachineConfigChangedAct;
-        //public void MachineConfigChanged(Guid id, DataEditMode mode)
-        //{
-        //    MachineConfigChangedAct?.Invoke(id, mode);
-        //}
-        //public async Task<List<Machine>> GetMachineByProcessName(string processName)
-        //{
-        //    Process? target = await GetProcessByName(processName);
-        //    return machines.Where(x => x.ProcessId == target.Id).ToList();
-        //}
 
         public Task<List<Machine>> GetMachinesWithoutRelationAndCurrent(Guid? currentId)
         {
@@ -851,6 +669,15 @@ namespace TMWeb.Services
                 var existRelationMachinesId = dbContext.ProcessMachineRelations.Select(x => x.MachineId).ToList();
                 var machineService = scope.ServiceProvider.GetRequiredService<IMachineService>();
                 return Task.FromResult(machineService.Machines.Where(x => !existRelationMachinesId.Contains(x.Id) || x.Id == currentId).ToList());
+            }
+        }
+
+        public Task<Machine?> GetMachineByName(string name)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var machineService = scope.ServiceProvider.GetRequiredService<IMachineService>();
+                return machineService.GetMachineByName(name);
             }
         }
 
@@ -943,14 +770,7 @@ namespace TMWeb.Services
                 return new RequestResult(4, $"Delete process staion relation fail({ex.Message})");
             }
         }
-        //public Task<Machine?> GetMachineByID(Guid? id)
-        //{
-        //    return Task.FromResult(machines.FirstOrDefault(x => x.Id == id));
-        //}
-        //public Task<Machine?> GetMachineByName(string name)
-        //{
-        //    return Task.FromResult(machines.FirstOrDefault(x => x.Name == name));
-        //}
+
         #endregion
 
         #region tag
@@ -1437,13 +1257,9 @@ namespace TMWeb.Services
         #endregion
 
         #region workorder
-        public Task<List<Workorder>> GetAllWorkorderAndRecipe()
+        public async Task<List<Workorder>> GetWIPWorkorders()
         {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Workorders.Include(x => x.WorkorderRecordCategoryId).ToList());
-            }
+            return await GetWorkordersByStatus(new List<int> { 1 });
         }
         public Task<List<Workorder>> GetAllWorkorders()
         {
@@ -1458,7 +1274,7 @@ namespace TMWeb.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                return Task.FromResult(dbContext.Workorders.Where(x => targetStatus.Contains(x.Status)).ToList());
+                return Task.FromResult(dbContext.Workorders.Where(x => targetStatus.Contains(x.Status)).AsNoTracking().ToList());
             }
         }
         public Task<List<Workorder>> GetWorkordersByProcessAndStatus(Guid processID, List<int> targetStatus)
@@ -1472,44 +1288,6 @@ namespace TMWeb.Services
                     .Include(x => x.TaskRecordCategory).ThenInclude(x => x.TaskRecordContents)
                     .Where(x => x.ProcessId == processID && targetStatus.Contains(x.Status)).ToList()
                     );
-            }
-        }
-        public Task<List<ItemDetailDTO>> GetItemDetailDTOInInterval(DateTime startTime, DateTime endTime)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
-                var woWithItem = dbContext.Workorders.Include(x => x.Process)
-                    //.Include(x => x.RecipeCategory).ThenInclude(x => x.Recipes)
-                    //.Include(x => x.WorkorderRecordCategory)//.ThenInclude(x => x.WorkorderRecordContents).ThenInclude(x => x.WorkorderRecordDetails.Where(x=>x.WorkerderId == id))
-                    //.Include(x => x.WorkorderRecordDetails).ThenInclude(x => x.RecordContent)
-                    //.Include(x => x.ItemRecordsCategory)//.ThenInclude(x => x.ItemRecordContents).ThenInclude(x => x.ItemRecordDetails)
-                    //.Include(x => x.TaskRecordCategory)//.ThenInclude(x => x.TaskRecordContents).ThenInclude(x => x.TaskRecordDetails)
-                    .Include(x => x.ItemDetails)
-                    .AsSplitQuery()
-                    .AsNoTracking()
-                    .Where(x => x.CreateTime >= startTime && x.CreateTime <= endTime).ToList();
-                var res = new List<ItemDetailDTO>();
-                foreach (var wo in woWithItem)
-                {
-                    foreach (var item in wo.ItemDetails)
-                    {
-                        res.Add(new ItemDetailDTO
-                        {
-                            Process = wo.Process.Name,
-                            WorkorderNo = wo.WorkorderNo,
-                            Lot = wo.Lot,
-                            PartNo = wo.PartNo,
-                            SerialNo = item.SerialNo,
-                            TargetAmount = item.TargetAmount,
-                            Okamount = item.Okamount,
-                            Ngamount = item.Ngamount,
-                            StartTime = item.StartTime,
-                            FinishedTime = item.FinishedTime,
-                        });
-                    }
-                }
-                return Task.FromResult(res);
             }
         }
         public Task<Workorder?> GetWorkordersDetailsForConfig(Guid id)
@@ -1526,6 +1304,18 @@ namespace TMWeb.Services
                     .AsSplitQuery()
                     .AsNoTracking()
                     .FirstOrDefault(x => x.Id == id));
+            }
+        }
+        public async Task<List<Workorder>> GetWorkorderAndItemdetails()
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return await dbContext.Workorders.Include(x => x.ItemDetails)
+                    .ThenInclude(x=>x.ItemRecordDetails)
+                    .ThenInclude(x=>x.RecordContent)
+                    .AsNoTracking().AsSplitQuery()
+                    .ToListAsync();
             }
         }
         public Task<Workorder?> GetWorkorderByNoAndLot(string wo, string lot)
@@ -1612,6 +1402,7 @@ namespace TMWeb.Services
                         targetWo.Status = (int)WorkorderStatus.Running;
                         targetWo.StartTime = DateTime.Now;
                         await dbContext.SaveChangesAsync();
+                        WorkorderContentChanged();
                         return new(2, $"Start workorder success");
                     }
                     else
@@ -1663,6 +1454,10 @@ namespace TMWeb.Services
                 return new(4, "Workorder not found");
             }
         }
+
+        public Action? WorkorderContentChangedAct;
+        private void WorkorderContentChanged()
+            => WorkorderContentChangedAct?.Invoke();
         #endregion
 
         #region recipe
@@ -1842,7 +1637,8 @@ namespace TMWeb.Services
             if (targetProcess is not null)
             {
                 var machines = await GetMachineByProcessID(targetProcess.Id);
-                if (!machines.Exists(x => x.MachineStatus != Status.Idle && x.MachineStatus != Status.Running))
+                var enableMachines = machines.Where(x => x.Enabled).ToList();
+                if (!enableMachines.Exists(x => x.MachineStatus != Status.Idle && x.MachineStatus != Status.Running))
                 {
                     if (wo.HasRecipe)
                     {
@@ -1851,7 +1647,7 @@ namespace TMWeb.Services
                             var recipeRes = await recipe.GetValue(wo);
                             if (recipeRes.Item1 && recipeRes.Item3 is not null)
                             {
-                                var machineHasRecipe = machines.Where(x => x.TagCategoryId == recipe.TargetTagCatId);
+                                var machineHasRecipe = enableMachines.Where(x => x.TagCategoryId == recipe.TargetTagCatId);
                                 foreach (var machine in machineHasRecipe)
                                 {
                                     var targetTag = machine.TagCategory.Tags.FirstOrDefault(x => x.Id == recipe.TargetTagId);
@@ -2192,6 +1988,16 @@ namespace TMWeb.Services
             }
         }
 
+        public async Task<List<ItemDetail>> GetItemDetailsInInterval(DateTime startTime, DateTime endTime)
+        {
+            using (var scope = scopeFactory.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<TmwebContext>();
+                return await dbContext.ItemDetails.Include(x => x.Workorders).ThenInclude(x=>x.Process)
+                    .Include(x => x.ItemRecordDetails).ThenInclude(x => x.RecordContent)
+                    .ToListAsync();
+            }
+        }
         #endregion
 
         #region item record
@@ -2371,30 +2177,34 @@ namespace TMWeb.Services
             {
                 foreach (Station station in stations)
                 {
-                    wo = null;
-                    switch (station.StationType)
+                    if (station.CheckHasItem())
                     {
-                        case 0:
-                            StationSingleWorkorderSingleSerial? stationSingleWorkorderSingleSerial = station as StationSingleWorkorderSingleSerial;
-                            if (stationSingleWorkorderSingleSerial is not null && stationSingleWorkorderSingleSerial.HasWorkorder)
-                            {
-                                wo = stationSingleWorkorderSingleSerial.Workerder;
-                                itemDetail = stationSingleWorkorderSingleSerial.ItemDetail;
-                            }
-                            break;
-                        case 1:
-                            StationSingleWorkorderMutipleSerial? stationSingleWorkorderMutipleSerial = station as StationSingleWorkorderMutipleSerial;
-                            if (stationSingleWorkorderMutipleSerial is not null && stationSingleWorkorderMutipleSerial.HasWorkorder)
-                            {
-                                wo = stationSingleWorkorderMutipleSerial.Workerder;
-                                itemDetail = stationSingleWorkorderMutipleSerial.ItemDetails.FirstOrDefault(x => x.SerialNo == serialNo);
-                            }
-                            break;
-                        case 2:
-                            break;
-                        default:
-                            break;
+                        wo = null;
+                        switch (station.StationType)
+                        {
+                            case 0:
+                                StationSingleWorkorderSingleSerial? stationSingleWorkorderSingleSerial = station as StationSingleWorkorderSingleSerial;
+                                if (stationSingleWorkorderSingleSerial is not null && stationSingleWorkorderSingleSerial.HasWorkorder && stationSingleWorkorderSingleSerial.HasItem)
+                                {
+                                    wo = stationSingleWorkorderSingleSerial.Workerder;
+                                    itemDetail = stationSingleWorkorderSingleSerial.ItemDetail?.SerialNo == serialNo ? stationSingleWorkorderSingleSerial.ItemDetail : null;
+                                }
+                                break;
+                            case 1:
+                                StationSingleWorkorderMutipleSerial? stationSingleWorkorderMutipleSerial = station as StationSingleWorkorderMutipleSerial;
+                                if (stationSingleWorkorderMutipleSerial is not null && stationSingleWorkorderMutipleSerial.HasWorkorder && stationSingleWorkorderMutipleSerial.CheckHasItem())
+                                {
+                                    wo = stationSingleWorkorderMutipleSerial.Workerder;
+                                    itemDetail = stationSingleWorkorderMutipleSerial.ItemDetails?.FirstOrDefault(x => x.SerialNo == serialNo);
+                                }
+                                break;
+                            case 2:
+                                break;
+                            default:
+                                break;
+                        }
                     }
+
                     if (wo != null && itemDetail != null)
                     {
                         woAndItemFound = true;
@@ -2748,17 +2558,6 @@ namespace TMWeb.Services
 
         #endregion
 
-        #region log
-        private async Task WriteEventLog(RequestResult requestResult)
-        {
-            using (var scope = scopeFactory.CreateScope())
-            {
-                var eventLogService = scope.ServiceProvider.GetRequiredService<EventLogService>();
-                await eventLogService.AddEventLog(requestResult);
-            }
-        }
-        #endregion
-
         #region developer
 
         public async Task<RequestResult> ResetWorkorderById(Guid id)
@@ -2785,6 +2584,7 @@ namespace TMWeb.Services
                         workorder.FinishedTime = null;
                     }
                     await dbContext.SaveChangesAsync();
+                    WorkorderContentChanged();
                     return new RequestResult(2, $"reset ({id}) {workorder.WorkorderNo}/{workorder.Lot} success");
                 }
             }

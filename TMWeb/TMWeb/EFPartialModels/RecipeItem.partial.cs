@@ -2,6 +2,7 @@
 using DevExpress.XtraPrinting;
 using ICSharpCode.Decompiler.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
+using Serilog;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
@@ -60,12 +61,12 @@ namespace TMWeb.EFModels
                 }
                 if (type == typeof(bool))
                 {
-                    var boolRes = await CSharpScript.EvaluateAsync<bool>(expStrClone);
+                    var boolRes = Convert.ToBoolean(ValueExpString);
                     return new(true, RecipeItemName, boolRes);
                 }
                 else if (type == typeof(ushort))
                 {
-                    var ushortRes = await CSharpScript.EvaluateAsync<ushort>(expStrClone);
+                    var ushortRes = Convert.ToUInt16(ValueExpString);
                     return new(true, RecipeItemName, ushortRes);
                 }
                 else if (type == typeof(string))
@@ -74,18 +75,19 @@ namespace TMWeb.EFModels
                 }
                 else
                 {
-                    return new(false, RecipeItemName, null);
+                    return new(false, RecipeItemName, "type error");
                 }
             }
             catch (Exception e)
             {
-                return new(false, RecipeItemName, null);
+                return new(false, RecipeItemName, e.Message);
             }
 
         }
         public async Task<Tuple<bool, string, string>> GetValueString(Workorder wo)
         {
             var objRes = await GetValue(wo);
+            //Log.Information($"RecipeItem {RecipeItemName} get value result: {objRes.Item1}, {objRes.Item2}, {objRes.Item3?.ToString()}");
             return objRes.Item1 ? new(objRes.Item1, objRes.Item2, objRes.Item3.ToString()) : new(objRes.Item1, objRes.Item2, null);
         }
     }

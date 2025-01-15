@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using TMWeb.EFModels;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using Serilog.LogBranch.Extensions;
+using Serilog.Sinks.MSSqlServer;
 using CommonLibrary.Auth;
 using CommonLibrary.Auth.EFModels;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -15,6 +15,11 @@ using System.Runtime.CompilerServices;
 using System.Data.Common;
 using CommonLibrary.MachinePKG;
 using Microsoft.Extensions.Hosting.WindowsServices;
+using System.Collections.ObjectModel;
+using System.Data;
+using TMWeb.Data;
+using static Serilog.Sinks.MSSqlServer.ColumnOptions;
+using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,25 +44,52 @@ builder.Services.AddDevExpressBlazor(options =>
 var setting = builder.Configuration;
 var logPath = WindowsServiceHelpers.IsWindowsService() ? AppContext.BaseDirectory : Directory.GetCurrentDirectory();
 
-
 builder.Host.UseSerilog(
-    (context, services, configuration) =>
+    (context, configuration) =>
     {
         configuration
         .ReadFrom.Configuration(context.Configuration)
-        .ReadFrom.Services(services)
+        //.ReadFrom.Services(services)
         .Enrich.FromLogContext()
-        .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Controller"))
-        .WriteTo.File($"{logPath}\\logs\\controller\\log_.txt",
-        rollingInterval: Enum.Parse<RollingInterval>(setting["Serilog:WriteTo:1:Args:rollingInterval"]),
-            retainedFileCountLimit: int.Parse(setting["Serilog:WriteTo:1:Args:retainedFileCountLimit"])))
-         .WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Service"))
-         .WriteTo.File($"{logPath}\\logs\\service\\log_.txt",
-            rollingInterval: Enum.Parse<RollingInterval>(setting["Serilog:WriteTo:2:Args:rollingInterval"]),
-            retainedFileCountLimit: int.Parse(setting["Serilog:WriteTo:2:Args:retainedFileCountLimit"])));
+        .Enrich.With<LogLevelAsIntEnricher>()
+        //.WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Controller"))
+        //.WriteTo.File($"{logPath}\\logs\\controller\\log_.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 720))
+        //.WriteTo.Logger(lc => lc.Filter.ByIncludingOnly(e => e.Properties["SourceContext"].ToString().Contains("Service"))
+        //.WriteTo.File($"{logPath}\\logs\\service\\log_.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 720))
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
+        .WriteTo.MSSqlServer(
+            connectionString: builder.Configuration.GetConnectionString("DbConnection"),
+            sinkOptions: new MSSqlServerSinkOptions
+            {
+                TableName = "SerilogDatas",
+                AutoCreateSqlTable = true,
+
+            },
+            columnOptions: new ColumnOptions
+            {
+                Store = new Collection<StandardColumn>
+                {
+                    StandardColumn.Id,
+                    StandardColumn.Message,
+                    StandardColumn.TimeStamp,
+                },
+                Message = new MessageColumnOptions
+                {
+                    ColumnName = "Msg",
+                    DataType = SqlDbType.NVarChar,
+                    DataLength = -1,
+                },
+                AdditionalColumns = new Collection<SqlColumn>
+                {
+                    new SqlColumn { ColumnName = "Severity", DataType = SqlDbType.Int},
+                    new SqlColumn { ColumnName = "Caller", DataType = SqlDbType.NVarChar},
+                    new SqlColumn { ColumnName = "Method", DataType = SqlDbType.NVarChar},
+                    new SqlColumn { ColumnName = "Row", DataType = SqlDbType.Int},
+                    new SqlColumn { ColumnName = "Col", DataType = SqlDbType.Int},
+                }
+            }
+            );
     });
-//setting[$"Serilog:WriteTo:1:Args:Path"]
-//setting[$"Serilog:WriteTo:2:Args:Path"]
 
 builder.Services.AddSingleton<WeatherForecastService>();
 
@@ -82,16 +114,19 @@ builder.AddMachineService("DbConnection");
 
 builder.Services.AddSingleton<ApplicationLifetimeService>();
 builder.Services.AddSingleton<TMWebShopfloorService>();
-builder.Services.AddSingleton<EventLogService>();
+
 builder.Services.AddSingleton<ScriptService>();
 builder.Services.AddScoped<UIService>();
 builder.Services.AddScoped<ScriptLoaderService>();
-//builder.Services.AddScoped<AuthService>(p =>
-//{
-//    return new AuthService("TMWeb", p.GetRequiredService<IServiceScopeFactory>(), p.GetRequiredService<ICookieService>());
-//});
 
 builder.Services.AddHostedService<HostedService>();
+
+builder.Services.Configure<SerilogCleanupSetting>(builder.Configuration.GetSection("SerilogCleanupSetting"));
+builder.Services.AddSingleton<SerilogService>();
+builder.Services.AddHostedService<SerilogDBCleanupService>();
+
+
+
 
 builder.Services.AddLocalization();
 var supportedCultures = new[] { "zh-TW", "en-US" };

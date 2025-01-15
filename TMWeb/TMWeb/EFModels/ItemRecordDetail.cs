@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 namespace TMWeb.EFModels;
@@ -10,8 +11,6 @@ public partial class ItemRecordDetail
     public Guid RecordContentId { get; set; }
 
     public string? Value { get; set; }
-
     public virtual ItemDetail Item { get; set; } = null!;
-
     public virtual ItemRecordContent RecordContent { get; set; } = null!;
 }

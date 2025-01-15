@@ -1,7 +1,5 @@
 ﻿using System.Net.Sockets;
 using NModbus;
-using System;
-using Azure;
 using System.Text;
 using System.Buffers.Binary;
 using CommonLibrary.API.Message;

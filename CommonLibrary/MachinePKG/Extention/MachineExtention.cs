@@ -21,6 +21,7 @@ namespace CommonLibrary.MachinePKG
         {
             builder.Services.AddDbContextFactory<MachineDBContext>(options =>
             {
+                var a = builder.Configuration.GetConnectionString(dbConnectionStringName);
                 options.UseSqlServer(builder.Configuration.GetConnectionString(dbConnectionStringName));
             });
 

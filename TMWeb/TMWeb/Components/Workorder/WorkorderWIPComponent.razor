@@ -1,0 +1,30 @@
+﻿<div class="w-100 card p-2 overflow-auto" style="height:95%">
+    @foreach (var wo in Workorders)
+    {
+        <WorkorderProgressComponent WorkorderParam="@wo" />
+    }
+</div>
+
+
+@code {
+    [Parameter]
+    public IEnumerable<Workorder>? Workorders { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshData();
+        shopfloorService.WorkorderContentChangedAct += WorkorderUpdate;
+
+    }
+
+    private async Task RefreshData()
+    {
+        Workorders = await shopfloorService.GetWIPWorkorders();
+    }
+
+    private async void WorkorderUpdate()
+    {
+        await RefreshData();
+        await InvokeAsync(StateHasChanged);
+    }
+}

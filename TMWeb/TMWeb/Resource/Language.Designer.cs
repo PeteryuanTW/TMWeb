@@ -378,9 +378,9 @@ namespace TMWeb.Resource {
         /// <summary>
         ///   查詢類似 Start time 的當地語系化字串。
         /// </summary>
-        public static string Start_time {
+        public static string Start_Time {
             get {
-                return ResourceManager.GetString("Start time", resourceCulture);
+                return ResourceManager.GetString("Start Time", resourceCulture);
             }
         }
         

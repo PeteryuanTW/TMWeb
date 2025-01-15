@@ -1,11 +1,12 @@
-﻿using TMWeb.EFModels;
+﻿using CommonLibrary.API.Message;
+using TMWeb.EFModels;
 
 namespace TMWeb.Data
 {
 	public class StationSingleWorkorderMutipleSerial : StationSingleWorkorder
 	{
 		private List<ItemDetail> itemDetails;
-		public bool HasItem => itemDetails != null && itemDetails.Count() > 0;
+		private bool HasItem => itemDetails != null && itemDetails.Count() > 0;
 		public List<ItemDetail> ItemDetails => itemDetails;
 
 		private List<TaskDetail> taskDetailsInStation;
@@ -18,7 +19,41 @@ namespace TMWeb.Data
             taskDetailsInStation = new();
 		}
 
-		public override void AddItemDetail(ItemDetail itemDetail)
+        public override bool CheckCanReset()
+        {
+            return !HasItem && !HasTask;
+        }
+
+        public override bool CheckHasItem()
+        {
+            return HasItem;
+        }
+
+        public override Task<RequestResult> ResetStation()
+        {
+            if (CheckCanReset())
+            {
+                try
+                {
+                    ClearWorkorder();
+                    InitStation();
+                    return Task.FromResult(new RequestResult(2, $"Reset station {Name} success"));
+                }
+                catch (Exception e)
+                {
+                    return Task.FromResult(new RequestResult(4, $"Reset station {Name} fail({e.Message})"));
+
+                }
+
+            }
+            else
+            {
+                return Task.FromResult(new RequestResult(4, $"Clear data in station before reset"));
+
+            }
+        }
+
+        public override void AddItemDetail(ItemDetail itemDetail)
 		{
 			if (!itemDetails.Exists(x => x.Id == itemDetail.Id))
 			{

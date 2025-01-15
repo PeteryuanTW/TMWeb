@@ -75,6 +75,7 @@ public partial class TmwebContext : DbContext
     public virtual DbSet<WorkorderRecordContent> WorkorderRecordContents { get; set; }
 
     public virtual DbSet<WorkorderRecordDetail> WorkorderRecordDetails { get; set; }
+    public virtual DbSet<SerilogData> SerilogDatas { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -96,7 +97,7 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Workorders).WithMany(p => p.ItemDetails)
                 .HasForeignKey(d => d.WorkordersId)
-                .OnDelete(DeleteBehavior.ClientCascade)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__ItemDetai__Worko__52593CB8");
         });
 
@@ -279,6 +280,8 @@ public partial class TmwebContext : DbContext
                 .ValueGeneratedNever()
                 .HasColumnName("ID");
             entity.Property(e => e.ScriptName).HasMaxLength(50);
+            entity.Property(e => e.DelayMilliseconds).HasColumnName("DelayMilliseconds");
+            entity.Property(e => e.MaxLogCount).HasColumnName("MaxLogCount");
             entity.Property(e => e.AutoCompile).HasColumnName("AutoCompile");
             entity.Property(e => e.AutoRun).HasColumnName("AutoRun");
             entity.Property(e => e.SuorceCode).HasColumnName("SourceCode").HasColumnType("VARCHAR(MAX)");
@@ -664,8 +667,20 @@ public partial class TmwebContext : DbContext
 
             entity.HasOne(d => d.Workerder).WithMany(p => p.WorkorderRecordDetails)
                 .HasForeignKey(d => d.WorkerderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK__Workorder__Worke__48CFD27E");
+        });
+
+        modelBuilder.Entity<SerilogData>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("Id");
+            entity.Property(e => e.Msg).HasColumnName("Msg");
+            entity.Property(e => e.TimeStamp).HasColumnName("TimeStamp");
+            entity.Property(e => e.Severity).HasColumnName("Severity");
+            entity.Property(e => e.Caller).HasColumnName("Caller");
+            entity.Property(e => e.Method).HasColumnName("Method");
+            entity.Property(e => e.Row).HasColumnName("Row");
+            entity.Property(e => e.Column).HasColumnName("Col");
         });
 
         OnModelCreatingPartial(modelBuilder);

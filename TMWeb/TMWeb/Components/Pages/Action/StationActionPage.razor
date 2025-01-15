@@ -1,64 +1,34 @@
 ﻿@page "/{ProcessID}/StationAction"
 @rendermode InteractiveServer
 
-<div class="h-100">
-    <DxDrawer @bind-IsOpen="@drawerVisible" PanelWidth="20rem" Mode="DrawerMode.Overlap" Position="DrawerPosition.Right" CloseOnEscape="false">
-        <HeaderTemplate>
-            <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="@($"{localizer["Deploy"]}")">
-                <Items>
-                    <DxToolbarItem RenderStyle="ButtonRenderStyle.Danger" IconCssClass="oi oi-x" Click="CloseDrawer" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" />
-                </Items>
-            </DxToolbar>
-        </HeaderTemplate>
-        <BodyTemplate>
-            <DxFormLayout CssClass="w-100">
-                <DxFormLayoutItem Caption="@($"{localizer["Workorder"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
-                    <DxComboBox Data="@workorders_start" @bind-Value="@selectedWorkorder_start" EditFormat="{0}-{1}">
-                        <Columns>
-                            <DxListEditorColumn Caption="@($"{localizer["Workorder"]}")" FieldName="@nameof(Workorder.WorkorderNo)" />
-                            <DxListEditorColumn Caption="@($"{localizer["Lot"]}")" FieldName="@nameof(Workorder.Lot)" />
-                            <DxListEditorColumn Caption="@($"{localizer["Status"]}")" FieldName="@nameof(Workorder.Status)" />
-                        </Columns>
-                    </DxComboBox>
-                </DxFormLayoutItem>
-            </DxFormLayout>
-        </BodyTemplate>
-        <FooterTemplate>
-            <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large">
-                <Items>
-                    <DxToolbarItem RenderStyle="ButtonRenderStyle.Info" Enabled="@hasWO_start" IconCssClass="oi oi-data-transfer-download" Click="@(async () => await SetAllStationsWorkorder(selectedWorkorder_start))" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" />
-                </Items>
-            </DxToolbar>
-        </FooterTemplate>
-        <TargetContent>
-            <DxStackLayout Orientation="Orientation.Vertical" ItemSpacing="1rem" CssClass="h-100">
-                <Items>
-                    <DxStackLayoutItem Length="1fr">
-                        <Template>
-                            <div>
-                                <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="@process.Name">
-                                    <Items>
-                                        <DxToolbarItem RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="oi oi-plus" Click="ShowDrawer" BeginGroup="true" />
-                                        <DxToolbarItem RenderStyle="ButtonRenderStyle.Success" IconCssClass="oi oi-media-play" Click="RunAllStations" BeginGroup="true" />
-                                        <DxToolbarItem RenderStyle="ButtonRenderStyle.Warning" IconCssClass="oi oi-media-pause" Click="PauseAllStations" BeginGroup="true" />
-                                        <DxToolbarItem RenderStyle="ButtonRenderStyle.Danger" IconCssClass="oi oi-media-stop" Click="StopAllStations" BeginGroup="true" />
-                                        <DxToolbarItem RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="oi oi-reload" Click="ResetAllStations" BeginGroup="true" />
-                                    </Items>
-                                </DxToolbar>
-                            </div>
-                        </Template>
-                    </DxStackLayoutItem>
-                    <DxStackLayoutItem Length="9fr">
-                        <Template>
-                            <div class="overflow-auto h-100 w-100 d-flex flex-wrap align-sa gap-1 justify-content-center m-auto">
-                                @foreach (Station station in stations)
-                                {
-                                    <StationComponentFactory StationParam="@station" />
-                                }
-                            </div>
-                        </Template>
-                    </DxStackLayoutItem>
-                    @* <DxStackLayoutItem Length="1fr">
+<DxStackLayout Orientation="Orientation.Vertical" ItemSpacing="1rem" CssClass="h-100">
+    <Items>
+        <DxStackLayoutItem Length="1fr">
+            <Template>
+                <div>
+                    <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="@process.Name">
+                        <Items>
+                            <DxToolbarItem RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="oi oi-plus" Click="ShowPopup" BeginGroup="true" />
+                            <DxToolbarItem RenderStyle="ButtonRenderStyle.Success" IconCssClass="oi oi-media-play" Click="RunAllStations" BeginGroup="true" />
+                            @* <DxToolbarItem RenderStyle="ButtonRenderStyle.Warning" IconCssClass="oi oi-media-pause" Click="PauseAllStations" BeginGroup="true" />
+                                        <DxToolbarItem RenderStyle="ButtonRenderStyle.Danger" IconCssClass="oi oi-media-stop" Click="StopAllStations" BeginGroup="true" /> *@
+                            <DxToolbarItem RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="oi oi-reload" Click="ResetAllStations" BeginGroup="true" />
+                        </Items>
+                    </DxToolbar>
+                </div>
+            </Template>
+        </DxStackLayoutItem>
+        <DxStackLayoutItem Length="9fr">
+            <Template>
+                <div class="overflow-auto h-100 w-100 d-flex flex-wrap align-sa gap-1 justify-content-center m-auto">
+                    @foreach (Station station in stations)
+                    {
+                        <StationComponentFactory StationParam="@station" />
+                    }
+                </div>
+            </Template>
+        </DxStackLayoutItem>
+        @* <DxStackLayoutItem Length="1fr">
                         <Template>
                             <div class="d-flex flex-wrap align-content-center justify-content-center">
                                 <DxSpinEdit @bind-Value="@amountPerPage" MinValue="1"></DxSpinEdit>
@@ -68,44 +38,41 @@
                             </div>
                         </Template>
                     </DxStackLayoutItem> *@
+    </Items>
+</DxStackLayout>
+<DxPopup @bind-Visible="@popupVisible" CloseOnOutsideClick="false" ShowHeader="true" ShowFooter="false" Width="50rem">
+    <HeaderTemplate>
+        <div class="w-100 p-3 border border-bottom">
+            <DxToolbar>
+                <Items>
+                    <DxToolbarItem IconCssClass="oi oi-x" Click="ClosePopup" RenderStyle="ButtonRenderStyle.Danger" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
                 </Items>
-            </DxStackLayout>
-            @* <div class="container-fluid overflow-y-auto" style="height: 100vh">
-                <div class="row">
-                    <div class="col-12">
-                        <DxToolbar ItemRenderStyleMode="@ToolbarRenderStyleMode.Contained" SizeMode="SizeMode.Large" Title="@process.Name">
-                            <Items>
-                                <DxToolbarItem RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="oi oi-plus" Click="ShowDrawer" BeginGroup="true" />
-                                <DxToolbarItem RenderStyle="ButtonRenderStyle.Success" IconCssClass="oi oi-media-play" Click="RunAllStations" BeginGroup="true" />
-                                <DxToolbarItem RenderStyle="ButtonRenderStyle.Warning" IconCssClass="oi oi-media-pause" Click="PauseAllStations" BeginGroup="true" />
-                                <DxToolbarItem RenderStyle="ButtonRenderStyle.Danger" IconCssClass="oi oi-media-stop" Click="StopAllStations" BeginGroup="true" />
-                                <DxToolbarItem RenderStyle="ButtonRenderStyle.Secondary" IconCssClass="oi oi-reload" Click="ResetAllStations" BeginGroup="true" />
-                            </Items>
-                        </DxToolbar>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12 overflow-y-auto h-100 w-100 d-flex flex-wrap align-content-center gap-1 justify-content-center">
-                        @foreach (Station station in currentPageStations)
-                        {
-                            <StationComponentFactory StationParam="@station" />
-                        }
-                    </div>
-                </div>
-                 <div class="row">
-                    <div class="col-12">
-                        <DxSpinEdit @bind-Value="@amountPerPage" MinValue="1"></DxSpinEdit>
-                        <DxPager PageCount="@pageCount"
-                                 @bind-ActivePageIndex="@currentPage"
-                                 NavigationMode=@PagerNavigationMode.InputBox />
-                    </div>
-                </div> 
-            </div> *@
-        </TargetContent>
-    </DxDrawer>
+            </DxToolbar>
+        </div>
+    </HeaderTemplate>
+    <BodyContentTemplate Context="bodycontext">
+            <DxFormLayout>
+                <DxFormLayoutItem Caption="@($"{localizer["Workorder"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxComboBox Data="@workorders_start" @bind-Value="@selectedWorkorder_start" TextFieldName="@nameof(Workorder.WorkorderNo)" ClearButtonDisplayMode="DataEditorClearButtonDisplayMode.Auto">
+                        <Columns>
+                            <DxListEditorColumn Caption="@($"{localizer["Workorder"]}")" FieldName="@nameof(Workorder.WorkorderNo)" />
+                            <DxListEditorColumn Caption="@($"{localizer["Lot"]}")" FieldName="@nameof(Workorder.Lot)" />
+                            <DxListEditorColumn Caption="@($"{localizer["Status"]}")" FieldName="@nameof(Workorder.Status)" />
+                        </Columns>
+                    </DxComboBox>
+                </DxFormLayoutItem>
 
-</div>
+                <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                    <DxToolbar>
+                        <Items>
+                            <DxToolbarItem IconCssClass="oi oi-check" Click="(async () => await SetAllStationsWorkorder(selectedWorkorder_start))" Enabled="hasWO_start" RenderStyle="ButtonRenderStyle.Primary" BeginGroup="true" Alignment="ToolbarItemAlignment.Right" RenderStyleMode="ToolbarItemRenderStyleMode.Contained" />
+                        </Items>
+                    </DxToolbar>
+                </DxFormLayoutItem>
 
+            </DxFormLayout>
+    </BodyContentTemplate>
+</DxPopup>
 @code {
     [Parameter]
     public string ProcessID { get; set; }
@@ -119,7 +86,7 @@
     private bool hasWO_start => selectedWorkorder_start != null;
 
 
-    private bool drawerVisible = false;
+    private bool popupVisible = false;
 
     // private int totalStationAmount => stations.Count();
     // private int pageCount => totalStationAmount % amountPerPage == 0 ? totalStationAmount / amountPerPage : totalStationAmount / amountPerPage + 1;
@@ -149,27 +116,27 @@
             }));
         }
         await Task.WhenAll(tasks);
-        CloseDrawer();
+        ClosePopup();
     }
 
-    private async Task ShowDrawer()
+    private async Task ShowPopup()
     {
-        await GetDrawerData();
-        drawerVisible = true;
+        await GetWorkorderData();
+        //selectedWorkorder_start = new();
+        popupVisible = true;
     }
 
-    private async Task GetDrawerData()
+    private async Task GetWorkorderData()
     {
-        //Process? process = await shopfloorService.GetProcessByID(new Guid(ProcessID));
         if (process != null)
         {
             workorders_start = await shopfloorService.GetWorkordersByProcessAndStatus(process.Id, new List<int> { 0, 1 });
         }
     }
 
-    private void CloseDrawer()
+    private void ClosePopup()
     {
-        drawerVisible = false;
+        popupVisible = false;
     }
 
     private async Task RunAllStations()
@@ -192,7 +159,7 @@
         {
             tasks.Add(Task.Run(async () =>
             {
-                //await shopfloorServiceDataService.PauseStationByName(stationConfig.Name);
+                //await shopfloorService.PauseStationByName(station.Name);
             }));
         }
         await Task.WhenAll(tasks);
@@ -220,7 +187,8 @@
         {
             tasks.Add(Task.Run(async () =>
             {
-                //await shopfloorServiceDataService.ResetStationByName(stationConfig.Name);
+                var res = await shopfloorService.ResetStationByName(station.Name);
+                uiService.ShowToast(res);
             }));
         }
         await Task.WhenAll(tasks);

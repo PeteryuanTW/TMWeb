@@ -87,7 +87,7 @@ namespace CommonLibrary.MachinePKG.EFModel
         protected Status status;
         public Status MachineStatus => status;
         public string StatusStr => status.ToString();
-        public bool machineAvailable => status != Status.Init && status == Status.TryConnecting && status == Status.Disconnect && status == Status.Stop && status == Status.Error;
+        public bool machineAvailable => status != Status.Init && status != Status.TryConnecting && status != Status.Disconnect && status != Status.Stop && status != Status.Error;
 
         protected Status customStatus;
         public Status CustomStatus => customStatus;

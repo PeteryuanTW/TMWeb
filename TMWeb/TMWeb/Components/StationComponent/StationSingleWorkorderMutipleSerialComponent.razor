@@ -28,7 +28,7 @@
                         </DxTagBox>
                     </div>
                 </DxTabPage>
-                <DxTabPage Text="Item record" Visible="@(stationSingleWorkorderMutipleSerial.HasItem && stationSingleWorkorderMutipleSerial.HasWorkorder && stationSingleWorkorderMutipleSerial.Workerder.HasItemRecord)">
+                <DxTabPage Text="Item record" Visible="@(stationSingleWorkorderMutipleSerial.CheckHasItem() && stationSingleWorkorderMutipleSerial.HasWorkorder && stationSingleWorkorderMutipleSerial.Workerder.HasItemRecord)">
                     <div class="p-3">
                         <DxFormLayout>
                             <DxFormLayoutItem Caption="SerialNo" Context="itemrecordcontext" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
@@ -96,7 +96,7 @@
                 <DxGridLayoutItem Area="status">
                     <Template>
                         <div class="containeralignmid">
-                            <DxButton Text="@($"{stationSingleWorkorderMutipleSerial.StationStatus.ToString()}")" RenderStyle="@GetStatusStyle()"></DxButton>
+                            <DxButton Text="@($"{localizer[stationSingleWorkorderMutipleSerial.StationStatus.ToString()]}")" RenderStyle="@GetStatusStyle()"></DxButton>
                         </div>
                     </Template>
                 </DxGridLayoutItem>
@@ -104,19 +104,21 @@
                     <Template>
                         <div class="p-3">
                             <DxFormLayout>
-                                <DxFormLayoutItem Caption="Process" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                <DxFormLayoutItem Caption="@($"{localizer["Process"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxTextBox Text="@stationSingleWorkorderMutipleSerial.Process?.Name" ReadOnly="true"></DxTextBox>
                                 </DxFormLayoutItem>
-                                <DxFormLayoutItem Caption="Workorder" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
+                                <DxFormLayoutItem Caption="@($"{localizer["Workorder"]}")" CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
                                     <DxTextBox Text="@stationSingleWorkorderMutipleSerial.Workerder?.WorkorderNo" ReadOnly="true"></DxTextBox>
                                 </DxFormLayoutItem>
                                 <DxFormLayoutItem CaptionPosition="CaptionPosition.Vertical" ColSpanLg="12">
-                                    <DxGrid Data="@stationSingleWorkorderMutipleSerial.TaskDetailsInStation">
-                                        <Columns>
-                                            <DxGridDataColumn FieldName="@nameof(TaskDetail.SerialNo)"></DxGridDataColumn>
-                                            <DxGridDataColumn FieldName="@nameof(TaskDetail.StartTime)" DisplayFormat="G"></DxGridDataColumn>
-                                        </Columns>
-                                    </DxGrid>
+                                    <div class="h-100 w-100">
+                                        <DxGrid Data="@stationSingleWorkorderMutipleSerial.TaskDetailsInStation" PageSize="4">
+                                            <Columns>
+                                                <DxGridDataColumn FieldName="@nameof(TaskDetail.SerialNo)" Caption="@($"{localizer["Serial No"]}")"></DxGridDataColumn>
+                                                <DxGridDataColumn FieldName="@nameof(TaskDetail.StartTime)" Caption="@($"{localizer["Start Time"]}")" DisplayFormat="G"></DxGridDataColumn>
+                                            </Columns>
+                                        </DxGrid>
+                                    </div>
                                 </DxFormLayoutItem>
                             </DxFormLayout>
                         </div>

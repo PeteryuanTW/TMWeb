@@ -111,7 +111,7 @@
                             <div>
                                 <DxFormLayout>
                                     <DxFormLayoutTabPages>
-                                        <DxFormLayoutTabPage Caption="Basic Tag" Visible="@(machine.hasTags && machine.machineAvailable)">
+                                        <DxFormLayoutTabPage Caption="Basic Tag" Visible="@(machine.hasTags && machine.RunFlag)">
                                             <DxFormLayoutItem ColSpanLg="12">
                                                 <DxGrid Data="@machine.TagCategory.Tags">
                                                     <Columns>

@@ -1,5 +1,4 @@
-﻿using Azure;
-using CommonLibrary.API.Message;
+﻿using CommonLibrary.API.Message;
 using CommonLibrary.MachinePKG.AnalysisData;
 using CommonLibrary.MachinePKG.EFModel;
 using CommonLibrary.MachinePKG.MachineData;
@@ -192,9 +191,9 @@ namespace CommonLibrary.MachinePKG.Service
                 case 21:
                     res = new WrappingMachine(machine);
                     break;
-                case 22:
-                    res = new RobotOther(machine);
-                    break;
+                //case 22:
+                //    res = new RobotOther(machine);
+                //    break;
                 case 78:
                     res = new RegalscanRFIDMachine(machine);
                     break;
